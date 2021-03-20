@@ -48,5 +48,57 @@ See tutorial.tbs for an example file using all options.
 
 ![Figure 2](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/Tutorial.tbs.png "Tutorial.tbs")
 
+```
+# tempo in bps
+120
+
+# start with some rests to count off
+_,1,
+_,1,
+_,1,
+_,1,
+
+# next notes to play
+red
+d , 1,
+e , 1,
+f#, 1,
+g , 1,
+a , 1,
+b , 1,
+c , 1,
+
+D , 1,
+E , 1,
+F , 1,
+G,  1,
+A , 1,
+B , 1,
+C , 1,
+
+_ , 2, 
+green
+C , 2,^
+D , 2,>
+E , 2,>^
+F#, 2,=
+E , 2,@
+F#, 2,~
+G , 1,/
+A , 1,-
+B , 1,\
+
+  , 0, 
+blue
+c , 1,
+d , 1,
+e , 1,
+f#, 1,
+
+| , 0, 
+
+g , 4,
+
+```
 
  
