@@ -2,14 +2,14 @@
 For playing along with scrolling tabs on D Tin whistle / Penny Whistle / Low Whistle.
 
 ## Features
-- scrolling cursor shows which note/tab to play
-- longer tabs show duraction of notes 
+- scrolling cursor (vertical red indicator) shows which note/tab to play
+- longer tabs show duration of notes 
 - indicators above tabs show decorators
 - add your own tab files
 <br />  <br />
 - adjustable tempo 
-- metronome ticks in tempo
-- song can be played in background as tin whistle of low whistle
+- audible metronome 
+- song can be played in background in scale of tin whistle or low whistle
 
 ![Figure 1](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/MainWindow.png "Screenshot")
  
