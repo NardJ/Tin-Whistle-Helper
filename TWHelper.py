@@ -470,7 +470,6 @@ def advMetroMult(event=None):
         win.lbMetroMult.configure(fg='black')
 def maxMetroMult():
     global metroMultIdx
-    print ("maxMetroMul")
     if bpm>300:
         if metroMultIdx==1: advMetroMult()
 def resetView(event):
