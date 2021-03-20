@@ -1,0 +1,80 @@
+# tempo in bps
+120
+
+# music notes
+# ----------- 
+# notation: note, duration, play style 
+#   notes:      firstoctave : c,d,e,f#,g,a,b,
+#               secondoctave: C,D,E,F#,G,A,B
+#               rests       : _
+#   duration:   whole beats .e.g. 1,2,3,4,5,6,7,8
+#   play style: (see: https://en.wikipedia.org/wiki/Tin_whistle)
+#               normal       :
+#               tap/strike   : ^
+#               cut          : >
+#               slide        : =
+#               roll(cut+tap): >^ 
+#               tonguing     : @
+#               vibrato      : ~
+#               join notes in one breath
+#                              /: start
+#                              -: continue
+#                              \: end
+# visual separations
+# ------------------
+# can be inserted between notes
+#    : blank space
+#   |: vertical line
+#   blue/red/green/yellow/brown: color of next notes
+#
+
+# example
+# -------
+
+# start with some rests to count off
+_,1,
+_,1,
+_,1,
+_,1,
+
+# next notes to play
+red
+d , 1,
+e , 1,
+f#, 1,
+g , 1,
+a , 1,
+b , 1,
+c , 1,
+
+D , 1,
+E , 1,
+F , 1,
+G,  1,
+A , 1,
+B , 1,
+C , 1,
+
+_ , 2, 
+green
+C , 2,^
+D , 2,>
+E , 2,>^
+F#, 2,=
+E , 2,@
+F#, 2,~
+G , 1,/
+A , 1,-
+B , 1,\
+
+  , 0, 
+blue
+c , 1,
+d , 1,
+e , 1,
+f#, 1,
+
+| , 0, 
+
+g , 4,
+
