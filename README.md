@@ -3,8 +3,9 @@ For playing along with scrolling tabs on D Tin whistle / Penny Whistle / Low Whi
 
 ## Features
 - scrolling cursor (vertical red indicator) shows which note/tab to play
-- longer tabs show duration of notes 
+- tabs length show note duration 
 - indicators above tabs show decorators
+<br />  <br />
 - add your own tab files
 <br />  <br />
 - adjustable tempo 
