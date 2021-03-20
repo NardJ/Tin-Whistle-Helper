@@ -1,5 +1,5 @@
 # Tin-Whistle-Helper
-For playing along with scrolling tabs on D Tin whistle / Penny Whistle / Low Whistle.
+For playing at tempo along with scrolling tabs on a D Tin Whistle/Penny Whistle or Low Whistle.
 
 ## Features
 - scrolling cursor (vertical red indicator) shows which note/tab to play
