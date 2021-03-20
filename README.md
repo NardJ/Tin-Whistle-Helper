@@ -46,6 +46,7 @@ A note consists of a note id, the duration in beats and decoration. These should
 
 See tutorial.tbs for an example file using all options.
 
+![Figure 2](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/Tutorial.tbs.png "Tutorial.tbs")
 
 
  
