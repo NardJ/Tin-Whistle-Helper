@@ -81,8 +81,9 @@ def loadFile(filename=None,filepath=None):
             if len(line)==0: lines=lines[:idx]+lines[idx+1:]
             elif line[0]=='#':lines=lines[:idx]+lines[idx+1:]
         #read bpm
-        bpm=int(lines[0])
+        bpm=int(lines[0])        
         win.bpm.set(f"{bpm:3} bpm")
+        maxMetroMult()
         #read notes
         lines=lines[1:]
         for line in lines:
@@ -110,7 +111,7 @@ def loadFile(filename=None,filepath=None):
 
 def openFile():
     global beatCursor,metroMultIdx
-    stopMetronome() # needed otherwise timer prevents updates of filedialog
+    stopTabScroll() # needed otherwise timer prevents updates of filedialog
     rep = filedialog.askopenfilenames(                  # open dialog so user can select file
                                         parent=win,
                                         initialdir=scriptdir,
@@ -333,13 +334,13 @@ beatUpdate=0.1
 playing=False
 startTime=0
 delayJob=None
-def stopMetronome():
+def stopTabScroll():
     global playing,beatCursor
     playing=False
     beatCursor=0
     endNote()
     drawBars()
-def pauseMetronome():
+def pauseTabScroll():
     global beatUpdate,delayJob
     if delayJob is not None:
         win.after_cancel(delayJob)
@@ -360,7 +361,7 @@ def advanceMetronome():
             beatCursor=round(beatCursor,3)
             win.beatCursor.set(f"beat: {beatCursor:.2f}")
             # stop play
-            stopMetronome()
+            stopTabScroll()
         else:
             delay=int((60/bpm*1000)*beatUpdate)
             delayJob=win.after(delay, advanceMetronome)
@@ -385,7 +386,7 @@ def setBeatUpdate():
     if delay<10: 
         beatUpdate=1.0
         delay=delay2beatUpdate(beatUpdate)
-def startMetronome():
+def startTabScroll():
     global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset,dragOffset
     if playing: return
     initBars(beatsize) # don't reset zoom
@@ -399,27 +400,32 @@ def startMetronome():
     drawBars()
     doCursorPlay()
     delayJob=win.after(delay, advanceMetronome)
-def slowerMetronome():
+def decreaseBPM():
     if playing: return
     global bpm
     bpm=bpm-5
+    if bpm<5: bpm=5
     win.bpm.set(f"{bpm:3} bpm")
-def slower2xMetronome():
+def decrease2xBPM():
     if playing: return
     global bpm
     bpm=int(bpm/2)
-    if bpm<1: bpm=1
+    if bpm<5: bpm=5
     win.bpm.set(f"{bpm:3} bpm")
-def fasterMetronome():
+def fasterBPM():
     if playing: return
     global bpm
     bpm=bpm+5
+    if bpm>960: bpm=960
     win.bpm.set(f"{bpm:3} bpm")
-def faster2xMetronome():
+    maxMetroMult()
+def faster2xBPM():
     if playing: return
     global bpm
     bpm=int(bpm*2)
+    if bpm>960: bpm=960
     win.bpm.set(f"{bpm:3} bpm")
+    maxMetroMult()
 
 drag_begin=0
 dragOffset=0
@@ -462,6 +468,11 @@ def advMetroMult(event=None):
     if metroMultIdx==1:# just changed to 1
         win.imMetro.config(image=win.imgMetro)
         win.lbMetroMult.configure(fg='black')
+def maxMetroMult():
+    global metroMultIdx
+    print ("maxMetroMul")
+    if bpm>300:
+        if metroMultIdx==1: advMetroMult()
 def resetView(event):
     global dragOffset
     dragOffset=0
@@ -497,17 +508,17 @@ def initWindow():
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(16,16))
 
-    win.btn2xSlower=tk.Button(win.buttonframe,text='\u00BD\u00D7',relief=tk.FLAT,width=1,command=slower2xMetronome)
+    win.btn2xSlower=tk.Button(win.buttonframe,text='\u00BD\u00D7',relief=tk.FLAT,width=1,command=decrease2xBPM)
     win.btn2xSlower.pack(side=tk.LEFT,padx=(2,2))
-    win.btnSlower=tk.Button(win.buttonframe,text=u'\u23EA',relief=tk.FLAT,width=1,command=slowerMetronome)
+    win.btnSlower=tk.Button(win.buttonframe,text=u'\u23EA',relief=tk.FLAT,width=1,command=decreaseBPM)
     win.btnSlower.pack(side=tk.LEFT,padx=(2,2))
     win.bpm = tk.StringVar()
     win.bpm.set(f"{bpm:3} bpm")
     win.speed = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.bpm)     
     win.speed.pack(side=tk.LEFT,padx=(3,3))
-    win.btnFaster=tk.Button(win.buttonframe,text=u'\u23E9',relief=tk.FLAT,width=1,command=fasterMetronome)
+    win.btnFaster=tk.Button(win.buttonframe,text=u'\u23E9',relief=tk.FLAT,width=1,command=fasterBPM)
     win.btnFaster.pack(side=tk.LEFT,padx=(2,2))
-    win.btnFaster=tk.Button(win.buttonframe,text='2'+'\u00D7',relief=tk.FLAT,width=1,command=faster2xMetronome)
+    win.btnFaster=tk.Button(win.buttonframe,text='2'+'\u00D7',relief=tk.FLAT,width=1,command=faster2xBPM)
     win.btnFaster.pack(side=tk.LEFT,padx=(2,2))
 
     # draw sep
@@ -555,11 +566,11 @@ def initWindow():
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(16,16))
     
     # play symbols (see:https://en.wikipedia.org/wiki/Media_control_symbols)
-    win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopMetronome)
+    win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopTabScroll)
     win.btnStop.pack(side=tk.LEFT,padx=(2,2))
-    win.btnPlay=tk.Button(win.buttonframe,text=u'\u25B6',relief=tk.FLAT,width=1,command=startMetronome)
+    win.btnPlay=tk.Button(win.buttonframe,text=u'\u25B6',relief=tk.FLAT,width=1,command=startTabScroll)
     win.btnPlay.pack(side=tk.LEFT,padx=(2,2))
-    win.btnPause=tk.Button(win.buttonframe,text=u'\u23F8',relief=tk.FLAT,width=1,command=pauseMetronome)
+    win.btnPause=tk.Button(win.buttonframe,text=u'\u23F8',relief=tk.FLAT,width=1,command=pauseTabScroll)
     win.btnPause.pack(side=tk.LEFT,padx=(2,2))
 
     win.beatCursor = tk.StringVar()
