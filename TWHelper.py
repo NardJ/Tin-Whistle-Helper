@@ -32,14 +32,17 @@ def initPlayer():
 octL=5
 octM=6
 octH=7
-noteNrsHigh={'d':octM*12+2,'e':octM*12+4,'f#':octM*12+6,'g':octM*12+7,'a':octM*12+9,'b':octM*12+11,'c':octM*12+12, 
-             'D':octH*12+2,'E':octH*12+4,'F#':octH*12+6,'G':octH*12+7,'A':octH*12+9,'B':octH*12+11,'C':octH*12+12,}
-noteNrsLow= {'d':octL*12+2,'e':octL*12+4,'f#':octL*12+6,'g':octL*12+7,'a':octL*12+9,'b':octL*12+11,'c':octL*12+12, 
-             'D':octM*12+2,'E':octM*12+4,'F#':octM*12+6,'G':octM*12+7,'A':octM*12+9,'B':octM*12+11,'C':octM*12+12}
+noteNrsHigh={'d':octM*12+2,'e':octM*12+4,'f#':octM*12+6,'g':octM*12+7,'a':octM*12+9,'b':octM*12+11,'c':octM*12+12,'c#':octM*12+13, 
+             'D':octH*12+2,'E':octH*12+4,'F#':octH*12+6,'G':octH*12+7,'A':octH*12+9,'B':octH*12+11,'C#':octH*12+13,}
+noteNrsLow= {'d':octL*12+2,'e':octL*12+4,'f#':octL*12+6,'g':octL*12+7,'a':octL*12+9,'b':octL*12+11,'c':octL*12+12,'c#':octL*12+13, 
+             'D':octM*12+2,'E':octM*12+4,'F#':octM*12+6,'G':octM*12+7,'A':octM*12+9,'B':octM*12+11,'C#':octM*12+13}
 noteNrs=noteNrsHigh 
 oldNoteNr=0
 def setLowHigh():
     global noteNrs
+    if playing: 
+        win.varLow.set(noteNrs==noteNrsLow)
+        return
     noteNrs=noteNrsLow if win.varLow.get() else noteNrsHigh
 
 def startNote(noteId):    
@@ -49,10 +52,24 @@ def startNote(noteId):
         fs.noteon(0, noteNr,127)
         oldNoteNr=noteNr
     #print (f"On : {noteId}")
+startNote('')
 def endNote(noteId=None):    
     noteNr=oldNoteNr if noteId==None else noteNrs[noteId]
     fs.noteoff(0, noteNr)
     #print (f"Off: {noteId}")
+
+#debug
+'''
+initPlayer()
+keyIdx=0
+while keyIdx<len(noteNrsHigh):
+    startNote(list(noteNrsHigh.keys())[keyIdx])
+    time.sleep(0.5)
+    endNote(list(noteNrsHigh.keys())[keyIdx])
+    keyIdx+=1
+quit()
+'''
+
 def startTick():
     noteNr=12*9+2
     fs.noteoff(1, noteNr)
@@ -63,8 +80,10 @@ def closePlayer():
 
 win=None
 tabs=[]
+title=""
+
 def loadFile(filename=None,filepath=None):
-    global tabs,bpm
+    global tabs,bpm,title
     if filepath==None:
         filepath=os.path.join(scriptdir,filename)        
     if not os.path.isfile(filepath): return
@@ -72,6 +91,10 @@ def loadFile(filename=None,filepath=None):
     beat=0
     cur=0
     tabColor='blue'
+    tabRow=0
+    tabCol=0
+    #print (f"filename:{filename}|")
+    title=os.path.basename(filepath).split('.')[0].replace("_"," ")
     try:
         with open(filepath,'r') as reader:
             lines=reader.readlines()
@@ -90,22 +113,26 @@ def loadFile(filename=None,filepath=None):
             line=line.strip()
             if line in ['red','green','blue','yellow', 'orange', 'brown', 'black','grey']:
                 tabColor=line
+            elif line =='=':
+                tabRow+=1
+                tabCol=0
             else:    
                 data=line.split(",")
                 if len(data)==3:
                     name=data[0].strip()
                     dur=data[1].strip()
-                    dur=int(dur)
+                    dur=int(dur)                    
                     style=data[2].strip()
-                    if name in ['a','b','c','d','e','f#','g','A','B','C','D','E','F#','G','','_','|','r']:
-                        tabs.append([beat,name,dur,style,tabColor])
+                    if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','','_','|','r']:
+                        tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow])                        
                         #print ([beat,name,dur,style])
                     else:
-                        print (f"Rejected: {[beat,name,dur,style]}")
+                        print (f"Rejected: {[beat,name,dur,style,tabColor,tabCol,tabRow]}")
                     beat+=dur
+                    tabCol=tabCol+dur if dur>1 else tabCol+1
         
         win.title(f"Tin Whistle Helper - {os.path.basename(filepath).split('.')[0]}")
-
+        calcTabDims()
     except Exception as e:
         print (f"Error reading tab file:{e}")
 
@@ -130,20 +157,21 @@ def openFile():
     drawBars()
     print (f"Loaded:{scriptpath}")
 
-notes={ 'a' :(1,1,0,0,0,0,''), 
-        'b' :(1,0,0,0,0,0,''),
-        'c' :(0,1,1,0,0,0,''),
-        'd' :(1,1,1,1,1,1,''),
+notes={ 'd' :(1,1,1,1,1,1,''),
         'e' :(1,1,1,1,1,0,''),
         'f#':(1,1,1,1,0,0,''),
         'g' :(1,1,1,0,0,0,''),
-        'A' :(1,1,0,0,0,0,'+'), 
-        'B' :(1,0,0,0,0,0,'+'),
-        'C' :(0,1,1,1,0,0,'+'),
+        'a' :(1,1,0,0,0,0,''), 
+        'b' :(1,0,0,0,0,0,''),
+        'c' :(0,1,1,0,0,0,''),
+        'c#':(0,0,0,0,0,0,''),
         'D' :(0,1,1,1,1,1,'+'),
         'E' :(1,1,1,1,1,0,'+'),
         'F#':(1,1,1,1,0,0,'+'),
         'G' :(1,1,1,0,0,0,'+'),
+        'A' :(1,1,0,0,0,0,'+'), 
+        'B' :(1,0,0,0,0,0,'+'),
+        'C#':(0,1,1,0,0,0,'+'),
         '_' :(0,0,0,0,0,0,'')#rest
         }
 
@@ -155,44 +183,71 @@ yOffset=beatsize
 beatCursor=0
 winDims=[1024,int(yOffset+holeInterval*11)+32]
 
+tabDims=[0,0]
+def calcTabDims():
+    global tabDims  
+    tabDims=[0,0]
+
+    for tab in tabs:
+        beat,name,dur,style,tabColor,tabCol,tabRow=tab
+        x = (tabCol+dur)*barInterval
+        y = (tabRow+1)*holeInterval*10
+        if x>tabDims[0]: tabDims[0]=x
+        if y>tabDims[1]: tabDims[1]=y
 
 def initBars(newBeatsize=None):
-    global beatsize,barInterval,holeInterval,xOffset,yOffset, beatCursor
+    global beatsize,barInterval,holeInterval,xOffset,yOffset, beatCursor,titleHeight
     if newBeatsize is not None:
         beatsize=newBeatsize
     barInterval=1.2*beatsize
     holeInterval=1.5*beatsize
     xOffset=beatsize
     yOffset=beatsize
+    titleHeight=beatsize*2
 
 def beat2x(beat):
-    #print (f"beat2x: {beat}")
-    delta=0
-    space=2
+    fndTab=None
     for tab in tabs:
-        [tabBeat,name,dur,style,tabColor]=tab        
-        #print (f"  tab: {tab}")
-        if (beat>=tabBeat):
-            if dur==0:
-                delta+=space
-                #print ("DELTA")
-    x=xOffset+dragOffset+(beat+delta)*barInterval
+        [tabBeat,name,dur,style,tabColor,tabCol,tabRow]=tab        
+        if (beat>=tabBeat): fndTab=tab
+    tabBeat,name,dur,style,tabColor,tabCol,tabRow = fndTab
+    x=xOffset+dragXOffset+tabCol*barInterval
+    x=x+(beat-tabBeat)*barInterval
     return x
+
+titleHeight=40
+def beat2y(beat):
+    y=0
+    for tab in tabs:
+        [tabBeat,name,dur,style,tabColor,tabCol,tabRow]=tab        
+        if (beat>=tabBeat):
+            y=yOffset+dragYOffset+tabRow*holeInterval*10
+    return y+titleHeight
 
 def beat2w(dur):
     w=(dur-1)*barInterval+beatsize
     return w
 
-def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue'):
+def beat2h():
+    return holeInterval*9
+
+def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0):
     cvs=win.cvs
+
+    # only draw if visible
+    x1=beat2x(beat)
+    x2=x1+beat2w(dur)
+    y0=beat2y(beat)
+
+    if x2<0 or x1>winDims[0]: return
 
     if noteId == '': return
 
     if noteId == '|': 
         tabColor = 'black'
         xm=beat2x(beat)-beat2w(1)
-        y1=yOffset+holeInterval*0
-        y2=yOffset+holeInterval*9 
+        y1=y0+holeInterval*0
+        y2=y0+holeInterval*9 
         cvs.create_line(xm,y1,xm,y2,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
         return
 
@@ -205,11 +260,6 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue'):
     else:
         dashPatt=None
 
-    # only draw if visible
-    x1=beat2x(beat)
-    x2=x1+beat2w(dur)
-    if x2<0 or x1>winDims[0]: return
-
     for holeNr in range(6):
         openNote=(holes[holeNr]==0)
         if (openNote):
@@ -220,8 +270,8 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue'):
             arcstyle=tk.CHORD
         x1=beat2x(beat)
         x2=x1+beat2w(dur)
-        y1=yOffset+holeInterval*(holeNr+1)
-        y2=yOffset+holeInterval*(holeNr+1)+beatsize 
+        y1=y0+holeInterval*(holeNr+1)
+        y2=y0+holeInterval*(holeNr+1)+beatsize 
         ym=(y1+y2)/2
         r=beatsize/2
         cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill=fillColor,outline=tabColor,start=90,extent=180,style=arcstyle,dash=dashPatt)
@@ -236,8 +286,8 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue'):
     if highOct:
         x1=beat2x(beat)
         x2=x1+beat2w(1)
-        y1=yOffset+holeInterval*7
-        y2=yOffset+holeInterval*7+beatsize 
+        y1=y0+holeInterval*7
+        y2=y0+holeInterval*7+beatsize 
         xm=(x1+x2)/2
         ym=(y1+y2)/2
         cvs.create_line(x1+2,ym,x2-2,ym,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
@@ -245,69 +295,91 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue'):
 
     if noteStyle=='^':#tap/strike
         x1=beat2x(beat)+beat2w(1)/2
-        y1=yOffset+holeInterval*0.5
+        y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u21C5',fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
     if noteStyle=='>':#cut
         x1=beat2x(beat)+beat2w(1)/2
-        y1=yOffset+holeInterval*0.5
+        y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u21B4',fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
     if noteStyle=='>^':#roll (cut+tap)
         x1=beat2x(beat)+beat2w(1)/2
-        y1=yOffset+holeInterval*0.5
+        y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u21B4\u21C5',fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
     if noteStyle=='=':#slide
         x1=beat2x(beat)+beat2w(1)/2
-        y1=yOffset+holeInterval*0.5
+        y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u27B2',fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
     if noteStyle=='@':#tonguing
         x1=beat2x(beat)+beat2w(1)/2
-        y1=yOffset+holeInterval*0.5
+        y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u1CC5',fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
     if noteStyle=='~':#vibrato
         x1=beat2x(beat)+beat2w(1)/2
-        y1=yOffset+holeInterval*0.5
+        y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u223F',fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
     if noteStyle=='/':#join
         x1=beat2x(beat)+beat2w(1)/2
-        y1=yOffset+holeInterval*0.5
+        y1=y0+holeInterval*0.5
         cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill=fillColor,outline=tabColor,start=90,extent=90,style=arcstyle,width=2)
         cvs.create_line(x1+beat2w(1)/2,y1,x1+beat2w(1)/2+beat2w(dur),y1,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
     if noteStyle=='\\':
         x1=beat2x(beat)+beat2w(1)/2
         x2=beat2x(beat)+beat2w(dur)-beat2w(1)/2
-        y1=yOffset+holeInterval*0.5
+        y1=y0+holeInterval*0.5
         cvs.create_arc(x2-beatsize, y1, x2, y1+beatsize,fill=fillColor,outline=tabColor,start=0,extent=90,style=arcstyle,width=2)
         cvs.create_line(x2-beat2w(1)/2,y1,x2-beat2w(1)/2-beat2w(dur),y1,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
     if noteStyle=='-':
         x1=beat2x(beat)+beat2w(1)/2
         x2=beat2x(beat)+beat2w(dur)-beat2w(1)/2
-        y1=yOffset+holeInterval*0.5
+        y1=y0+holeInterval*0.5
         cvs.create_line(x1,y1,x2,y1,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
 
     # Draw note Name
     noteId=noteId.replace('#',u'\u266F')
     x1=beat2x(beat)+beat2w(1)/2 # beat2x(beat)+beat2w(dur)/2
-    y1=yOffset+holeInterval*8.5
+    y1=y0+holeInterval*8.5
     cvs.create_text(x1,y1,text=noteId)
 
 def drawBars():
-    global xOffset
-    x=beat2x(beatCursor)
-    if x>winDims[0]/2:
-        xOffset+=winDims[0]/2-x
+    global xOffset,yOffset
 
+    # scroll window if out of view
+    x=beat2x(beatCursor)
+    if beat2x(0)+tabDims[0]+beatsize>winDims[0]:
+        if x>winDims[0]/2:
+            xOffset+=winDims[0]/2-x
+    if x<0:
+        xOffset=beatsize
+    y=beat2y(beatCursor)
+    if beat2y(0)+tabDims[1]+beatsize>winDims[1]:
+        if y>winDims[1]/2:
+            yOffset+=winDims[0]/2-y
+    
+    # clear canvas
     win.cvs.delete("all")
+
+    # redraw page outline
+    color="#FFFFDE"
+    win.cvs.create_rectangle(beat2x(0)-beatsize, beat2y(0)-beatsize-titleHeight, beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize, fill=color)
+
+    # draw title
+    x1=beat2x(0)
+    y1=beat2y(0)
+    win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor=tk.W, font=("Times",  beatsize),text=title)
+
+    # redraw tabs
     for tab in tabs:
-        beat,name,dur,style,tabColor=tab
+        beat,name,dur,style,tabColor, tabCol,tabRow=tab
         beatrel=beat
-        drawBar(beatrel,dur,name,style,tabColor)
+        drawBar(beatrel,dur,name,style,tabColor,tabCol,tabRow)
 
     # draw cursor
+    x,y,h=0,0,0
     if (playing or beatCursor>0):
         x=beat2x(beatCursor)
-    else: 
-        x=0    
-    win.cvs.create_line(x,0,x,800,fill='red',width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        y=beat2y(beatCursor)
+        h=beat2h()
+    win.cvs.create_line(x,y,x,y+h,fill='red',width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
 
 noteSilence=50 #msec
 def doCursorPlay():
@@ -321,9 +393,9 @@ def doCursorPlay():
         return
     #print (f"{beatCursor}")
     for tab in tabs:
-        beat,name,dur,style,tabColor=tab
+        beat,name,dur,style,tabColor,tabCol,tabRow=tab
         if (beat==round(beatCursor,2)):
-            if name in ['a','b','c','d','e','f#','g','A','B','C','D','E','F#','G']:
+            if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G']:
                 startNote(name)                
                 delay=dur*int(60/bpm*1000)
                 noteLength=delay-noteSilence if (noteSilence<delay) else delay
@@ -347,10 +419,10 @@ def pauseTabScroll():
         delayJob=None
         endNote()
     else:
-        delayJob=win.after(0, advanceMetronome)
+        delayJob=win.after(0, advTabScroll)
         doCursorPlay()
 
-def advanceMetronome():
+def advTabScroll():
     global beatCursor,delayJob
     if playing:
         lastTab=tabs[-1]
@@ -364,7 +436,7 @@ def advanceMetronome():
             stopTabScroll()
         else:
             delay=int((60/bpm*1000)*beatUpdate)
-            delayJob=win.after(delay, advanceMetronome)
+            delayJob=win.after(delay, advTabScroll)
             beatCursor+=beatUpdate
             beatCursor=round(beatCursor,3)
             win.beatCursor.set(f"beat: {beatCursor:.2f}")
@@ -386,8 +458,25 @@ def setBeatUpdate():
     if delay<10: 
         beatUpdate=1.0
         delay=delay2beatUpdate(beatUpdate)
+countOffNr=0
+def countOff(init=True):
+    global countOffNr
+    if init:                      countOffNr=0
+    if not win.varCountOff.get(): countOffNr=4
+    if countOffNr<4:
+        startTick()
+        countOffNr+=1
+        print (f"{countOffNr}")
+        delay=int(60/bpm*1000)
+        delayJob=win.after(delay, lambda:countOff(False))
+    else:
+        doCursorPlay()
+        delay=int((60/bpm*1000)*beatUpdate)
+        delayJob=win.after(delay, advTabScroll)
+
+
 def startTabScroll():
-    global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset,dragOffset
+    global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset,dragXOffset,dragYOffset
     if playing: return
     initBars(beatsize) # don't reset zoom
     beatCursor=0
@@ -396,10 +485,12 @@ def startTabScroll():
     win.beatCursor.set(f"beat: {beatCursor:.1f}")
     delay=int((60/bpm*1000)*beatUpdate)
     #resetView(None)
-    dragOffset=0
+    dragXOffset=0
+    dragYOffset=0
     drawBars()
-    doCursorPlay()
-    delayJob=win.after(delay, advanceMetronome)
+    countOff()
+    #doCursorPlay()
+    #delayJob=win.after(delay, advTabScroll)
 def decreaseBPM():
     if playing: return
     global bpm
@@ -428,22 +519,25 @@ def faster2xBPM():
     maxMetroMult()
 
 drag_begin=0
-dragOffset=0
+dragXOffset=0
+dragYOffset=0
 def drag_enter(event):
     global drag_begin
-    drag_begin=event.x
+    drag_begin=[event.x,event.y]
 def drag_handler(event):
-    global drag_begin,dragOffset
-    drawDistance=(event.x-drag_begin)
-    dragOffset=dragOffset+drawDistance
-    #if dragOffset>0: dragOffset=0
-    drag_begin=event.x
+    global drag_begin,dragXOffset,dragYOffset
+    drawDistance=( (event.x-drag_begin[0]),(event.y-drag_begin[1]) )
+    dragXOffset=dragXOffset+drawDistance[0]
+    dragYOffset=dragYOffset+drawDistance[1]
+    #if dragXOffset>0: dragXOffset=0
+    drag_begin=[event.x,event.y]
     drawBars()
 def drag_end(event):
-    global dragOffset
-    drawDistance=(event.x-drag_begin)
-    dragOffset=dragOffset+drawDistance
-    #if dragOffset>0: dragOffset=0
+    global dragXOffset,dragYOffset
+    drawDistance=( (event.x-drag_begin[0]),(event.y-drag_begin[1]) )
+    dragXOffset=dragXOffset+drawDistance[0]
+    dragYOffset=dragYOffset+drawDistance[1]
+    #if dragXOffset>0: dragXOffset=0
     drawBars()
 def scrollwheel(event):
     global beatsize
@@ -455,6 +549,7 @@ def scrollwheel(event):
     if beatsize<5: beatsize=5
     if beatsize>60: beatsize=60
     initBars(beatsize)
+    calcTabDims()
     drawBars()
 metroMults=['0','1',u'\u00BD',u'\u00BC']
 metroMultIdx=1
@@ -473,8 +568,9 @@ def maxMetroMult():
     if bpm>300:
         if metroMultIdx==1: advMetroMult()
 def resetView(event):
-    global dragOffset
-    dragOffset=0
+    global dragXOffset,dragYOffset
+    dragXOffset=0
+    dragYOffset=0
     initBars(20)
     drawBars()
 def resizeWindow(event):
@@ -522,7 +618,16 @@ def initWindow():
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(16,16))
-    
+
+    # countOff 
+    win.varCountOff=tk.BooleanVar(value=False)
+    win.cbCountOff=tk.Checkbutton(win.buttonframe,text='CO',variable=win.varCountOff)
+    footerbgcolor='white'
+    footerfgcolor='black'
+    win.cbCountOff.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
+    #win.cbSound.config(font=("Courier", 12))
+    win.cbCountOff.pack(side=tk.LEFT,padx=(2,2))
+
     # play metro (see:https://en.wikipedia.org/wiki/Media_control_symbols)
     win.metroFrame=tk.Frame(win.buttonframe,background="white",border=0,highlightthickness=0,relief=tk.FLAT)
     win.metroFrame.pack(side=tk.LEFT,padx=(0,6),pady=(0,0),ipadx=2,ipady=2,expand=False,fill=tk.Y)
@@ -594,8 +699,9 @@ def initWindow():
 initWindow()
 initPlayer()
 loadFile("Fee Ra Huri.tbs")
-#loadFile("test.tbs")
-t=time.time()
+#loadFile("tutorial.tbs")
+#print (beat2x(10))
+#quit()
 drawBars()
 
 tk.mainloop()
