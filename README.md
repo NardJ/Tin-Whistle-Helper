@@ -20,12 +20,12 @@ For playing at tempo along with scrolling tabs on a D Tin Whistle/Penny Whistle 
 - Lines starting with # are ignored (`# this is a comment`)
 - Empty lines are ignored and can be used to separate blocks
 - First line should contain number for tempo (beats per minute) (`120`)
-- Following lines should contain note (`d,4,^`) or a new color to draw next tabs (`yellow`) 
+- Following lines should contain note (`d,4,^`), a new color to draw next tabs (`yellow`), '=' sign to go to next tab row 
   
 ### Note format
 A note consists of a note id, the duration in beats and decoration. These should be separated with spaces 
 ```
-   notes:      firstoctave  : c,d,e,f#,g,a,b,
+   notes:      firstoctave  : c,c#,d,e,f#,g,a,b,
                secondoctave : C,D,E,F#,G,A,B
                rests        : _
                bar separator: [space] or |
@@ -52,12 +52,6 @@ See tutorial.tbs for an example file using all options.
 # tempo in bps
 120
 
-# start with some rests to count off
-_,1,
-_,1,
-_,1,
-_,1,
-
 # next notes to play
 red
 d , 1,
@@ -66,31 +60,37 @@ f#, 1,
 g , 1,
 a , 1,
 b , 1,
-c , 1,
+c,  1,
+c#, 1,
 
 D , 1,
 E , 1,
-F , 1,
+F#, 1,
 G,  1,
 A , 1,
 B , 1,
-C , 1,
+C#, 1,
 
 _ , 2, 
+
+=
+
 green
-C , 2,^
-D , 2,>
-E , 2,>^
-F#, 2,=
-E , 2,@
-F#, 2,~
-G , 1,/
-A , 1,-
-B , 1,\
+c , 2,^
+d , 2,>
+e , 2,>^
+f#, 2,=
+e , 2,@
+f#, 2,~
+g , 1,/
+a , 1,-
+bB , 1,\
+
+=
 
   , 0, 
 blue
-c , 1,
+c#, 1,
 d , 1,
 e , 1,
 f#, 1,
