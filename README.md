@@ -9,9 +9,12 @@ For playing at tempo along with scrolling tabs on a D Tin Whistle/Penny Whistle 
 - add your own tab files
 <br />  <br />
 - adjustable tempo 
-- audible metronome 
+- audible metronome with count-off (CO)
 - song can be played in background in scale of tin whistle or low whistle
-
+<br />  <br />
+- use scroll wheel to zoom
+- hold left mouse and move to drag view
+- right mouse button to reset view
 ![Figure 1](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/MainWindow.png "Screenshot")
  
 ## Tab file format
