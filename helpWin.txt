@@ -1,0 +1,73 @@
+<family:Verdana>
+<center><h1><u>Tin Whistle Helper - Usage guide</u></h1></center>
+
+Tin Whistle Helper 
+(1) helps you practice playing your tin whistle in D.
+(2) lets you edit the tabs
+
+<H2>Toolbar:</H2>
+<code>
+[Load ]: Load a tabs file (.tbs or .tb)
+[New  ]: Start with clean file and resets beats per minute to 120
+[Save ]: Save a tabs file under the name you provide
+[1/2x] : Half number of beats per minute (bpm)
+[2x]   : Double number of beats per minute 
+[<<]   : Reduce number of beats per minute by 5
+[>>]   : Reduce number of beats per minute by 5
+[] CO  : Count Off 4 beats after pressing play before starting song
+/X     : Sets number of beats for metronome to sound
+[] dd  : Play the notes of the song
+[] Low : Play the song one octave lower to resemble a low whistle
+[o]    : Stop song and set beat cursor to first beat
+[>]    : Play song from current position of beat cursor
+[||]   : Pause song / Resume song 
+[zz ]  : Switch from page view to linear view (and play)
+[\-\]  : Autosize window and zoom level
+[<--]  : Reduce zoom level to fit window size
+[-->]  : Enlarge window to fit page size
+[?]    : Show this help
+</code>
+<hr>
+</hr>
+
+<H2>Tab Area</H2>
+
+<b>Mouse </b>
+<code>
+Left Mouse Button : Move beat cursor to mouse position (if tab present)
+Drag Mouse        : Move page in window
+Right Mouse Button: Reset page to left upper corner
+Mouse Scroll Wheel: Zoom page
+</code>
+
+<b>Keyboard</b>
+<code>
+Arrow keys: Move beat cursor
+
+a...g     : Set (low-octave) noteat current beat cursor
+A...G     : Set (low-octave) noteat current beat cursor
+_         : Change note at current beat cursor to rest
+1...9     : Change length of note
+^,>,=,@,~ : Add decorator tap, cut, slide, tongue, vibrato
+Escape    : Remove decorator
+
+Delete    : Remove note at beat cursor
+[Ctrl]-z  : undo last delete
+Insert    : Insert note at beat cursor
+Plus      : Append note to song if last tab selected
+
+F1..F10   : Change color of tab at beat cursor
+|,space   : Add space or vertical line
+Backspace : Remove space or vertical line if one is found just before cursor
+
+Return    : Break tabs into two lines
+Backspace : Join two lines if beat cursor is at first tab.
+
+</code>
+
+<hr>
+</hr>
+  
+
+
+</family>

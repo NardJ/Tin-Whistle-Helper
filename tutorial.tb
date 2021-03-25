@@ -1,0 +1,39 @@
+# tempo in bps
+120
+
+# music notes
+# ----------- 
+# each line can consist of multiple notes separated by spaces
+#   e.g. c d e. f#. g...^
+# each note consists of a:
+#   note id:    firstoctave : c#,d,e,f#,g,a,b,
+#               secondoctave: C#,D,E,F#,G,A,B
+#               rests       : _
+#   duration:   dots for each beat more than first
+#   play style: (see: https://en.wikipedia.org/wiki/Tin_whistle)
+#               normal       :
+#               tap/strike   : ^
+#               cut          : >
+#               slide        : =
+#               roll(cut+tap): >^ 
+#               tonguing     : @
+#               vibrato      : ~
+#               join notes in one breath
+#                              /: start
+#                              -: continue
+#                              \: end
+# visual separations
+# ------------------
+#   '  ': two spaces between notes results in a blank space between tabs (use '_' for rest)
+#   |   : between notes results in a vertical line between tabs
+#   blue/red/green/yellow/brown: color of next notes
+#
+
+# example
+# -------
+red d e f# g a b c c#  green D E F# G A B C#  
+blue c.^ d.> e.>^ f#.= g/ a- b\ 
+
+orange c. _ d. _. e. f#... | g | a..
+
+
