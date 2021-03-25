@@ -92,6 +92,10 @@ win=None
 tabs=[]
 title=""
 
+def capTitle():
+    global title
+    title=" ".join([word.capitalize() for word in title.split(" ")])
+
 def loadFile(filename=None,filepath=None):
     global tabs,bpm,title
     if filepath==None:
@@ -106,6 +110,7 @@ def loadFile(filename=None,filepath=None):
     tabLin=0
     #print (f"filename:{filename}|")
     title=os.path.basename(filepath).split('.')[0].replace("_"," ")
+    capTitle()
     try:
         with open(filepath,'r') as reader:
             lines=reader.readlines()
@@ -178,6 +183,7 @@ def loadFile2(filename=None,filepath=None):
     tabLin=0
     #print (f"filename:{filename}|")
     title=os.path.basename(filepath).split('.')[0].replace("_"," ")
+    capTitle()
     try:
         with open(filepath,'r') as reader:
             lines=reader.readlines()
@@ -231,6 +237,7 @@ def loadFile2(filename=None,filepath=None):
     except Exception as e:
         print (f"Error reading tab file:{e}")
 
+
 def saveFile2(filename=None,filepath=None):
     global title
     if filepath==None:
@@ -238,6 +245,7 @@ def saveFile2(filename=None,filepath=None):
     if not os.path.isfile(filepath): return
 
     title=os.path.basename(filepath).split('.')[0].replace("_"," ")
+    capTitle()
     eol='\n'
     try:
         with open(filepath,'w') as writer:   
@@ -949,6 +957,7 @@ def keypress(event):
                 delta=newDur-dur                        # store change in beats
                 tabs[idx][2]=newDur                     # write new length
                 moveTabs(idx,delta)
+                calcTabDims()
                 drawBars(True)
     # delete note
     if key in ('Delete','KP_Delete'):
