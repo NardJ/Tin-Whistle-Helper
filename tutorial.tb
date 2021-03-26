@@ -1,6 +1,21 @@
 # tempo in bps
 120
 
+# set color of title text and page color (optional)
+#   colors can be names or hex values 
+color: black
+back : #FFFFDE
+
+# you can replace default filename as title by using 
+# text: "yourText", x, y, "fontName", fontSize, "fontStyle", color [optional]
+#   text can also be unicode symbols 
+#   numbers (x,y,fontSize) are relative to tab widths
+#   fontName  can be all installed like "Arial","Times", "Helvetica" 
+#   fontStyle can be "bold", "italic", "normal" of combinations like "bold italic"
+text : "Tutorial", 1,1.75, "Times",1.2, "bold"
+text : "by Nard Janssens", 1,3.3, "Times",0.4, "normal"
+text : "♫", 21,0, "Arial",3, "normal",purple
+
 # music notes
 # ----------- 
 # each line can consist of multiple notes separated by spaces

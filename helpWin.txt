@@ -1,38 +1,37 @@
 <family:Verdana>
 <center><h1><u>Tin Whistle Helper - Usage guide</u></h1></center>
 
-Tin Whistle Helper 
-(1) helps you practice playing your tin whistle in D.
-(2) lets you edit the tabs
+Tin Whistle Helper helps you practice playing your tin whistle in D 
+and lets you edit the tabs. Below the controls to use this tool.
 
 <H2><u>Toolbar</u></H2>
 <code>
 [Load ]: Load a tabs file (.tbs or .tb)
 [New  ]: Start with clean file and resets beats per minute to 120
 [Save ]: Save a tabs file under the name you provide
-[½×]   : Half number of beats per minute (bpm)
-[2×]   : Double number of beats per minute 
-[⏪]   : Reduce number of beats per minute by 5
-[⏩]   : Reduce number of beats per minute by 5
-⛝ CO  : Count Off 4 beats after pressing play before starting song
-/X     : Sets number of beats for metronome to sound
-⛝ ♫⚟  : Play the notes of the song
-⛝ Low : Play the song one octave lower to resemble a low whistle
-[⏹]   : Stop song and set beat cursor to first beat
+[<]    : Half number of beats per minute (bpm)
+[◀]    : Reduce number of beats per minute by 5
+[▶]    : Reduce number of beats per minute by 5
+[>]    : Double number of beats per minute 
+ ⊠ CO  : Count Off 4 beats after pressing play before starting song
+ ⏅     : Sets number of beats for metronome to sound
+ ⊠ ♫⚟  : Play the notes of the song
+ ⊠ Low : Play the song one octave lower to resemble a low whistle
+[■]    : Stop song and set beat cursor to first beat
 [▶]    : Play song from current position of beat cursor
-[⏸]   : Pause song / Resume song 
-[zz ]  : Switch from page view to linear view (and play)
-[\-\]  : Autosize window and zoom level
-[<--]  : Reduce zoom level to fit window size
-[-->]  : Enlarge window to fit page size
-[?]    : Show this help
+[▮▮]   : Pause song / Resume song 
+[⬏]    : Switch from page view (wrapped) to linear view
+[⤢]    : Autosize window and zoom level
+[↙]    : Reduce zoom level to fit window size
+[↗]    : Enlarge window to fit page size
+(?)    : Show this help
 </code>
 <hr>
 </hr>
 
 <H2><u>Tab Area</u></H2>
 
-<b>Mouse </b>
+<b>Mouse - Change View </b>
 <code>
 Left Button : Move cursor to mouse position (if tab present)
 Drag        : Move page in window
@@ -40,11 +39,11 @@ Right Button: Reset page to left upper corner
 Scroll Wheel: Zoom page
 </code>
 
-<b>Keyboard</b>
+<b>Keyboard - Edit Song</b>
 <code>
 Arrow keys: Move beat cursor
 
-a...g       : Change (low-octave) note at current cursor
+a...g       : Change (low-octave) note at current cursor 
 A...G       : Change (low-octave) note at current cursor
 _           : Change note at cursor to rest
 1...9       : Change length of note
@@ -61,11 +60,12 @@ _           : Change note at cursor to rest
 [Space],|   : Add space or vertical line
 [Backspace] : Remove space or vertical line if one is found just 
               before cursor
-
 [Return]    : Break tabs into two lines
 [Backspace] : Join two lines if beat cursor is at first tab of line
 
 <u>Remarks</u>:
+- 'f' keypress will be translated to f#. Likewise for F
+- [Ctrl]-'c' keypress will be translated to c#. Without [ctrl] will be c.
 - When you change a note and the last tab is not a rest, a rest 
   will be appended to ensure you keep enough empty note space 
   to enter new notes.

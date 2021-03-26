@@ -17,6 +17,7 @@ from tkinter import messagebox
 #GLOBALS
 scriptpath= os.path.realpath(__file__) 
 scriptdir = os.path.dirname(scriptpath)
+icondir   = os.path.join(scriptdir,"icons")
 
 import fluidsynth #pip3 install pyFluidSynth
 import helpWin
@@ -97,11 +98,13 @@ def capTitle():
     title=" ".join([word.capitalize() for word in title.split(" ")])
 
 def loadFile(filename=None,filepath=None):
-    global tabs,bpm,title
+    global tabs,bpm,title,beatsize
     if filepath==None:
         filepath=os.path.join(scriptdir,filename)        
     if not os.path.isfile(filepath): return
     tabs.clear()
+    texts.clear()
+    initBars(20)
     beat=0
     cur=0
     tabColor='blue'
@@ -121,7 +124,7 @@ def loadFile(filename=None,filepath=None):
             elif line[0]=='#':lines=lines[:idx]+lines[idx+1:]
         #read bpm
         bpm=int(lines[0])        
-        win.bpm.set(f"{bpm:3} bpm")
+        win.bpm.set(f"{bpm:3}")
         maxMetroMult()
         #read notes
         lines=lines[1:]
@@ -157,24 +160,30 @@ colors=['red','green','blue','yellow', 'orange', 'brown', 'black','grey']
 
 def newFile():
     global beatCursor,tabs,bpm,title
+    bpm=120
+    title="New File"
+    tabs.clear()
+    texts.clear()
     beatCursor=0
-    tabs=[]
     for beat in range (20):
         tabs.append([beat,'_',1,'','green',beat,0,beat])                        
 
-    bpm=120
-    title="New File"
     win.title(f"Tin Whistle Helper - {title}")
     calcTabDims()
     drawBars(True)
 
+textColor='black'
+backColor='#FFFFDE'
+texts=[]
 def loadFile2(filename=None,filepath=None):
     global tabs,bpm,title
+    global textColor,backColor,texts
     if filepath==None:
         filepath=os.path.join(scriptdir,filename)        
     if not os.path.isfile(filepath): return
 
     tabs.clear()
+    initBars(20)
     beat=0
     cur=0
     tabColor=colors[2]
@@ -184,6 +193,7 @@ def loadFile2(filename=None,filepath=None):
     #print (f"filename:{filename}|")
     title=os.path.basename(filepath).split('.')[0].replace("_"," ")
     capTitle()
+    texts.clear()
     try:
         with open(filepath,'r') as reader:
             lines=reader.readlines()
@@ -194,43 +204,51 @@ def loadFile2(filename=None,filepath=None):
             elif line[0]=='#':lines=lines[:idx]+lines[idx+1:]
         #read bpm
         bpm=int(lines[0])        
-        win.bpm.set(f"{bpm:3} bpm")
+        win.bpm.set(f"{bpm:3}")
         maxMetroMult()
-        #read notes
         lines=lines[1:]
-        for line in lines:
-            line=line.strip()
-            if len(line)>0: # ignore empty lines
-                line=line.replace('  ',' , ') # double space is visual space between tabs
-                notes=line.split(" ")
-                notesfound=False
-                for note in notes:   
-                    if note in colors:         
-                        tabColor=note
-                    else:   
-                        name=note[0]
-                        if len(note)>1: 
-                            if note[1]=='#': name+='#'
-                        dur=1+note.count('.')
-                        style=''
-                        if len(note)>1:
-                            if note[-1] in '^>=@~/\\-':
-                                style = note[-1] 
-                        if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
-                            if name in ('|',','): dur=0
-                            tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
-                            if name != '|' and name!=',': 
-                                beat+=dur                    
-                            notesfound=True
-                            #print ([beat,name,dur,style])
-                        else:
-                            print (f"Rejected: [{note}] {[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]}")
-                        tabCol=tabCol+dur if dur>1 else tabCol+1
-                        tabLin=tabLin+dur if dur>1 else tabLin+1
-                if notesfound: # ignore lines with only color
-                    tabRow+=1
-                    tabCol=0
-                    tabLin+=1
+        for line in lines:      # go line by line
+            line=line.strip()   # remove leading and trailing spaces and eol chars
+            if len(line)>0:     # ignore empty lines
+                if ':' in line: # read colors and text to display
+                    cmd,val=line.split(':')
+                    cmd=cmd.strip()
+                    vals=val.split(",")
+                    for idx in range(len(vals)): vals[idx]=vals[idx].strip()
+                    if cmd=='color': textColor=vals[0]
+                    if cmd=='back' : backColor=vals[0]
+                    if cmd=='text' : texts.append(vals)
+                else:           # read notes                
+                    line=line.replace('  ',' , ') # double space is visual space between tabs
+                    notes=line.split(" ")
+                    notesfound=False
+                    for note in notes:   
+                        if note in colors:         
+                            tabColor=note
+                        else:   
+                            name=note[0]
+                            if len(note)>1: 
+                                if note[1]=='#': name+='#'
+                            dur=1+note.count('.')
+                            style=''
+                            if len(note)>1:
+                                if note[-1] in '^>=@~/\\-':
+                                    style = note[-1] 
+                            if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
+                                if name in ('|',','): dur=0
+                                tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
+                                if name != '|' and name!=',': 
+                                    beat+=dur                    
+                                notesfound=True
+                                #print ([beat,name,dur,style])
+                            else:
+                                print (f"Rejected: [{note}] {[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]}")
+                            tabCol=tabCol+dur if dur>1 else tabCol+1
+                            tabLin=tabLin+dur if dur>1 else tabLin+1
+                    if notesfound: # ignore lines with only color
+                        tabRow+=1
+                        tabCol=0
+                        tabLin+=1
         
         win.title(f"Tin Whistle Helper - {os.path.basename(filepath).split('.')[0]}")
         calcTabDims()
@@ -267,7 +285,7 @@ def saveFile2(filename=None,filepath=None):
                 if name in ['|',',']:
                     if name==',': name=''
                     writer.write(f"{name} ")
-                    print(f"{name} ;")
+                    #print(f"{name} ;")
 
     except Exception as e:
         print (f"Error writing tab file:{e}")
@@ -549,15 +567,29 @@ def drawBars(force=False):
         win.cvs.delete("all")
 
         # redraw page outline
-        color="#FFFFDE"
         #win.cvs.create_rectangle(beat2x(0)-beatsize, beat2y(0)-beatsize-titleHeight, beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize, fill=color)
         bBox=pageBBox()
-        win.cvs.create_rectangle(bBox[0],bBox[1],bBox[2],bBox[3], fill=color)
+        win.cvs.create_rectangle(bBox[0],bBox[1],bBox[2],bBox[3], fill=backColor)
 
         # draw title
-        x1=beat2x(0)
-        y1=beat2y(0)
-        win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor=tk.W, font=("Arial", int(beatsize*1.2), "bold"),text=title)
+        if len(texts)==0: #only display filename as title if no texts were given in the file
+            x1=beat2x(0)
+            y1=beat2y(0)
+            win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor=tk.W, font=("Arial", int(beatsize*1.2), "bold"),text=title,fill=textColor)
+        else:
+            for idx,textCmd in enumerate(texts):
+                if len(textCmd)>=6:                    
+                    if len(textCmd)==6: 
+                        text,x,y,fName,fSize,fStyle=textCmd
+                        fillColor=textColor
+                    if len(textCmd)==7: text,x,y,fName,fSize,fStyle,fillColor=textCmd
+                    text=text[1:-1] # remove leading and trailing "
+                    fName=fName[1:-1] # remove leading and trailing "
+                    fStyle=fStyle[1:-1] # remove leading and trailing "
+                    x1=int(beatsize*(float(x)))
+                    y1=int(beatsize*(float(y)))
+                    fSize=float(fSize)
+                    win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor="nw", font=(fName, int(beatsize*fSize), fStyle),text=text,fill=fillColor)
 
         # redraw tabs
         nrDrawn=0
@@ -633,7 +665,7 @@ def advTabScroll():
             # remove incremented beatCursor for which no note is present
             beatCursor-=beatUpdate 
             beatCursor=round(beatCursor,3)
-            win.beatCursor.set(f"beat: {beatCursor:>5.1f}")
+            win.beatCursor.set(f"{beatCursor:>5.1f}")
             # stop play
             stopTabScroll()
         else:
@@ -641,7 +673,7 @@ def advTabScroll():
             delayJob=win.after(delay, advTabScroll)
             beatCursor+=beatUpdate
             beatCursor=round(beatCursor,3)
-            win.beatCursor.set(f"beat: {beatCursor:>5.1f}")
+            win.beatCursor.set(f"{beatCursor:>5.1f}")
             drawBars()
             doCursorPlay()
 
@@ -679,16 +711,19 @@ def countOff(init=True):
 
 def initTabScroll(fromBeat=0):
     beatCursor=fromBeat
-    win.beatCursor.set(f"beat: {beatCursor:.1f}")
+    win.beatCursor.set(f"{beatCursor:.1f}")
     setBeatUpdate()
     delay=int((60/bpm*1000)*beatUpdate)
 
+prevCursorStart=0
 def startTabScroll():
     if not allBarsOnScreen() and not win.varLinear.get():
         messagebox.showinfo("Cannot play","Play can only start if in linear mode or \nif all bars are visible.\nUse scroll wheel to zoom or the 'auto'-button.")
         return
     global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset,dragXOffset,dragYOffset
     if playing: return
+    global prevCursorStart
+    prevCursorStart=beatCursor
     initTabScroll(0)
     initBars(beatsize) # don't reset zoom
     playing=True
@@ -705,26 +740,26 @@ def decreaseBPM():
     global bpm
     bpm=bpm-5
     if bpm<5: bpm=5
-    win.bpm.set(f"{bpm:3} bpm")
+    win.bpm.set(f"{bpm:3}")
 def decrease2xBPM():
     if playing: return
     global bpm
     bpm=int(bpm/2)
     if bpm<5: bpm=5
-    win.bpm.set(f"{bpm:3} bpm")
+    win.bpm.set(f"{bpm:3}")
 def fasterBPM():
     if playing: return
     global bpm
     bpm=bpm+5
     if bpm>960: bpm=960
-    win.bpm.set(f"{bpm:3} bpm")
+    win.bpm.set(f"{bpm:3}")
     maxMetroMult()
 def faster2xBPM():
     if playing: return
     global bpm
     bpm=int(bpm*2)
     if bpm>960: bpm=960
-    win.bpm.set(f"{bpm:3} bpm")
+    win.bpm.set(f"{bpm:3}")
     maxMetroMult()
 
 drag_begin=0
@@ -776,9 +811,10 @@ def click(event):
         if (event.x>=x and event.x<(x+w) and 
             event.y>=y and event.y<(y+h)):
            beatCursor=beat
-           win.beatCursor.set(f"beat: {beatCursor:.1f}")
+           win.beatCursor.set(f"{beatCursor:.1f}")
            drawBars()   
            initTabScroll(beat)    # set for play
+           doCursorPlay()
            return
 
 metroMults=['0','1',u'\u00BD',u'\u00BC']
@@ -905,20 +941,24 @@ def keypress(event):
     if key in ('Left','KP_Left'): 
         if beatCursor>0:            beatCursor-=pdur
         drawBars()
+        doCursorPlay()
     if key in ('Right','KP_Right'): 
         if beatCursor<tabs[-1][0]:  beatCursor+=dur
         drawBars()
+        doCursorPlay()
         return
     if key in ('Up','KP_Up'): 
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow-1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
         drawBars()
+        doCursorPlay()
     if key in ('Down','KP_Down'): 
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow+1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
         drawBars()
+        doCursorPlay()
 
     # modify note
     if char in ['a','b','c','c','d','e','f','g','A','B','C','D','E','F','G','_']:
@@ -1048,6 +1088,7 @@ def keypress(event):
         calcTabDims()
         drawBars(True)
 
+    # change tab color
     if key[0]=='F':
         if len(key)>1:
             colorNr=int(key[1:])
@@ -1056,11 +1097,16 @@ def keypress(event):
                 tab[4]=colors[colorNr]
                 drawBars(True)
 
-    print ("change title")
-
+    # replay from last start
+    if  key=="Tab":
+        if playing: stopTabScroll()
+        time.sleep(1)
+        #beatCursor=prevCursorStart
+        startTabScroll()
 
     # debug 
-    if key in ('Tab'):
+    print (event)
+    if key in ('Home'):
         for idx,tab in enumerate(tabs):
             print (f"{idx:2d}> {tab}")
 
@@ -1088,7 +1134,7 @@ def initWindow():
     backcolor=win["bg"]#"#DDDDDD"
     win.configure(background=backcolor)
     style=tk.SOLID
-    iconpath=os.path.join(scriptdir,"TinWhistleHelper.png")
+    iconpath=os.path.join(icondir,"TinWhistleHelper.png")
     win.tk.call('wm', 'iconphoto', win._w, tk.PhotoImage(file=iconpath))
     # set fonts
 
@@ -1097,30 +1143,46 @@ def initWindow():
     win.btnLoad=tk.Button(win.buttonframe,text="Load",relief=tk.FLAT,width=4,command=openFile)
     win.btnLoad.pack(side=tk.LEFT,padx=(2,2))
 
-    win.btnNew=tk.Button(win.buttonframe,text="New",relief=tk.FLAT,width=4,command=newFile)
+    imgPath=os.path.join(icondir,"new.png")
+    win.imgNew= tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btnNew=tk.Button(win.buttonframe,image=win.imgNew,relief=tk.FLAT,width=24,command=newFile)
+    #win.btnNew=tk.Button(win.buttonframe,text="New",relief=tk.FLAT,width=4,command=newFile)
     win.btnNew.pack(side=tk.LEFT,padx=(2,2))
 
-    win.btnSave=tk.Button(win.buttonframe,text="Save",relief=tk.FLAT,width=4,command=saveFile)
+    imgPath=os.path.join(icondir,"save.png")
+    win.imgSave= tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btnSave=tk.Button(win.buttonframe,image=win.imgSave,relief=tk.FLAT,width=24,command=saveFile)
+    #win.btnSave=tk.Button(win.buttonframe,text="Save",relief=tk.FLAT,width=4,command=saveFile)
     win.btnSave.pack(side=tk.LEFT,padx=(2,2))
 
     # draw sep
-    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(16,16))
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(12,12))
 
-    win.btn2xSlower=tk.Button(win.buttonframe,text='\u00BD\u00D7',relief=tk.FLAT,width=1,command=decrease2xBPM)
-    win.btn2xSlower.pack(side=tk.LEFT,padx=(2,2))
-    win.btnSlower=tk.Button(win.buttonframe,text=u'\u23EA',relief=tk.FLAT,width=1,command=decreaseBPM)
-    win.btnSlower.pack(side=tk.LEFT,padx=(2,2))
+    imgPath=os.path.join(icondir,"chevLeftS.png")
+    win.img2xSlower= tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btn2xSlower=tk.Button(win.buttonframe,image=win.img2xSlower,relief=tk.FLAT,width=9,command=decrease2xBPM)
+    win.btn2xSlower.pack(side=tk.LEFT,padx=(2,0))
+    imgPath=os.path.join(icondir,"triLeftS.png")
+    win.imgSlower= tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btnSlower=tk.Button(win.buttonframe,image=win.imgSlower,relief=tk.FLAT,width=9,command=decreaseBPM)
+    win.btnSlower.pack(side=tk.LEFT,padx=(0,2))
     win.bpm = tk.StringVar()
-    win.bpm.set(f"{bpm:3} bpm")
-    win.speed = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.bpm)     
-    win.speed.pack(side=tk.LEFT,padx=(3,3))
-    win.btnFaster=tk.Button(win.buttonframe,text=u'\u23E9',relief=tk.FLAT,width=1,command=fasterBPM)
-    win.btnFaster.pack(side=tk.LEFT,padx=(2,2))
-    win.btnFaster=tk.Button(win.buttonframe,text='2'+'\u00D7',relief=tk.FLAT,width=1,command=faster2xBPM)
-    win.btnFaster.pack(side=tk.LEFT,padx=(2,2))
+    win.bpm.set(f"{bpm:3}")
+    win.speed = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.bpm, width=3)     
+    win.speed.pack(side=tk.LEFT,padx=(0,0))
+    win.speedl = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',text="bpm",font=("*font",6))     
+    win.speedl.pack(side=tk.LEFT,padx=(0,0))
+    imgPath=os.path.join(icondir,"triRightS.png")
+    win.imgFaster= tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btnFaster=tk.Button(win.buttonframe,image=win.imgFaster,relief=tk.FLAT,width=9,command=fasterBPM)
+    win.btnFaster.pack(side=tk.LEFT,padx=(2,0))
+    imgPath=os.path.join(icondir,"chevRightS.png")
+    win.img2xFaster= tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btn2xFaster=tk.Button(win.buttonframe,image=win.img2xFaster,relief=tk.FLAT,width=9,command=faster2xBPM)
+    win.btn2xFaster.pack(side=tk.LEFT,padx=(0,2))
 
     # draw sep
-    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(16,16))
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(12,0))
 
     # countOff 
     win.varCountOff=tk.BooleanVar(value=False)
@@ -1139,8 +1201,8 @@ def initWindow():
     win.lbMetroMult.pack(side=tk.LEFT)
     footerbgcolor='white'
     footerfgcolor='black'
-    imgPath=os.path.join(scriptdir,"Metronome18.png")
-    imgPathG=os.path.join(scriptdir,"Metronome18G.png")
+    imgPath=os.path.join(icondir,"Metronome18.png")
+    imgPathG=os.path.join(icondir,"Metronome18G.png")
     win.imgMetro = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.imgMetroG = tk.PhotoImage(file=imgPathG)#.subsample(4,4)
     win.imMetro = tk.Label(win.metroFrame, image=win.imgMetro,cursor="exchange")
@@ -1170,7 +1232,7 @@ def initWindow():
     win.cbLow.pack(side=tk.LEFT,padx=(2,2))
 
     # draw sep
-    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(16,16))
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,12))
     
     # play symbols (see:https://en.wikipedia.org/wiki/Media_control_symbols)
     win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopTabScroll)
@@ -1181,16 +1243,16 @@ def initWindow():
     win.btnPause.pack(side=tk.LEFT,padx=(2,2))
 
     win.beatCursor = tk.StringVar()
-    win.beatCursor.set(f"beat: {beatCursor:>5.1f}")
-    win.beat = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.beatCursor,width=12)     
+    win.beatCursor.set(f"{beatCursor:>5.1f}")
+    win.beat = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.beatCursor,width=6)     
     win.beat.pack(side=tk.LEFT,padx=(3,3))
 
     # draw sep
-    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(16,16))
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(12,12))
 
-    imgPath=os.path.join(scriptdir,"linear.png")
+    imgPath=os.path.join(icondir,"linear.png")
     win.imgLinear = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    imgPath=os.path.join(scriptdir,"wrap.png")
+    imgPath=os.path.join(icondir,"wrap.png")
     win.imgWrap = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.varLinear=tk.BooleanVar(value=False)
     win.cbLinear=tk.Checkbutton(win.buttonframe,variable=win.varLinear,command=reformatBars,
@@ -1201,22 +1263,22 @@ def initWindow():
     #win.cbSound.config(font=("Courier", 12))
     win.cbLinear.pack(side=tk.LEFT,padx=(2,2))
 
-    imgPath=os.path.join(scriptdir,"autosize.png")
+    imgPath=os.path.join(icondir,"autosize.png")
     win.imgAuto = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnAuto4Bars=tk.Button(win.buttonframe,image=win.imgAuto,relief=tk.FLAT,command=autoBars)
     win.btnAuto4Bars.pack(side=tk.LEFT,padx=(2,2))
 
-    imgPath=os.path.join(scriptdir,"shrink.png")
+    imgPath=os.path.join(icondir,"shrink.png")
     win.imgShrink = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnShrink4Bars=tk.Button(win.buttonframe,image=win.imgShrink,relief=tk.FLAT,command=shrinkBars)
     win.btnShrink4Bars.pack(side=tk.LEFT,padx=(2,2))
 
-    imgPath=os.path.join(scriptdir,"grow.png")
+    imgPath=os.path.join(icondir,"grow.png")
     win.imgGrow = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnGrow4Bars=tk.Button(win.buttonframe,image=win.imgGrow,relief=tk.FLAT,command=growWindow)
     win.btnGrow4Bars.pack(side=tk.LEFT,padx=(2,2))
 
-    imgPath=os.path.join(scriptdir,"help.png")
+    imgPath=os.path.join(icondir,"help.png")
     win.imgHelp = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnHelp=tk.Button(win.buttonframe,image=win.imgHelp,relief=tk.FLAT,command=showHelp)
     win.btnHelp.pack(side=tk.LEFT,padx=(2,2))
