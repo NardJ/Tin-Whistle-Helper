@@ -19,7 +19,8 @@ and lets you edit the tabs.
 <br />  <br />
 ![Figure 1](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/MainWindow.png "Screenshot")
  
-## Tab file format
+
+## Manual
 
 ### Toolbar
 ```
@@ -80,12 +81,16 @@ _           : Change note at cursor to rest
 ```
 
 ### Remarks:
+```
 - 'f' keypress will be translated to f#. Likewise for F
 - [Ctrl]-'c' keypress will be translated to c#. Without [ctrl] will be c.
 - When you change a note and the last tab is not a rest, a rest 
   will be appended to ensure you keep enough empty note space 
   to enter new notes.
 - Title will be changed when saving the file (to filename)
+```
+
+## Tab file format
 
 It is also possible to edit the tbs and tb files directory.
 View tutorial.tb and tutorial.tbs for instructions.
