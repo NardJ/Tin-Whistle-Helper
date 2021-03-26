@@ -18,7 +18,11 @@ and lets you edit the tabs.
 - edit tab color
 <br />  <br />
 ![Figure 1](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/MainWindow.png "Screenshot")
- 
+
+
+</br>
+
+---
 
 ## Manual
 
@@ -89,6 +93,10 @@ _           : Change note at cursor to rest
   to enter new notes.
 - Title will be changed when saving the file (to filename)
 ```
+
+</br>
+
+---
 
 ## Tab file format
 
