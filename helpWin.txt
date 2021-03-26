@@ -1,5 +1,5 @@
 <family:Verdana>
-<center><h1><u>Tin Whistle Helper - Usage guide</u></h1></center>
+<center><h1><u>Tin Whistle Helper - Manual</u></h1></center>
 
 Tin Whistle Helper helps you practice playing your tin whistle in D 
 and lets you edit the tabs. Below the controls to use this tool.
