@@ -82,6 +82,8 @@ _           : Change note at cursor to rest
               before cursor
 [Return]    : Break tabs into two lines
 [Backspace] : Join two lines if beat cursor is at first tab of line
+p           : Save screenshot of tabs as visible on screen using name 
+              of tab file with extension .png
 ```
 
 ### Remarks:
