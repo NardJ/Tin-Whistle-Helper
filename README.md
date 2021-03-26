@@ -1,107 +1,110 @@
 # Tin-Whistle-Helper
-For playing at tempo along with scrolling tabs on a D Tin Whistle/Penny Whistle or Low Whistle.
+Tin Whistle Helper helps you practice playing your tin whistle in D 
+and lets you edit the tabs. 
 
-## Features
+## Practice features
 - scrolling cursor (vertical red indicator) shows which note/tab to play
 - tabs length show note duration 
 - indicators above tabs show decorators
 <br />  <br />
-- add your own tab files
-<br />  <br />
 - adjustable tempo 
 - audible metronome with count-off (CO)
 - song can be played in background in scale of tin whistle or low whistle
+
+## Edit features
+- add your own songs / tab files
+- edit tab notes and lengths directly or edit the .tb/.tbs files
+- add decorators
+- edit tab color
 <br />  <br />
-- use scroll wheel to zoom
-- hold left mouse and move to drag view
-- right mouse button to reset view
 ![Figure 1](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/MainWindow.png "Screenshot")
  
 ## Tab file format
 
-### General format
-- Lines starting with # are ignored (`# this is a comment`)
-- Empty lines are ignored and can be used to separate blocks
-- First line should contain number for tempo (beats per minute) (`120`)
-- Following lines should contain note (`d,4,^`), a new color to draw next tabs (`yellow`), '=' sign to go to next tab row 
-  
-### Note format
-A note consists of a note id, the duration in beats and decoration. These should be separated with spaces 
+### Toolbar
 ```
-   notes:      firstoctave  : c,c#,d,e,f#,g,a,b,
-               secondoctave : C,D,E,F#,G,A,B
-               rests        : _
-               bar separator: [space] or |
-   duration:   whole beats .e.g. 1,2,3,4,5,6,7,8
-   play style: (see: https://en.wikipedia.org/wiki/Tin_whistle)
-               normal       :
-               tap/strike   : ^
-               cut          : >
-               slide        : =
-               roll(cut+tap): >^ 
-               tonguing     : @
-               vibrato      : ~
-               join notes in one breath
-                              /: start
-                              -: continue
-                              \: end
+[Load ]: Load a tabs file (.tbs or .tb)
+[New  ]: Start with clean file and resets beats per minute to 120
+[Save ]: Save a tabs file under the name you provide
+[<]    : Half number of beats per minute (bpm)
+[◀]    : Reduce number of beats per minute by 5
+[▶]    : Reduce number of beats per minute by 5
+[>]    : Double number of beats per minute 
+ ⊠ CO  : Count Off 4 beats after pressing play before starting song
+ ⏅     : Sets number of beats for metronome to sound
+ ⊠ ♫⚟  : Play the notes of the song
+ ⊠ Low : Play the song one octave lower to resemble a low whistle
+[■]    : Stop song and set beat cursor to first beat
+[▶]    : Play song from current position of beat cursor
+[▮▮]   : Pause song / Resume song 
+[⬏]    : Switch from page view (wrapped) to linear view
+[⤢]    : Autosize window and zoom level
+[↙]    : Reduce zoom level to fit window size
+[↗]    : Enlarge window to fit page size
+(?)    : Show this help
 ```
 
-See tutorial.tbs for an example file using all options.
+### Tab Area
+```
+<b>Mouse - Change View </b>
+<code>
+Left Button : Move cursor to mouse position (if tab present)
+Drag        : Move page in window
+Right Button: Reset page to left upper corner
+Scroll Wheel: Zoom page
+</code>
 
-![Figure 2](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/Tutorial.tbs.png "Tutorial.tbs")
+<b>Keyboard - Edit Song</b>
+<code>
+Arrow keys: Move beat cursor
 
+a...g       : Change (low-octave) note at current cursor 
+A...G       : Change (low-octave) note at current cursor
+_           : Change note at cursor to rest
+1...9       : Change length of note
+^,>,=,@,~   : Add decorator tap, cut, slide, tongue, vibrato
+[Escape]    : Remove decorator
+
+[Del]       : Remove note at cursor
+[Ctrl]-z    : Undo last delete
+[Ins]       : Insert note space (rest) before cursor
+[Shift][Ins]: Insert note space (rest) after cursor
++           : Append note space (rest) to song if last tab selected
+
+[F1]..[F10] : Change color of tab at beat cursor
+[Space],|   : Add space or vertical line
+[Backspace] : Remove space or vertical line if one is found just 
+              before cursor
+[Return]    : Break tabs into two lines
+[Backspace] : Join two lines if beat cursor is at first tab of line
+```
+
+### Remarks:
+- 'f' keypress will be translated to f#. Likewise for F
+- [Ctrl]-'c' keypress will be translated to c#. Without [ctrl] will be c.
+- When you change a note and the last tab is not a rest, a rest 
+  will be appended to ensure you keep enough empty note space 
+  to enter new notes.
+- Title will be changed when saving the file (to filename)
+
+It is also possible to edit the tbs and tb files directory.
+View tutorial.tb and tutorial.tbs for instructions.
+Example file
 ```
 # tempo in bps
 120
 
-# next notes to play
-red
-d , 1,
-e , 1,
-f#, 1,
-g , 1,
-a , 1,
-b , 1,
-c,  1,
-c#, 1,
+# set page color and title text
+color: black
+back : #FFFFDE
 
-D , 1,
-E , 1,
-F#, 1,
-G,  1,
-A , 1,
-B , 1,
-C#, 1,
+# custom Title, author and a small decoration
+text : "Tutorial", 1,1.75, "Times",1.2, "bold"
+text : "by NardJ", 1,3.3, "Times",0.4, "normal"
+text : "♫", 21,0, "Arial",3, "normal",purple
 
-_ , 2, 
-
-=
-
-green
-c , 2,^
-d , 2,>
-e , 2,>^
-f#, 2,=
-e , 2,@
-f#, 2,~
-g , 1,/
-a , 1,-
-bB , 1,\
-
-=
-
-  , 0, 
-blue
-c#, 1,
-d , 1,
-e , 1,
-f#, 1,
-
-| , 0, 
-
-g , 4,
-
-```
-
- 
+# tabs
+red d e f# g a b c c#  green D E F# G A B C#  
+blue c.^ d.> e.>^ f#.= g/ a- b\ 
+orange c. _ d. _. e. f#... | g | a..
+``` 
