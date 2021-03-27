@@ -1,9 +1,8 @@
 # TODO
-# reflow tab blocks?
-# make tab printable
-# tab file editor
-#   make cursor movable with keypad
-# tabs do not scroll in linear mode
+# replay from last start with one key stroke not yet working
+# bug:tabs do not scroll in linear mode
+#
+# use pip3 freeze >requirements.txt
 
 import os
 from datetime import datetime
@@ -13,6 +12,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
+from pyscreenshot import grab
 
 #GLOBALS
 scriptpath= os.path.realpath(__file__) 
@@ -98,7 +98,7 @@ def capTitle():
     title=" ".join([word.capitalize() for word in title.split(" ")])
 
 def loadFile(filename=None,filepath=None):
-    global tabs,bpm,title,beatsize
+    global tabs,bpm,title,beatsize,backColor
     if filepath==None:
         filepath=os.path.join(scriptdir,filename)        
     if not os.path.isfile(filepath): return
@@ -107,7 +107,8 @@ def loadFile(filename=None,filepath=None):
     initBars(20)
     beat=0
     cur=0
-    tabColor='blue'
+    tabColor=colors[2]
+    backColor='#FFFFDE'
     tabRow=0
     tabCol=0
     tabLin=0
@@ -156,15 +157,17 @@ def loadFile(filename=None,filepath=None):
     except Exception as e:
         print (f"Error reading tab file:{e}")
 
-colors=['red','green','blue','yellow', 'orange', 'brown', 'black','grey']
-
+colors=['blue', 'purple3', '#00BBED','red','DeepPink3','magenta','orange','gold','brown','green','gray39','black',]
+backcolors=['#7BDAFF','#FFC6F4','#CeF1Fd','#ffC0C0','#F7A8Db','#f1Bbf1','#FeE59a','#FFFFDE','#D3B4B4','#A0FdA0','#D4D4D4','#FFFFFF']
 def newFile():
-    global beatCursor,tabs,bpm,title
+    global beatCursor,tabs,bpm,title,backColor
     bpm=120
     title="New File"
     tabs.clear()
     texts.clear()
     beatCursor=0
+    tabColor=colors[2]
+    backColor='#FFFFDE'
     for beat in range (20):
         tabs.append([beat,'_',1,'','green',beat,0,beat])                        
 
@@ -187,6 +190,7 @@ def loadFile2(filename=None,filepath=None):
     beat=0
     cur=0
     tabColor=colors[2]
+    backColor='#FFFFDE'
     tabRow=0
     tabCol=0
     tabLin=0
@@ -267,17 +271,32 @@ def saveFile2(filename=None,filepath=None):
     eol='\n'
     try:
         with open(filepath,'w') as writer:   
+            writer.write(f"# {title}{eol}")
+            writer.write(f"#   made with TWHelper{eol}")
+            writer.write(f"#   see https://github.com/NardJ/Tin-Whistle-Helper{eol}")
+            writer.write(f"{eol}")
+            writer.write(f"# Beats per Minute (bpm){eol}")
             writer.write(f"{bpm}{eol}")
+            writer.write(f"{eol}")
+            writer.write(f"# Colors{eol}")
+            writer.write(f"color:{textColor}{eol}")
+            writer.write(f"back :{backColor}{eol}")
+            writer.write(f"{eol}")
+            writer.write(f"# Text{eol}")
+            for text in texts:
+                writer.write(f"text:{','.join(text)}{eol}")
+            writer.write(f"{eol}")
             currColor=''
             currRow=0
+            writer.write(f"# Tabs{eol}")
             for tab in tabs:
                 [beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]=tab
-                if currColor!=tabColor: 
-                    writer.write(f"{tabColor} ")
-                    currColor=tabColor
                 if tabRow!=currRow:
                     writer.write(eol)
                     currRow=tabRow
+                if currColor!=tabColor: 
+                    writer.write(f"{tabColor} ")
+                    currColor=tabColor
                 if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_']:
                     nlen=(dur-1)*'.'
                     writer.write(f"{name}{nlen}{style} ")
@@ -383,8 +402,8 @@ def calcTabDims():
             y = (0+1)*holeInterval*10
         else:
             y = (tabRow+1)*holeInterval*10
-        if x>tabDims[0]: tabDims[0]=x
-        if y>tabDims[1]: tabDims[1]=y
+        if x>tabDims[0]: tabDims[0]=int(x+0.99999) # poor mans round up
+        if y>tabDims[1]: tabDims[1]=int(y+0.99999)
 
 def initBars(newBeatsize=None):
     global beatsize,barInterval,holeInterval,xOffset,yOffset, beatCursor,titleHeight
@@ -404,9 +423,9 @@ def beat2x(beat):
         if (beat>=tabBeat): fndTab=tab
     tabBeat,name,dur,style,tabColor,tabCol,tabRow,tabLin = fndTab
     if lin:
-        x=xOffset+dragXOffset+tabLin*barInterval
+        x=xOffset+tabLin*barInterval
     else:
-        x=xOffset+dragXOffset+tabCol*barInterval
+        x=xOffset+tabCol*barInterval
     x=x+(beat-tabBeat)*barInterval
     return x
 
@@ -418,9 +437,9 @@ def beat2y(beat):
         [tabBeat,name,dur,style,tabColor,tabCol,tabRow,tabLin]=tab        
         if (beat>=tabBeat):
             if lin:
-                y=yOffset+dragYOffset
+                y=yOffset
             else:    
-                y=yOffset+dragYOffset+tabRow*holeInterval*10
+                y=yOffset+tabRow*holeInterval*10
     return y+titleHeight
 
 def beat2w(dur):
@@ -439,8 +458,8 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
     y0=beat2y(beat)
     yt=y0+beat2h()
 
-    if x2<0 or x1>winDims[0]: return False
-    if yt<0 or y0>winDims[1]: return False
+    #if x2<0 or x1>winDims[0]: return False
+    #if yt<0 or y0>winDims[1]: return False
 
     if noteId == '': return False
     if noteId == ',': return False
@@ -553,7 +572,6 @@ oldOffsets=[0,0]
 oldBeatsize=0
 def drawBars(force=False):
     global xOffset,yOffset,cursorBar,cursorBar2,oldOffsets,oldBeatsize    
-  
     curTabIdx=-1
     # check if bars changed
     if force:
@@ -566,12 +584,16 @@ def drawBars(force=False):
         # clear canvas
         win.cvs.delete("all")
 
+        # resize canvas
+        calcTabDims()
+        win.cvs.config(scrollregion=(0,0,tabDims[0],int(tabDims[1]+beat2y(0)+yOffset)))        
+
         # redraw page outline
         #win.cvs.create_rectangle(beat2x(0)-beatsize, beat2y(0)-beatsize-titleHeight, beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize, fill=color)
         bBox=pageBBox()
         win.cvs.create_rectangle(bBox[0],bBox[1],bBox[2],bBox[3], fill=backColor)
 
-        # draw title
+        # draw title and other text
         if len(texts)==0: #only display filename as title if no texts were given in the file
             x1=beat2x(0)
             y1=beat2y(0)
@@ -583,8 +605,8 @@ def drawBars(force=False):
                         text,x,y,fName,fSize,fStyle=textCmd
                         fillColor=textColor
                     if len(textCmd)==7: text,x,y,fName,fSize,fStyle,fillColor=textCmd
-                    text=text[1:-1] # remove leading and trailing "
-                    fName=fName[1:-1] # remove leading and trailing "
+                    text=text[1:-1]     # remove leading and trailing "
+                    fName=fName[1:-1]   # remove leading and trailing "
                     fStyle=fStyle[1:-1] # remove leading and trailing "
                     x1=int(beatsize*(float(x)))
                     y1=int(beatsize*(float(y)))
@@ -614,6 +636,29 @@ def drawBars(force=False):
         dashPatt=(1,2)
         cursorBar2=win.cvs.create_rectangle(x+1,y,x+w,y+h,width=1,outline='red',dash=dashPatt) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
     cursorBar=win.cvs.create_line(x,y,x,y+h,fill='red',width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+
+    # check if we need to scroll (window should have room for minimal 2 rows)
+    if playing:
+        #  active row    
+        actRow=-1
+        for tab in tabs:
+            beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
+            if beatCursor>=beat and beatCursor<=(beat+dur):actRow=tabRow
+        #  nr of beats on this row        
+        fromBeat,toBeat=-1,-1
+        for tab in tabs:
+            beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
+            if tabRow==actRow: 
+                if fromBeat==-1: fromBeat=beat
+                toBeat=beat
+        nrBeats=toBeat-fromBeat+1
+        #  calc scroll fraction
+        if actRow>0:
+            beatNr=beatCursor-fromBeat
+            relBeat=beatNr/nrBeats
+            rowHeight=beat2h()/tabDims[1]
+            relY=(actRow-1+relBeat)*rowHeight
+            win.cvs.yview_moveto(relY)
 
 noteSilence=50 #msec
 def doCursorPlay():
@@ -645,6 +690,7 @@ def stopTabScroll():
     playing=False
     beatCursor=0
     endNote()
+    win.cvs.yview_moveto(0)    
     drawBars()
 def pauseTabScroll():
     global beatUpdate,delayJob
@@ -717,10 +763,20 @@ def initTabScroll(fromBeat=0):
 
 prevCursorStart=0
 def startTabScroll():
-    if not allBarsOnScreen() and not win.varLinear.get():
-        messagebox.showinfo("Cannot play","Play can only start if in linear mode or \nif all bars are visible.\nUse scroll wheel to zoom or the 'auto'-button.")
-        return
-    global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset,dragXOffset,dragYOffset
+    nrBarLines=barLinesFullyVisible()#(win.cvs.winfo_height())/beat2h()
+    if win.varLinear.get():
+        if nrBarLines<1:
+            messagebox.showinfo("Cannot play","In linear mode the full bar height should be fully visible.\nEnlarge window or use scroll wheel to zoom.")
+            return
+        #check if one row on screen
+    else:        
+        if nrBarLines<2 :
+            messagebox.showinfo("Cannot play","In page mode, at least to bar lines should be fully visible.\nEnlarge window or use scroll wheel to zoom.")
+            return
+        if win.cvs.winfo_width()<tabDims[1]:
+            messagebox.showinfo("Cannot play","In page mode, the window-width should accomodate all bars\nEnlarge window or use scroll wheel to zoom.")
+            return
+    global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset
     if playing: return
     global prevCursorStart
     prevCursorStart=beatCursor
@@ -728,8 +784,7 @@ def startTabScroll():
     initBars(beatsize) # don't reset zoom
     playing=True
     #resetView(None)
-    dragXOffset=0
-    dragYOffset=0
+    win.cvs.yview_moveto(0)
     drawBars()
     countOff()
     #doCursorPlay()
@@ -763,53 +818,65 @@ def faster2xBPM():
     maxMetroMult()
 
 drag_begin=0
-dragXOffset=0
-dragYOffset=0
 drag_start=None
+scroll_start=0
 def drag_enter(event):
-    global drag_begin,drag_start
+    global drag_begin,drag_start,scroll_start
     drag_begin=[event.x,event.y]
     drag_start=time.time()
+    scroll_start=win.vbar.get()
 def drag_handler(event):
-    global drag_begin,dragXOffset,dragYOffset
+    global drag_begin
     drawDistance=( (event.x-drag_begin[0]),(event.y-drag_begin[1]) )
-    dragXOffset=dragXOffset+drawDistance[0]
-    dragYOffset=dragYOffset+drawDistance[1]
-    #if dragXOffset>0: dragXOffset=0
-    drag_begin=[event.x,event.y]
-    drawBars(True)
+    cw,ch=win.cvs.winfo_width(),win.cvs.winfo_height()
+    vScrollSize=scroll_start[1]-scroll_start[0]
+    vScrollOffset=scroll_start[0]-drawDistance[1]/ch
+    if vScrollOffset<0: vScrollOffset=0
+    if vScrollOffset>(1-vScrollSize): vScrollOffset=(1-vScrollSize)
+    win.cvs.yview_moveto(vScrollOffset)
 def drag_end(event):
     if (time.time()-drag_start)<0.2: 
         click(event)
         return
-    global dragXOffset,dragYOffset
-    drawDistance=( (event.x-drag_begin[0]),(event.y-drag_begin[1]) )
-    dragXOffset=dragXOffset+drawDistance[0]
-    dragYOffset=dragYOffset+drawDistance[1]
-    #if dragXOffset>0: dragXOffset=0
-    drawBars(True)
-def scrollwheel(event):
+
+zooms=[25,50,75,100,150,200,250,400]
+def setZoom():
+    win.varZoom.set(int(100*(beatsize/20)+0.5))
+def setBeatSize():
     global beatsize
-    if (event.num==4):
-        beatsize=beatsize-1
-    if (event.num==5):   
-        beatsize=beatsize+1
-    #print (f"event:{event}")
-    if beatsize<minBeatsize: beatsize=minBeatsize
-    if beatsize>maxBeatsize: beatsize=maxBeatsize
+    beatsize=int(win.varZoom.get()/100*20)
     initBars(beatsize)
     calcTabDims()
-    drawBars(True)
+    drawBars(True)  
+def zoomIn():
+    zIdx=zooms.index(win.varZoom.get())
+    zIdx+=1
+    if zIdx>=len(zooms): zIdx=len(zooms)-1
+    win.varZoom.set(zooms[zIdx])        
+    setBeatSize()
+def zoomOut():
+    zIdx=zooms.index(win.varZoom.get())
+    zIdx-=1
+    if zIdx<0: zIdx=0
+    win.varZoom.set(zooms[zIdx])
+    setBeatSize()
+def scrollwheel(event):
+    s=win.vbar.get()[0]
+    d=-0.1 if event.num==4 else 0.1
+    win.cvs.yview_moveto(s+d)
+
+
 def click(event):
     global beatCursor
+    eventX,eventY=event.x,event.y+win.vbar.get()[0]*tabDims[1]
     for tab in tabs:
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
         x=beat2x(beat)
         y=beat2y(beat)
         w=beat2w(dur)
         h=beat2h()
-        if (event.x>=x and event.x<(x+w) and 
-            event.y>=y and event.y<(y+h)):
+        if (eventX>=x and eventX<(x+w) and 
+            eventY>=y and eventY<(y+h)):
            beatCursor=beat
            win.beatCursor.set(f"{beatCursor:.1f}")
            drawBars()   
@@ -834,68 +901,68 @@ def maxMetroMult():
     if bpm>300:
         if metroMultIdx==1: advMetroMult()
 def resetView(event):
-    global dragXOffset,dragYOffset
-    dragXOffset=0
-    dragYOffset=0
     initBars(20)
     drawBars(True)
-def fitButtonState():
-    if win.varLinear.get(): 
-        win.btnShrink4Bars.config(state='disabled')
-        win.btnGrow4Bars.config(state='disabled')
-        win.btnAuto4Bars.config(state='disabled')
-    else:    
-        win.btnShrink4Bars.config(state='normal')
-        win.btnGrow4Bars.config(state='normal')
-        win.btnAuto4Bars.config(state='normal')
 
 def pageBBox():
     return (beat2x(0)-beatsize, beat2y(0)-beatsize-titleHeight, beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize)
-def allBarsOnScreen():    
-    bBox=pageBBox()
-    toolH=win.buttonframe.winfo_height()
-    menuH=24
-    #return (tabDims[0]<winDims[0] and (tabDims[1]+2*beatsize+toolH)<winDims[1]) 
-    return (bBox[2]<winDims[0] and bBox[3]<(winDims[1]-toolH) )
+def barLinesFullyVisible(customWinHeight=None):
+    if customWinHeight==None:
+        return (win.cvs.winfo_height()-yOffset-beat2y(0))/beat2h()
+    else:
+        return (customWinHeight-yOffset-beat2y(0))/beat2h()
+
 def shrinkBars():
     global beatsize
     oldBeatsize=beatsize
-    while (not allBarsOnScreen()) and beatsize>minBeatsize: #+56 for height of toolbar
+    minBarLines=1 if win.varLinear.get() else 2
+    while (barLinesFullyVisible()<minBarLines and beatsize>minBeatsize): #+56 for height of toolbar
         beatsize-=0.25
         initBars(beatsize)
         calcTabDims()
-    if not allBarsOnScreen():
+    if barLinesFullyVisible()<minBarLines:
         beatsize=oldBeatsize
         initBars(beatsize)
         calcTabDims()
-        messagebox.showinfo("No fit found.","Try enlarging window or \na smaller tbs file.")
+        messagebox.showinfo("No fit found.","Try enlarging window.")
         return
     drawBars(True)   
+
+titleBarHeight=0
 def growWindow():
-    global winDims
+    global winDims,titleBarHeight
     oldWinDims=winDims
-    winDims[0]=tabDims[0]
-    winDims[1]=tabDims[1]+win.buttonframe.winfo_height()+2*beatsize
-    if winDims[0]<1024: winDims[0]=1024
-    if winDims[1]<320: winDims[1]=320
-    while (not allBarsOnScreen()): #+56 for height of toolbar
-        winDims=[int(winDims[0]+10),int(winDims[1]+10)]
-    if not allBarsOnScreen():
+    startX=win.winfo_x()
+    startY=win.winfo_y()
+    if tabDims[0]>(winDims[0]-beatsize*2-win.vbar.winfo_width()):
+        winDims[0]=tabDims[0]+beatsize*2+win.vbar.winfo_width()
+    minBarLines=1 if win.varLinear.get() else 2
+    while (barLinesFullyVisible(winDims[1])<minBarLines): #+56 for height of toolbar
+        winDims[1]+=10
+    if barLinesFullyVisible(winDims[1])<minBarLines:
         winDims=oldWinDims
-        messagebox.showinfo("No fit found.","Try zoom out or \na smaller tbs file.")
+        win.geometry(f'{winDims[0]:.0f}x{winDims[1]:.0f}+{startX}+{startY}')    
+        messagebox.showinfo("No fit found.","Try zoom.")
         return
-    win.geometry(f'{winDims[0]:.0f}x{winDims[1]:.0f}+{win.winfo_x()}+{win.winfo_y()}')    
+    geomStr=f'{winDims[0]:.0f}x{winDims[1]:.0f}+{startX}+{startY-titleBarHeight}'
+    win.geometry(geomStr)    
     win.update()
+    if titleBarHeight==0:
+        titleBarHeight=win.winfo_y()-startY
+        geomStr=f'{winDims[0]:.0f}x{winDims[1]:.0f}+{startX}+{startY-titleBarHeight}'
+        win.geometry(geomStr)    
+        win.update()
+    print (f"{geomStr}")
     winDims=[win.winfo_width(),win.winfo_height()]
     initBars()#just to be sure all is updated
     drawBars(True)   
+
 def autoBars():
     growWindow()
     shrinkBars()
     growWindow()# to shrink window if width or height is too large
 
 def reformatBars():
-    fitButtonState()
     calcTabDims()
     drawBars(True)
 
@@ -914,15 +981,15 @@ def moveTabs(afterTabIdx, nrBeats):
     delta=nrBeats
     firstTabRow=tabs[afterTabIdx][6]
     for tailIdx in range(afterTabIdx+1,len(tabs)):  # move following tabs according to change
-        tabs[tailIdx][0]+=delta          #beat
-        if tabs[tailIdx][6]==firstTabRow:#tabCol
+        tabs[tailIdx][0]+=delta                     #   beat
+        if tabs[tailIdx][6]==firstTabRow:           #   tabCol
             tabs[tailIdx][5]+=delta 
-        tabs[tailIdx][7]+=delta          #tabLin
+        tabs[tailIdx][7]+=delta                     #   tabLin
 
 delTab=None
 delIdx=-1
 def keypress(event):
-    global beatCursor, tabs,delTab,delIdx
+    global beatCursor, tabs,delTab,delIdx,backColor
     #print (event)
     key=event.keysym
     char=event.char
@@ -964,7 +1031,6 @@ def keypress(event):
     if char in ['a','b','c','c','d','e','f','g','A','B','C','D','E','F','G','_']:
         if char=='f': char='f#'
         if char=='F': char='F#'
-        print (state)
         if char=='c' and state==8: char='c#'
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
@@ -1018,7 +1084,6 @@ def keypress(event):
             drawBars(True)
             delTab=None
     # insert note (before cursor)
-    print (event)
     if key in ('Insert', 'KP_Insert','KP_0'):
         if state==1: idx+=1 # to append after
         tab=tabs[idx]
@@ -1090,11 +1155,15 @@ def keypress(event):
 
     # change tab color
     if key[0]=='F':
+        print (int(state))
         if len(key)>1:
-            colorNr=int(key[1:])
+            colorNr=int(key[1:])-1
             if colorNr<len(colors):
-                tab=tabs[idx]
-                tab[4]=colors[colorNr]
+                if state==0:
+                    tab=tabs[idx]
+                    tab[4]=colors[colorNr]
+                if state==1:
+                    backColor=backcolors[colorNr]
                 drawBars(True)
 
     # replay from last start
@@ -1104,6 +1173,32 @@ def keypress(event):
         #beatCursor=prevCursorStart
         startTabScroll()
 
+    if key in ('p','P'):
+        try:
+            # autosize
+            if state==1: autoBars()
+            # hide cursor
+            cpbeatCursor=beatCursor
+            beatCursor=99999
+            drawBars()
+            win.cvs.update()
+            bBox=pageBBox()
+            # get screenshot bounding box
+            x=win.winfo_rootx()+win.cvs.winfo_x()+bBox[0]
+            y=win.winfo_rooty()+win.cvs.winfo_y()+bBox[1]
+            x1=x+min(bBox[2],win.cvs.winfo_width())
+            y1=y+min(bBox[3],win.cvs.winfo_height())
+            im=grab(bbox=(x,y,x1,y1))
+            # save image
+            filename=os.path.join(scriptdir,title+".png")
+            im.save(filename,format='png')
+            print (f"Saved screenshot as '{filename}'")
+            # show cursor
+            beatCursor=cpbeatCursor
+            drawBars()
+        except Exception as e:
+            print (f"Error saving screenshot file:{e}")
+        
     # debug 
     print (event)
     if key in ('Home'):
@@ -1278,17 +1373,44 @@ def initWindow():
     win.btnGrow4Bars=tk.Button(win.buttonframe,image=win.imgGrow,relief=tk.FLAT,command=growWindow)
     win.btnGrow4Bars.pack(side=tk.LEFT,padx=(2,2))
 
+    # zoom
+    imgPath=os.path.join(icondir,"zoomout.png")
+    win.imgZoomOut = tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btnZoomOut=tk.Button(win.buttonframe,image=win.imgZoomOut,bg='white',relief=tk.FLAT,command=zoomOut)
+    win.btnZoomOut.pack(side=tk.LEFT,padx=(2,2))
+    win.btnZoomOut.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
+
+
+    win.varZoom = tk.IntVar()
+    win.varZoom.set(100)
+    win.zoom = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.varZoom, width=3)     
+    win.zoom.pack(side=tk.LEFT,padx=(0,0))
+    win.zooml = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',text="%",font=("*font",6))     
+    win.zooml.pack(side=tk.LEFT,padx=(0,0))
+
+    imgPath=os.path.join(icondir,"zoomin.png")
+    win.imgZoomIn = tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btnZoomIn=tk.Button(win.buttonframe,image=win.imgZoomIn,bg='white',relief=tk.FLAT,command=zoomIn)
+    win.btnZoomIn.pack(side=tk.LEFT,padx=(2,2))
+    win.btnZoomIn.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
+
+    # help
     imgPath=os.path.join(icondir,"help.png")
     win.imgHelp = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnHelp=tk.Button(win.buttonframe,image=win.imgHelp,relief=tk.FLAT,command=showHelp)
     win.btnHelp.pack(side=tk.LEFT,padx=(2,2))
 
     # make canvas
+    win.vbar=tk.Scrollbar(win,orient=tk.VERTICAL)
+    win.vbar.pack(side=tk.RIGHT,fill=tk.Y)
     win.cvs = tk.Canvas(win, bg="white" )
     win.cvs.pack(expand=True,fill=tk.BOTH,padx=(0,0),pady=(0,0))
+    win.vbar.config(command=win.cvs.yview)
+    win.cvs.config(yscrollcommand=win.vbar.set)
+
     win.cvs.bind("<ButtonPress-1>", drag_enter)
     win.cvs.bind("<B1-Motion>", drag_handler)
-    win.cvs.bind("<ButtonRelease-1>", drag_end)
+    win.cvs.bind("<ButtonRelease-1>", drag_end)    
     # bind keys
     win.bind("<Key>",keypress)
     win.bind("<Button-4>", scrollwheel) # for linux scrollup
@@ -1298,6 +1420,7 @@ def initWindow():
     win.bind("<Configure>", resizeWindow) #
     win.protocol("WM_DELETE_WINDOW", closeWindow) # custom function which sets winDestroyed so we can check state of win
 
+
 initWindow()
 initPlayer()
 #loadFile("Fee Ra Huri.tbs")
@@ -1305,6 +1428,10 @@ initPlayer()
 loadFile2("tutorial.tb")
 #drawBars(True)
 #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html
+
+win.update()
+toolbarWidth=win.btnHelp.winfo_x()+win.btnHelp.winfo_width()
+win.minsize(toolbarWidth, 120)
 
 tk.mainloop()
 

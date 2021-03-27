@@ -24,6 +24,7 @@ and lets you edit the tabs. Below the controls to use this tool.
 [⤢]    : Autosize window and zoom level
 [↙]    : Reduce zoom level to fit window size
 [↗]    : Enlarge window to fit page size
+(-) (+): Change zoom level (tab size) of page
 (?)    : Show this help
 </code>
 <hr>
@@ -35,8 +36,8 @@ and lets you edit the tabs. Below the controls to use this tool.
 <code>
 Left Button : Move cursor to mouse position (if tab present)
 Drag        : Move page in window
-Right Button: Reset page to left upper corner
-Scroll Wheel: Zoom page
+Right Button: Reset page view
+Scroll Wheel: Scroll page
 </code>
 
 <b>Keyboard - Edit Song</b>
@@ -57,11 +58,14 @@ _           : Change note at cursor to rest
 +           : Append note space (rest) to song if last tab selected
 
 [F1]..[F10] : Change color of tab at beat cursor
+[Shift][Fx] : Change background color of page
 [Space],|   : Add space or vertical line
 [Backspace] : Remove space or vertical line if one is found just 
               before cursor
 [Return]    : Break tabs into two lines
 [Backspace] : Join two lines if beat cursor is at first tab of line
+p           : Save screenshot of tabs as visible on screen using name 
+              of tab file with extension .png
 
 <u>Remarks</u>:
 - 'f' keypress will be translated to f#. Likewise for F
