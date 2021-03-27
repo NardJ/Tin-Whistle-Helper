@@ -1,6 +1,6 @@
 # Tin-Whistle-Helper
 Tin Whistle Helper helps you practice playing your tin whistle in D 
-and lets you edit the tabs. 
+and lets you make and edit the tabs. 
 
 ## Practice features
 - scrolling cursor (vertical red indicator) shows which note/tab to play
@@ -46,6 +46,7 @@ and lets you edit the tabs.
 [⤢]    : Autosize window and zoom level
 [↙]    : Reduce zoom level to fit window size
 [↗]    : Enlarge window to fit page size
+ⴱ /ⴲ  : Change zoom level (tab size) of page
 (?)    : Show this help
 ```
 
@@ -53,16 +54,15 @@ and lets you edit the tabs.
 ```
 <b>Mouse - Change View </b>
 <code>
-Left Button : Move cursor to mouse position (if tab present)
-Drag        : Move page in window
+Left Button : Move cursor to mouse position (if tab present) and play note
+Drag        : Scroll page 
+Scroll Wheel: Scroll page
 Right Button: Reset page to left upper corner
-Scroll Wheel: Zoom page
 </code>
 
 <b>Keyboard - Edit Song</b>
 <code>
-Arrow keys: Move beat cursor
-
+Arrow keys  : Move beat cursor
 a...g       : Change (low-octave) note at current cursor 
 A...G       : Change (low-octave) note at current cursor
 _           : Change note at cursor to rest
@@ -77,6 +77,7 @@ _           : Change note at cursor to rest
 +           : Append note space (rest) to song if last tab selected
 
 [F1]..[F10] : Change color of tab at beat cursor
+[Shift][Fx] : Change background color of page
 [Space],|   : Add space or vertical line
 [Backspace] : Remove space or vertical line if one is found just 
               before cursor
@@ -103,7 +104,10 @@ p           : Save screenshot of tabs as visible on screen using name
 ## Tab file format
 
 It is also possible to edit the tbs and tb files directory.
-View tutorial.tb and tutorial.tbs for instructions.
+Editng makes some more options available, like multiple texts, 
+custom placed and colored.View tutorial.tb and tutorial.tbs for 
+more instructions.
+
 Example file
 ```
 # tempo in bps
