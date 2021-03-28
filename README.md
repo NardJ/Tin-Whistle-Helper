@@ -39,7 +39,8 @@ and lets you make and edit the tabs.
  ⏅     : Sets number of beats for metronome to sound
  ⊠ ♫⚟  : Play the notes of the song
  ⊠ Low : Play the song one octave lower to resemble a low whistle
-[■]    : Stop song and set beat cursor to first beat
+[■]    : If playing, stops song and set beat cursor to starting beat
+         If not playing, resets beat cursor to first beat
 [▶]    : Play song from current position of beat cursor
 [▮▮]   : Pause song / Resume song 
 [⬏]    : Switch from page view (wrapped) to linear view
