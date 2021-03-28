@@ -1,6 +1,6 @@
 # TODO
-# replay from last start with one key stroke not yet working
-# bug:tabs do not scroll in linear mode
+#   replay from last start with one key stroke not yet working
+#   bug:tabs do not scroll in linear mode
 #
 # use pip3 freeze >requirements.txt
 
@@ -456,7 +456,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
     x1=beat2x(beat)
     x2=x1+beat2w(dur)
     y0=beat2y(beat)
-    yt=y0+beat2h()
+    #yt=y0+beat2h()
 
     #if x2<0 or x1>winDims[0]: return False
     #if yt<0 or y0>winDims[1]: return False
@@ -566,12 +566,18 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
 
     return True
 
+
 cursorBar=None
 cursorBar2=None
 oldOffsets=[0,0]
 oldBeatsize=0
+inDrawBars=False
 def drawBars(force=False):
-    global xOffset,yOffset,cursorBar,cursorBar2,oldOffsets,oldBeatsize    
+    global xOffset,yOffset,cursorBar,cursorBar2,oldOffsets,oldBeatsize,img,img2,img2D,inDrawBars
+    # prevent double draws, which mainly occur on window resize
+    if inDrawBars: return
+    inDrawBars=True
+
     curTabIdx=-1
     # check if bars changed
     if force:
@@ -592,7 +598,14 @@ def drawBars(force=False):
         #win.cvs.create_rectangle(beat2x(0)-beatsize, beat2y(0)-beatsize-titleHeight, beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize, fill=color)
         bBox=pageBBox()
         win.cvs.create_rectangle(bBox[0],bBox[1],bBox[2],bBox[3], fill=backColor)
-
+        p1=(int(bBox[0]),int(bBox[1]))
+        p2=(int(bBox[2]),int(bBox[3]))
+        color=(0,255,0)
+        t1=time.time()
+        
+        t1=time.time()
+        rect=(int(bBox[0]),int(bBox[1]),int(bBox[2]),int(bBox[3]))
+        
         # draw title and other text
         if len(texts)==0: #only display filename as title if no texts were given in the file
             x1=beat2x(0)
@@ -612,13 +625,16 @@ def drawBars(force=False):
                     y1=int(beatsize*(float(y)))
                     fSize=float(fSize)
                     win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor="nw", font=(fName, int(beatsize*fSize), fStyle),text=text,fill=fillColor)
-
+                    y2=int(y1-titleHeight+beatsize*0.75)
+        t1=time.time()
         # redraw tabs
-        nrDrawn=0
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
-            didDraw=drawBar(beat,dur,name,style,tabColor,tabCol,tabRow,tabLin)
-            if didDraw: nrDrawn+=1
+            drawBar(beat,dur,name,style,tabColor,tabCol,tabRow,tabLin)
+        win.cvs.update()  
+        win.update_idletasks()      
+        print (f"elaps:{time.time()-t1:2}")
+
         #print (f"nrDrawn:{nrDrawn}")
 
     # draw cursor
@@ -659,6 +675,9 @@ def drawBars(force=False):
             rowHeight=beat2h()/tabDims[1]
             relY=(actRow-1+relBeat)*rowHeight
             win.cvs.yview_moveto(relY)
+
+    # set inDrawBars to False
+    inDrawBars=False
 
 noteSilence=50 #msec
 def doCursorPlay():
@@ -1218,6 +1237,7 @@ def closeWindow():
     win.destroy()
 def initWindow():
     global win
+    sepSpacing=(8,8)
 
     # CREATE WINDOW
     win = tk.Tk()  
@@ -1236,22 +1256,22 @@ def initWindow():
     win.buttonframe=tk.Frame(win,background="white",border=0,highlightthickness=0,relief=tk.FLAT)
     win.buttonframe.pack(side=tk.BOTTOM,padx=(0,0),pady=(0,0),ipadx=2,ipady=2,expand=False,fill=tk.X)
     win.btnLoad=tk.Button(win.buttonframe,text="Load",relief=tk.FLAT,width=4,command=openFile)
-    win.btnLoad.pack(side=tk.LEFT,padx=(2,2))
+    win.btnLoad.pack(side=tk.LEFT,padx=(1,0))
 
     imgPath=os.path.join(icondir,"new.png")
     win.imgNew= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnNew=tk.Button(win.buttonframe,image=win.imgNew,relief=tk.FLAT,width=24,command=newFile)
     #win.btnNew=tk.Button(win.buttonframe,text="New",relief=tk.FLAT,width=4,command=newFile)
-    win.btnNew.pack(side=tk.LEFT,padx=(2,2))
+    win.btnNew.pack(side=tk.LEFT,padx=(1,0))
 
     imgPath=os.path.join(icondir,"save.png")
     win.imgSave= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnSave=tk.Button(win.buttonframe,image=win.imgSave,relief=tk.FLAT,width=24,command=saveFile)
     #win.btnSave=tk.Button(win.buttonframe,text="Save",relief=tk.FLAT,width=4,command=saveFile)
-    win.btnSave.pack(side=tk.LEFT,padx=(2,2))
+    win.btnSave.pack(side=tk.LEFT,padx=(1,0))
 
     # draw sep
-    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(12,12))
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
 
     imgPath=os.path.join(icondir,"chevLeftS.png")
     win.img2xSlower= tk.PhotoImage(file=imgPath)#.subsample(4,4)
@@ -1277,7 +1297,7 @@ def initWindow():
     win.btn2xFaster.pack(side=tk.LEFT,padx=(0,2))
 
     # draw sep
-    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(12,0))
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,0))
 
     # countOff 
     win.varCountOff=tk.BooleanVar(value=False)
@@ -1327,15 +1347,15 @@ def initWindow():
     win.cbLow.pack(side=tk.LEFT,padx=(2,2))
 
     # draw sep
-    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,12))
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
     
     # play symbols (see:https://en.wikipedia.org/wiki/Media_control_symbols)
     win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopTabScroll)
-    win.btnStop.pack(side=tk.LEFT,padx=(2,2))
+    win.btnStop.pack(side=tk.LEFT,padx=(1,0))
     win.btnPlay=tk.Button(win.buttonframe,text=u'\u25B6',relief=tk.FLAT,width=1,command=startTabScroll)
-    win.btnPlay.pack(side=tk.LEFT,padx=(2,2))
+    win.btnPlay.pack(side=tk.LEFT,padx=(1,0))
     win.btnPause=tk.Button(win.buttonframe,text=u'\u23F8',relief=tk.FLAT,width=1,command=pauseTabScroll)
-    win.btnPause.pack(side=tk.LEFT,padx=(2,2))
+    win.btnPause.pack(side=tk.LEFT,padx=(1,0))
 
     win.beatCursor = tk.StringVar()
     win.beatCursor.set(f"{beatCursor:>5.1f}")
@@ -1343,7 +1363,7 @@ def initWindow():
     win.beat.pack(side=tk.LEFT,padx=(3,3))
 
     # draw sep
-    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(12,12))
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
 
     imgPath=os.path.join(icondir,"linear.png")
     win.imgLinear = tk.PhotoImage(file=imgPath)#.subsample(4,4)
@@ -1356,49 +1376,55 @@ def initWindow():
     footerfgcolor='black'
     win.cbLinear.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor,)
     #win.cbSound.config(font=("Courier", 12))
-    win.cbLinear.pack(side=tk.LEFT,padx=(2,2))
+    win.cbLinear.pack(side=tk.LEFT,padx=(0,2))
 
     imgPath=os.path.join(icondir,"autosize.png")
     win.imgAuto = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnAuto4Bars=tk.Button(win.buttonframe,image=win.imgAuto,relief=tk.FLAT,command=autoBars)
-    win.btnAuto4Bars.pack(side=tk.LEFT,padx=(2,2))
+    win.btnAuto4Bars.pack(side=tk.LEFT,padx=(1,0))
 
     imgPath=os.path.join(icondir,"shrink.png")
     win.imgShrink = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnShrink4Bars=tk.Button(win.buttonframe,image=win.imgShrink,relief=tk.FLAT,command=shrinkBars)
-    win.btnShrink4Bars.pack(side=tk.LEFT,padx=(2,2))
+    win.btnShrink4Bars.pack(side=tk.LEFT,padx=(1,0))
 
     imgPath=os.path.join(icondir,"grow.png")
     win.imgGrow = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnGrow4Bars=tk.Button(win.buttonframe,image=win.imgGrow,relief=tk.FLAT,command=growWindow)
-    win.btnGrow4Bars.pack(side=tk.LEFT,padx=(2,2))
+    win.btnGrow4Bars.pack(side=tk.LEFT,padx=(1,0))
+
+    # draw sep
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
 
     # zoom
     imgPath=os.path.join(icondir,"zoomout.png")
     win.imgZoomOut = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnZoomOut=tk.Button(win.buttonframe,image=win.imgZoomOut,bg='white',relief=tk.FLAT,command=zoomOut)
-    win.btnZoomOut.pack(side=tk.LEFT,padx=(2,2))
+    win.btnZoomOut.pack(side=tk.LEFT,padx=(0,0))
     win.btnZoomOut.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
-
 
     win.varZoom = tk.IntVar()
     win.varZoom.set(100)
-    win.zoom = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.varZoom, width=3)     
+    win.zoom = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.varZoom, anchor='e',width=3)     
     win.zoom.pack(side=tk.LEFT,padx=(0,0))
-    win.zooml = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',text="%",font=("*font",6))     
+    win.zooml = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',text="%",anchor='e',font=("*font",6),width=1)     
     win.zooml.pack(side=tk.LEFT,padx=(0,0))
 
     imgPath=os.path.join(icondir,"zoomin.png")
     win.imgZoomIn = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnZoomIn=tk.Button(win.buttonframe,image=win.imgZoomIn,bg='white',relief=tk.FLAT,command=zoomIn)
-    win.btnZoomIn.pack(side=tk.LEFT,padx=(2,2))
+    win.btnZoomIn.pack(side=tk.LEFT,padx=(0,0))
     win.btnZoomIn.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
+
+    # draw sep
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
 
     # help
     imgPath=os.path.join(icondir,"help.png")
     win.imgHelp = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnHelp=tk.Button(win.buttonframe,image=win.imgHelp,relief=tk.FLAT,command=showHelp)
-    win.btnHelp.pack(side=tk.LEFT,padx=(2,2))
+    win.btnHelp=tk.Button(win.buttonframe,image=win.imgHelp,bg='white',relief=tk.FLAT,command=showHelp)
+    win.btnHelp.pack(side=tk.RIGHT,padx=(0,3))
+    win.btnHelp.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
 
     # make canvas
     win.vbar=tk.Scrollbar(win,orient=tk.VERTICAL)
@@ -1426,7 +1452,7 @@ initPlayer()
 #loadFile("Fee Ra Huri.tbs")
 #loadFile("tutorial.tbs")
 loadFile2("tutorial.tb")
-#drawBars(True)
+drawBars(True)
 #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html
 
 win.update()

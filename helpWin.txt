@@ -2,7 +2,7 @@
 <center><h1><u>Tin Whistle Helper - Manual</u></h1></center>
 
 Tin Whistle Helper helps you practice playing your tin whistle in D 
-and lets you edit the tabs. Below the controls to use this tool.
+and lets you make and edit the tabs. Below the controls to use this tool.
 
 <H2><u>Toolbar</u></H2>
 <code>
@@ -24,7 +24,7 @@ and lets you edit the tabs. Below the controls to use this tool.
 [⤢]    : Autosize window and zoom level
 [↙]    : Reduce zoom level to fit window size
 [↗]    : Enlarge window to fit page size
-(-) (+): Change zoom level (tab size) of page
+ⴱ /ⴲ      : Change zoom level (tab size) of page
 (?)    : Show this help
 </code>
 <hr>
@@ -34,16 +34,15 @@ and lets you edit the tabs. Below the controls to use this tool.
 
 <b>Mouse - Change View </b>
 <code>
-Left Button : Move cursor to mouse position (if tab present)
-Drag        : Move page in window
-Right Button: Reset page view
+Left Button : Move cursor to mouse position (if tab present) and plays note
+Drag        : Scroll page
 Scroll Wheel: Scroll page
+Right Button: Reset page view
 </code>
 
 <b>Keyboard - Edit Song</b>
 <code>
-Arrow keys: Move beat cursor
-
+Arrow keys  : Move beat cursor and plays note
 a...g       : Change (low-octave) note at current cursor 
 A...G       : Change (low-octave) note at current cursor
 _           : Change note at cursor to rest
