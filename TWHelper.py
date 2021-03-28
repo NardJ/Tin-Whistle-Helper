@@ -1232,7 +1232,7 @@ def showHelp():
 def resizeWindow(event):
     global winDims
     winDims=[win.winfo_width(),win.winfo_height()]
-    drawBars(True)
+    #drawBars(True)
 def closeWindow():
     win.destroy()
 def initWindow():
