@@ -53,13 +53,13 @@ and lets you make and edit the tabs.
 
 ### Tab Area
 ```
-<b>Mouse - Change View </b>
+*Mouse - Change View*
 Left Button : Set beat cursor to mouse pointer and plays note
 Drag        : Scroll page
 Scroll Wheel: Scroll page
 Right Button: Reset page view
 
-<b>Keyboard - Edit Song</b>
+*Keyboard - Edit Song*
 Arrow keys  : Move beat cursor and plays note
 a...g       : Change (low-octave) note at current cursor 
 A...G       : Change (low-octave) note at current cursor
