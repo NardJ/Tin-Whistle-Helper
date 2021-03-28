@@ -1,0 +1,20 @@
+# Down By The Sally Gardens
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+240
+
+text : "Down By The Sally Gardens", 1,1.75, "Times",1.2, "bold"
+text : "based on FiddlingWithMyWhistle.co.uk ", 1,3.5, "Times",0.4, "normal"
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+
+# Tabs
+blue _... green d. e.  f#. e d e. f# a  b... a. D a  b. a f# e.. d  d... _. orange d e 
+f#. e d e. f# a green  orange b... a. D a green  orange b. a f# e.. d green  orange d... green _. brown a. green  brown D. c# a b. D. green  brown c#.. b a. f# a 
+b. a f# a b D E green  brown D... green _. d e  f#. e d e. f# a  b... a. D a  b. a f# e.. d  d... _... 
