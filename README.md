@@ -1,4 +1,4 @@
-# Tin-Whistle-Helper
+# Tin-Whistle-Helper - _alpha version_
 Tin Whistle Helper helps you practice playing your tin whistle in D 
 and lets you make and edit the tabs. 
 
@@ -54,16 +54,13 @@ and lets you make and edit the tabs.
 ### Tab Area
 ```
 <b>Mouse - Change View </b>
-<code>
-Left Button : Move cursor to mouse position (if tab present) and play note
-Drag        : Scroll page 
+Left Button : Set beat cursor to mouse pointer and plays note
+Drag        : Scroll page
 Scroll Wheel: Scroll page
-Right Button: Reset page to left upper corner
-</code>
+Right Button: Reset page view
 
 <b>Keyboard - Edit Song</b>
-<code>
-Arrow keys  : Move beat cursor
+Arrow keys  : Move beat cursor and plays note
 a...g       : Change (low-octave) note at current cursor 
 A...G       : Change (low-octave) note at current cursor
 _           : Change note at cursor to rest
@@ -91,7 +88,7 @@ p           : Save screenshot of tabs as visible on screen using name
 ### Remarks:
 ```
 - 'f' keypress will be translated to f#. Likewise for F
-- [Ctrl]-'c' keypress will be translated to c#. Without [ctrl] will be c.
+- [Ctrl]-'c' keypress will be translated to c#. Without [ctrl] to c.
 - When you change a note and the last tab is not a rest, a rest 
   will be appended to ensure you keep enough empty note space 
   to enter new notes.
@@ -128,3 +125,11 @@ red d e f# g a b c c#  green D E F# G A B C#
 blue c.^ d.> e.>^ f#.= g/ a- b\ 
 orange c. _ d. _. e. f#... | g | a..
 ``` 
+
+## Disclaimer
+
+This is an alpha version and for testing purposes only. It is not ready 
+for daily use. You will encounter bugs and may loose work.
+The functionality of the next version may differ. Tab files you create 
+with this version may not load in the next release. 
+
