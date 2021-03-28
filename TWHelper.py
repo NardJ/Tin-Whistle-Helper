@@ -1,5 +1,4 @@
 # TODO
-#   replay from last start with one key stroke not yet working
 #   bug:tabs do not scroll in linear mode
 #
 # use pip3 freeze >requirements.txt
@@ -268,6 +267,7 @@ def saveFile2(filename=None,filepath=None):
 
     title=os.path.basename(filepath).split('.')[0].replace("_"," ")
     capTitle()
+    drawBars(True)
     eol='\n'
     try:
         with open(filepath,'w') as writer:   
@@ -704,11 +704,14 @@ beatUpdate=0.1
 playing=False
 startTime=0
 delayJob=None
+firstPlayBeat=0
 def stopTabScroll():
-    global playing,beatCursor
-    playing=False
-    beatCursor=0
+    global playing,beatCursor,firstPlayBeat
+    if not playing:
+        firstPlayBeat=0
+    beatCursor=firstPlayBeat
     endNote()
+    playing=False
     win.cvs.yview_moveto(0)    
     drawBars()
 def pauseTabScroll():
@@ -780,7 +783,6 @@ def initTabScroll(fromBeat=0):
     setBeatUpdate()
     delay=int((60/bpm*1000)*beatUpdate)
 
-prevCursorStart=0
 def startTabScroll():
     nrBarLines=barLinesFullyVisible()#(win.cvs.winfo_height())/beat2h()
     if win.varLinear.get():
@@ -796,10 +798,10 @@ def startTabScroll():
             messagebox.showinfo("Cannot play","In page mode, the window-width should accomodate all bars\nEnlarge window or use scroll wheel to zoom.")
             return
     global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset
-    if playing: return
-    global prevCursorStart
-    prevCursorStart=beatCursor
-    initTabScroll(0)
+    if playing: # restart from original
+        initBars(beatsize) # don't reset zoom
+        return    
+    initTabScroll(firstPlayBeat)
     initBars(beatsize) # don't reset zoom
     playing=True
     #resetView(None)
@@ -886,7 +888,7 @@ def scrollwheel(event):
 
 
 def click(event):
-    global beatCursor
+    global beatCursor,firstPlayBeat
     eventX,eventY=event.x,event.y+win.vbar.get()[0]*tabDims[1]
     for tab in tabs:
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
@@ -901,6 +903,7 @@ def click(event):
            drawBars()   
            initTabScroll(beat)    # set for play
            doCursorPlay()
+           firstPlayBeat=beatCursor
            return
 
 metroMults=['0','1',u'\u00BD',u'\u00BC']
@@ -1008,7 +1011,7 @@ def moveTabs(afterTabIdx, nrBeats):
 delTab=None
 delIdx=-1
 def keypress(event):
-    global beatCursor, tabs,delTab,delIdx,backColor
+    global beatCursor, tabs,delTab,delIdx,backColor,firstPlayBeat
     #print (event)
     key=event.keysym
     char=event.char
@@ -1028,23 +1031,26 @@ def keypress(event):
         if beatCursor>0:            beatCursor-=pdur
         drawBars()
         doCursorPlay()
+        firstPlayBeat=beatCursor
     if key in ('Right','KP_Right'): 
         if beatCursor<tabs[-1][0]:  beatCursor+=dur
         drawBars()
         doCursorPlay()
-        return
+        firstPlayBeat=beatCursor
     if key in ('Up','KP_Up'): 
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow-1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
         drawBars()
         doCursorPlay()
+        firstPlayBeat=beatCursor
     if key in ('Down','KP_Down'): 
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow+1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
         drawBars()
         doCursorPlay()
+        firstPlayBeat=beatCursor
 
     # modify note
     if char in ['a','b','c','c','d','e','f','g','A','B','C','D','E','F','G','_']:
@@ -1391,7 +1397,7 @@ def initWindow():
     imgPath=os.path.join(icondir,"grow.png")
     win.imgGrow = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnGrow4Bars=tk.Button(win.buttonframe,image=win.imgGrow,relief=tk.FLAT,command=growWindow)
-    win.btnGrow4Bars.pack(side=tk.LEFT,padx=(1,0))
+    win.btnGrow4Bars.pack(side=tk.LEFT,padx=(1,2))
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
