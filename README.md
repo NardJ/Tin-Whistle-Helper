@@ -47,7 +47,7 @@ and lets you make and edit the tabs.
 [⤢]    : Autosize window and zoom level
 [↙]    : Reduce zoom level to fit window size
 [↗]    : Enlarge window to fit page size
-ⴱ /ⴲ  : Change zoom level (tab size) of page
+ⴱ / ⴲ : Change zoom level (tab size) of page
 (?)    : Show this help
 ```
 
