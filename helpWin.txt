@@ -1,8 +1,9 @@
 <family:Verdana>
-<center><h1><u>Tin Whistle Helper - Manual</u></h1></center>
+<center><h1>Tin Whistle Helper - Manual</h1></center>
+<center><h3><i>alpha version</i></h3></center>
 
 Tin Whistle Helper helps you practice playing your tin whistle in D 
-and lets you make and edit the tabs. Below the controls to use this tool.
+and lets you make and edit the tabs. Below are the controls to use this tool.
 
 <H2><u>Toolbar</u></H2>
 <code>
@@ -25,7 +26,7 @@ and lets you make and edit the tabs. Below the controls to use this tool.
 [⤢]    : Autosize window and zoom level
 [↙]    : Reduce zoom level to fit window size
 [↗]    : Enlarge window to fit page size
-ⴱ /ⴲ      : Change zoom level (tab size) of page
+ⴱ / ⴲ    : Change zoom level (tab size) of page
 (?)    : Show this help
 </code>
 <hr>
@@ -35,7 +36,7 @@ and lets you make and edit the tabs. Below the controls to use this tool.
 
 <b>Mouse - Change View </b>
 <code>
-Left Button : Move cursor to mouse position (if tab present) and plays note
+Left Button : Set beat cursor to mouse pointer and plays note
 Drag        : Scroll page
 Scroll Wheel: Scroll page
 Right Button: Reset page view
@@ -69,7 +70,7 @@ p           : Save screenshot of tabs as visible on screen using name
 
 <u>Remarks</u>:
 - 'f' keypress will be translated to f#. Likewise for F
-- [Ctrl]-'c' keypress will be translated to c#. Without [ctrl] will be c.
+- [Ctrl]-'c' keypress will be translated to c#. Without [ctrl] to c.
 - When you change a note and the last tab is not a rest, a rest 
   will be appended to ensure you keep enough empty note space 
   to enter new notes.
@@ -78,7 +79,11 @@ p           : Save screenshot of tabs as visible on screen using name
 
 <hr>
 </hr>
-  
+<b><i>Disclaimer</i></b>
+This is an alpha version and for testing purposes only. It is not ready 
+for daily use. You will encounter bugs and may loose work.
+The functionality of the next version may differ. Tab files you create 
+with this version may not load in the next release. 
 
 
 </family>
