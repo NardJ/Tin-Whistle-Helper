@@ -1113,7 +1113,7 @@ def keypress(event):
                 # make sure we have a rest so we can keep entering notes
                 #if tabs[-1][1]!='_':
                 beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[-1]
-                newTab=[beat+dur,'_',1,'',tabColor, tabCol+1,tabRow,tabLin+1]
+                newTab=[beat+dur,'_',1,'',tabColor, tabCol+dur,tabRow,tabLin+1]
                 tabs.append(newTab)    
                 calcTabDims()          
                 drawBars(True)
