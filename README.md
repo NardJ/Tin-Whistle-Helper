@@ -65,7 +65,7 @@ Right Button : Reset page view
 Arrow keys   : Move beat cursor and plays note
 d,e,f,g,a,b  : Change note to (high-octave) d..f#..b
 c,D,E,F,G,A,B: Change note to (low-octave) c..f#..b
-[Alt]-c      : Change not tot (low-octave) c#
+[Alt]-c      : Change note to (low-octave) c#
 _            : Change note at cursor to rest
 1...9        : Change length of note
 ^,>,=,@,~    : Add decorator tap, cut, slide, tongue, vibrato
