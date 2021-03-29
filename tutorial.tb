@@ -1,54 +1,20 @@
-# tempo in bps
+# Tutorial
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
 120
 
-# set color of title text and page color (optional)
-#   colors can be names or hex values 
-color: black
-back : #FFFFDE
+# Colors
+color:black
+back :#FFFFDE
 
-# you can replace default filename as title by using 
-# text: "yourText", x, y, "fontName", fontSize, "fontStyle", color [optional]
-#   text can also be unicode symbols 
-#   numbers (x,y,fontSize) are relative to tab widths
-#   fontName  can be all installed like "Arial","Times", "Helvetica" 
-#   fontStyle can be "bold", "italic", "normal" of combinations like "bold italic"
-text : "Tutorial", 1,1.75, "Times",1.2, "bold"
-text : "by NardJ", 1,3.3, "Times",0.4, "normal"
-text : "♫", 21,0, "Arial",3, "normal",purple
+# Text
+text:"Tutorial",1,1.75,"Times",1.2,"bold"
+text:"by NardJ",1,3.3,"Times",0.4,"normal"
+text:"♫",21,0,"Arial",3,"normal",purple
 
-# music notes
-# ----------- 
-# each line can consist of multiple notes separated by spaces
-#   e.g. c d e. f#. g...^
-# each note consists of a:
-#   note id:    firstoctave : c#,d,e,f#,g,a,b,
-#               secondoctave: C#,D,E,F#,G,A,B
-#               rests       : _
-#   duration:   dots for each beat more than first
-#   play style: (see: https://en.wikipedia.org/wiki/Tin_whistle)
-#               normal       :
-#               tap/strike   : ^
-#               cut          : >
-#               slide        : =
-#               roll(cut+tap): >^ 
-#               tonguing     : @
-#               vibrato      : ~
-#               join notes in one breath
-#                              /: start
-#                              -: continue
-#                              \: end
-# visual separations
-# ------------------
-#   '  ': two spaces between notes results in a blank space between tabs (use '_' for rest)
-#   |   : between notes results in a vertical line between tabs
-#   blue/red/green/yellow/brown: color of next notes
-#
-
-# example
-# -------
-red d e f# g a b c c#  green D E F# G A B C#  
-blue c.^ d.> e.>^ f#.= g/ a- b\ 
-
-orange c. _ d. _. e. f#... | g | a..
-
-
+# Tabs
+red d e f# g a b  c c# green D E F# G A B  C# 
+blue c.^ d.> e.^ f#.= g/ a- b\ 
+orange c. _ d. _. e. f#... | g | a.. 

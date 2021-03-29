@@ -1,5 +1,7 @@
 # TODO
 #   bug:tabs do not scroll in linear mode
+#   bug:editing shift-C will break
+#   bug: Ctrl-C not working as c#-note
 #
 # use pip3 freeze >requirements.txt
 
@@ -1053,10 +1055,15 @@ def keypress(event):
         firstPlayBeat=beatCursor
 
     # modify note
-    if char in ['a','b','c','c','d','e','f','g','A','B','C','D','E','F','G','_']:
+    if char in ['d','e','f','g','a','b','c','D','E','F','G','A','B','_','C']:
         if char=='f': char='f#'
         if char=='F': char='F#'
-        if char=='c' and state==8: char='c#'
+        if char=='c' and state==0:
+            char='c#'
+        if char=='C':# and state==0:
+            char='C#' 
+        if char=='c' and state==8: 
+            char='c' 
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if beatCursor>=beat and beatCursor<(beat+dur):
