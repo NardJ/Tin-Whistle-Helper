@@ -1,7 +1,6 @@
 # TODO
 #   bug:tabs do not scroll in linear mode
-#   bug:editing shift-C will break
-#   bug: Ctrl-C not working as c#-note
+#   bug: del on first col not working
 #
 # use pip3 freeze >requirements.txt
 
@@ -44,12 +43,18 @@ def initPlayer():
 octL=5
 octM=6
 octH=7
-noteNrsHigh={'d':octM*12+2,'e':octM*12+4,'f#':octM*12+6,'g':octM*12+7,'a':octM*12+9,'b':octM*12+11,'c':octM*12+12,'c#':octM*12+13, 
-             'D':octH*12+2,'E':octH*12+4,'F#':octH*12+6,'G':octH*12+7,'A':octH*12+9,'B':octH*12+11,'C#':octH*12+13,}
-noteNrsLow= {'d':octL*12+2,'e':octL*12+4,'f#':octL*12+6,'g':octL*12+7,'a':octL*12+9,'b':octL*12+11,'c':octL*12+12,'c#':octL*12+13, 
-             'D':octM*12+2,'E':octM*12+4,'F#':octM*12+6,'G':octM*12+7,'A':octM*12+9,'B':octM*12+11,'C#':octM*12+13}
-noteNrs=noteNrsHigh 
-oldNoteNr=0
+noteNrsHigh= {'d':octM*12+2,'d#':octM*12+3,'e':octM*12+4,'f':octM*12+5,'f#':octM*12+6,'g':octM*12+7,'g#':octM*12+8,'a':octM*12+9,'a#':octM*12+10,'b':octM*12+11,'c':octM*12+12,'c#':octM*12+13, 
+              'D':octH*12+2,'D#':octH*12+3,'E':octH*12+4,'F':octH*12+5,'F#':octH*12+6,'G':octH*12+7,'G#':octH*12+8,'A':octH*12+9,'A#':octH*12+10,'B':octH*12+11,'C':octH*12+12,'C#':octH*12+13,}
+noteNrsLow = {'d':octL*12+2,'d#':octL*12+3,'e':octL*12+4,'f':octL*12+5,'f#':octL*12+6,'g':octL*12+7,'g#':octL*12+8,'a':octL*12+9,'a#':octL*12+10,'b':octL*12+11,'c':octL*12+12,'c#':octL*12+13, 
+              'D':octM*12+2,'D#':octM*12+3,'E':octM*12+4,'F':octM*12+5,'F#':octM*12+6,'G':octM*12+7,'G#':octM*12+8,'A':octM*12+9,'A#':octM*12+10,'B':octM*12+11,'C':octM*12+12,'C#':octM*12+13,}
+noteNrs    = noteNrsHigh 
+oldNoteNr  = 0
+
+noteIDs = ['d','d#','e','f','f#','g','g#','a','a#','b','c','c#','D','D#','E','E#','F','F#','G','G#','A','A#','B','C','C#']
+sepIDs  = ['|',',']
+restIDs = ['_']
+decoIDs = ['^', '>', '=', '@', '~']
+
 def setLowHigh():
     global noteNrs
     if playing: 
@@ -144,7 +149,7 @@ def loadFile(filename=None,filepath=None):
                     dur=data[1].strip()
                     dur=int(dur)                    
                     style=data[2].strip()
-                    if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','','_','|','r']:
+                    if name in (noteIDs+sepIDs+restIDs):
                         tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
                         #print ([beat,name,dur,style])
                     else:
@@ -239,10 +244,13 @@ def loadFile2(filename=None,filepath=None):
                             if len(note)>1:
                                 if note[-1] in '^>=@~/\\-':
                                     style = note[-1] 
-                            if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
-                                if name in ('|',','): dur=0
+                            if name in (noteIDs+restIDs+sepIDs):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
+                            #print (noteIDs+restIDs+sepIDs)
+                            #quit()
+                            #if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
+                                if name in sepIDs: dur=0 #('|',','): dur=0
                                 tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
-                                if name != '|' and name!=',': 
+                                if name not in sepIDs: #name!= '|' and name!=',': 
                                     beat+=dur                    
                                 notesfound=True
                                 #print ([beat,name,dur,style])
@@ -299,7 +307,7 @@ def saveFile2(filename=None,filepath=None):
                 if currColor!=tabColor: 
                     writer.write(f"{tabColor} ")
                     currColor=tabColor
-                if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_']:
+                if name in (noteIDs+restIDs):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_']:
                     nlen=(dur-1)*'.'
                     writer.write(f"{name}{nlen}{style} ")
                     #print(f"{name}{nlen}{style} ;")
@@ -366,7 +374,6 @@ notes={ 'd' :(1,1,1,1,1,1,''),
         'g' :(1,1,1,0,0,0,''),
         'a' :(1,1,0,0,0,0,''), 
         'b' :(1,0,0,0,0,0,''),
-        'c' :(0,1,1,0,0,0,''),
         'c#':(0,0,0,0,0,0,''),
         'D' :(0,1,1,1,1,1,'+'),
         'E' :(1,1,1,1,1,0,'+'),
@@ -375,7 +382,18 @@ notes={ 'd' :(1,1,1,1,1,1,''),
         'A' :(1,1,0,0,0,0,'+'), 
         'B' :(1,0,0,0,0,0,'+'),
         'C#':(0,1,1,0,0,0,'+'),
-        '_' :(0,0,0,0,0,0,'')#rest
+        '_' :(0,0,0,0,0,0,''),#rest
+
+        'd#':(1,1,1,1,1,2,''),
+        'f' :(1,1,1,1,2,0,''),
+        'g#':(1,1,2,0,0,0,''),
+        'a#':(1,0,1,1,1,1,''),
+        'c' :(0,1,1,0,0,0,''),
+        'D#':(1,1,1,1,1,2,'+'),
+        'F' :(1,1,1,1,2,0,'+'),
+        'G#':(1,1,0,1,1,0,'+'),#not sure if we need harder blow '+'
+        'A#':(1,0,1,0,0,0,'+'),#not sure if we need harder blow '+'
+        'C' :(2,0,0,0,0,0,''),
         }
 
 minBeatsize=10
@@ -485,10 +503,12 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
 
     for holeNr in range(6):
         openNote=(holes[holeNr]==0)
+        closedNote=(holes[holeNr]==1)
+        halfNote=(holes[holeNr]==2)
         if (openNote):
             fillColor='white'
             arcstyle=tk.ARC
-        else:    
+        if (closedNote):
             fillColor=tabColor
             arcstyle=tk.CHORD
         x1=beat2x(beat)
@@ -497,13 +517,21 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         y2=y0+holeInterval*(holeNr+1)+beatsize 
         ym=(y1+y2)/2
         r=beatsize/2
-        cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill=fillColor,outline=tabColor,start=90,extent=180,style=arcstyle,dash=dashPatt)
-        cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill=fillColor,outline=tabColor,start=270,extent=180,style=arcstyle,dash=dashPatt)
+        if openNote or closedNote:
+            cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill=fillColor,outline=tabColor,start=90,extent=180,style=arcstyle,dash=dashPatt)
+            cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill=fillColor,outline=tabColor,start=270,extent=180,style=arcstyle,dash=dashPatt)
         if openNote:
             cvs.create_line(x1+beatsize/2,y1,x2-beatsize/2,y1,fill=tabColor,dash=dashPatt) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
             cvs.create_line(x1+beatsize/2,y2,x2-beatsize/2,y2,fill=tabColor,dash=dashPatt)
-        else:    
+        if (closedNote):
             cvs.create_rectangle(x1+beatsize/2,y1,x2-beatsize/2,y2,fill=fillColor,outline=tabColor,dash=dashPatt) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
+        if halfNote:
+            cvs.create_arc(x1, y2-beatsize, x1+beatsize, y2,fill=tabColor,outline=tabColor,start=90,extent=90,dash=dashPatt)
+            cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill=tabColor,outline=tabColor,start=0,extent=90,dash=dashPatt)
+            cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill='white',outline=tabColor,start=270,extent=-90,style=tk.ARC,dash=dashPatt)
+            cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill='white',outline=tabColor,start=0,extent=-90,style=tk.ARC,dash=dashPatt)
+            cvs.create_rectangle(x1+beatsize/2,y1,x2-beatsize/2,ym,fill=tabColor,outline=tabColor,dash=dashPatt) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
+            cvs.create_line(x1+beatsize/2,y2,x2-beatsize/2+1,y2,fill=tabColor,dash=dashPatt) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
 
     highOct=(holes[6])
     if highOct:
@@ -575,7 +603,7 @@ oldOffsets=[0,0]
 oldBeatsize=0
 inDrawBars=False
 def drawBars(force=False):
-    global xOffset,yOffset,cursorBar,cursorBar2,oldOffsets,oldBeatsize,img,img2,img2D,inDrawBars
+    global xOffset,yOffset,cursorBar,cursorBar2,oldOffsets,oldBeatsize,inDrawBars
     # prevent double draws, which mainly occur on window resize
     if inDrawBars: return
     inDrawBars=True
@@ -628,14 +656,14 @@ def drawBars(force=False):
                     fSize=float(fSize)
                     win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor="nw", font=(fName, int(beatsize*fSize), fStyle),text=text,fill=fillColor)
                     y2=int(y1-titleHeight+beatsize*0.75)
-        t1=time.time()
+        #t1=time.time()
         # redraw tabs
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             drawBar(beat,dur,name,style,tabColor,tabCol,tabRow,tabLin)
         win.cvs.update()  
         win.update_idletasks()      
-        print (f"elaps:{time.time()-t1:2}")
+        #print (f"elaps:{time.time()-t1:2}")
 
         #print (f"nrDrawn:{nrDrawn}")
 
@@ -695,7 +723,7 @@ def doCursorPlay():
     for tab in tabs:
         beat,name,dur,style,tabColor,tabCol,tabRow,tabLin=tab
         if (beat==round(beatCursor,2)):
-            if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G']:
+            if name in noteIDs:#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G']:
                 startNote(name)                
                 delay=dur*int(60/bpm*1000)
                 noteLength=delay-noteSilence if (noteSilence<delay) else delay
@@ -1001,9 +1029,12 @@ def tabIdx():
             else:
                 return idx    
     return -1
-def moveTabs(afterTabIdx, nrBeats):
+def moveTabs(afterTabIdx, nrBeats, onRow=-1):
     delta=nrBeats
-    firstTabRow=tabs[afterTabIdx][6]
+    if onRow==-1:
+        firstTabRow=tabs[afterTabIdx][6]
+    else: 
+        firstTabRow=onRow        
     for tailIdx in range(afterTabIdx+1,len(tabs)):  # move following tabs according to change
         tabs[tailIdx][0]+=delta                     #   beat
         if tabs[tailIdx][6]==firstTabRow:           #   tabCol
@@ -1055,31 +1086,41 @@ def keypress(event):
         firstPlayBeat=beatCursor
 
     # modify note
-    if char in ['d','e','f','g','a','b','c','D','E','F','G','A','B','_','C']:
-        if char=='f': char='f#'
-        if char=='F': char='F#'
-        if char=='c' and state==0:
-            char='c#'
-        if char=='C':# and state==0:
-            char='C#' 
-        if char=='c' and state==8: 
-            char='c' 
+    if char in (noteIDs+restIDs):#['d','e','f','g','a','b','c','D','E','F','G','A','B','_','C']:
+        if state==0:
+            if char=='f': char='f#'
+            if char=='c': char='c#'
+        if state==1: # SHIFT
+            if char=='F': char='F#'
+            if char=='C': char='C#' 
+        if state==8: # ALT
+            if char=='d': char='d#'
+            if char=='f': char='f'
+            if char=='g': char='g#'
+            if char=='a': char='a#'
+            if char=='c': char='c'
+        if state==9: # SHIFT-ALT            
+            if char=='D': char='D#'
+            if char=='F': char='F'
+            if char=='G': char='G#'
+            if char=='A': char='A#'
+            if char=='C': char='C'
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if beatCursor>=beat and beatCursor<(beat+dur):
                 tabs[idx][1]=char
                 beatCursor+=dur  
                 # make sure we have a rest so we can keep entering notes
-                if tabs[-1][1]!='_':
-                    beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[-1]
-                    newTab=[beat+dur,'_',1,'',tabColor, tabCol+1,tabRow,tabLin+1]
-                    tabs.append(newTab)    
-                    calcTabDims()          
+                #if tabs[-1][1]!='_':
+                beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[-1]
+                newTab=[beat+dur,'_',1,'',tabColor, tabCol+1,tabRow,tabLin+1]
+                tabs.append(newTab)    
+                calcTabDims()          
                 drawBars(True)
                 return
 
     # modify style/decorator
-    if char in ['^', '>', '=', '@', '~'] or key=='Escape':
+    if char in decoIDs or key=='Escape':
         deco= ' ' if key=='Escape' else char
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
@@ -1099,9 +1140,13 @@ def keypress(event):
                 drawBars(True)
     # delete note
     if key in ('Delete','KP_Delete'):
-        tab=tabs.pop(idx)
-        moveTabs(idx-1,-tab[2])
+        # delete tab
+        tab=tabs.pop(idx)       
+        # move tabs
+        moveTabs(idx-1,-tab[2], tab[6])
+        # check if cursor on tab
         if idx>=len(tabs): beatCursor=tabs[-1][0]
+        # redraw
         drawBars(True)
         delTab=tab
         delIdx=idx
@@ -1150,7 +1195,8 @@ def keypress(event):
 
     # insert visual seperator
     if char in ('|',' '):
-        print ("insert sep")
+        #print ("insert sep")
+        if beatCursor==0: return # inserting seperator as first column will shift entire page (bug)
         sep=',' if char==' ' else char
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
         tabs.insert(idx,[beat,sep,0,'',tabColor, tabCol,tabRow,tabLin])
@@ -1201,8 +1247,6 @@ def keypress(event):
     # replay from last start
     if  key=="Tab":
         if playing: stopTabScroll()
-        time.sleep(1)
-        #beatCursor=prevCursorStart
         startTabScroll()
 
     if key in ('p','P'):
@@ -1232,7 +1276,7 @@ def keypress(event):
             print (f"Error saving screenshot file:{e}")
         
     # debug 
-    print (event)
+    #print (event)
     if key in ('Home'):
         for idx,tab in enumerate(tabs):
             print (f"{idx:2d}> {tab}")
