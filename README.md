@@ -63,6 +63,7 @@ Right Button : Reset page view
 **Keyboard - Edit Song**
 ```
 Arrow keys   : Move beat cursor and plays note
+[Tab]        : Play song from current position of beat cursor
 d,e,f,g,a,b  : Change note to 1st/low-octave d..f#..b
 c,D,E,F,G,A,B: Change note to 2nd/high-octave c#..f#..b
 C            : Chnage note to 3td-octave c#
