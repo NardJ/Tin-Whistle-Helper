@@ -55,36 +55,37 @@ and lets you make and edit the tabs.
 
 **Mouse - Change View**
 ```
-Left Button : Set beat cursor to mouse pointer and plays note
-Drag        : Scroll page
-Scroll Wheel: Scroll page
-Right Button: Reset page view
+Left Button  : Set beat cursor to mouse pointer and plays note
+Drag         : Scroll page
+Scroll Wheel : Scroll page
+Right Button : Reset page view
 ```
 **Keyboard - Edit Song**
 ```
-Arrow keys  : Move beat cursor and plays note
-a...g       : Change (low-octave) note at current cursor 
-A...G       : Change (low-octave) note at current cursor
-_           : Change note at cursor to rest
-1...9       : Change length of note
-^,>,=,@,~   : Add decorator tap, cut, slide, tongue, vibrato
-[Escape]    : Remove decorator
+Arrow keys   : Move beat cursor and plays note
+d,e,f,g,a,b  : Change note to (high-octave) d..f#..b
+c,D,E,F,G,A,B: Change note to (low-octave) c..f#..b
+[Alt]-c      : Change not tot (low-octave) c#
+_            : Change note at cursor to rest
+1...9        : Change length of note
+^,>,=,@,~    : Add decorator tap, cut, slide, tongue, vibrato
+[Escape]     : Remove decorator
 
-[Del]       : Remove note at cursor
-[Ctrl]-z    : Undo last delete
-[Ins]       : Insert note space (rest) before cursor
-[Shift][Ins]: Insert note space (rest) after cursor
-+           : Append note space (rest) to song if last tab selected
+[Del]        : Remove note at cursor
+[Ctrl]-z     : Undo last delete
+[Ins]        : Insert note space (rest) before cursor
+[Shift][Ins] : Insert note space (rest) after cursor
++            : Append note space (rest) to song if last tab selected
 
-[F1]..[F10] : Change color of tab at beat cursor
-[Shift][Fx] : Change background color of page
-[Space],|   : Add space or vertical line
-[Backspace] : Remove space or vertical line if one is found just 
-              before cursor
-[Return]    : Break tabs into two lines
-[Backspace] : Join two lines if beat cursor is at first tab of line
-p           : Save screenshot of tabs as visible on screen using name 
-              of tab file with extension .png
+[F1]..[F10]  : Change color of tab at beat cursor
+[Shift][Fx]  : Change background color of page
+[Space],|    : Add space or vertical line
+[Backspace]  : Remove space or vertical line if one is found just 
+               before cursor
+[Return]     : Break tabs into two lines
+[Backspace]  : Join two lines if beat cursor is at first tab of line
+p            : Save screenshot of tabs as visible on screen using name 
+               of tab file with extension .png
 ```
 
 ### Remarks:
