@@ -36,41 +36,42 @@ and lets you make and edit the tabs. Below are the controls to use this tool.
 
 <b>Mouse - Change View </b>
 <code>
-Left Button : Set beat cursor to mouse pointer and plays note
-Drag        : Scroll page
-Scroll Wheel: Scroll page
-Right Button: Reset page view
+Left Button  : Set beat cursor to mouse pointer and plays note
+Drag         : Scroll page
+Scroll Wheel : Scroll page
+Right Button : Reset page view
 </code>
 
 <b>Keyboard - Edit Song</b>
 <code>
-Arrow keys  : Move beat cursor and plays note
-a...g       : Change (low-octave) note at current cursor 
-A...G       : Change (low-octave) note at current cursor
-_           : Change note at cursor to rest
-1...9       : Change length of note
-^,>,=,@,~   : Add decorator tap, cut, slide, tongue, vibrato
-[Escape]    : Remove decorator
+Arrow keys   : Move beat cursor and plays note
+d,e,f,g,a,b  : Change note to (high-octave) d..f#..b
+c,D,E,F,G,A,B: Change note to (low-octave) c..f#..b
+[Alt/Shift]-c: Change note to (low-octave) c#
+_            : Change note at cursor to rest
+1...9        : Change length of note
+^,>,=,@,~    : Add decorator tap, cut, slide, tongue, vibrato
+[Escape]     : Remove decorator
 
-[Del]       : Remove note at cursor
-[Ctrl]-z    : Undo last delete
-[Ins]       : Insert note space (rest) before cursor
-[Shift][Ins]: Insert note space (rest) after cursor
-+           : Append note space (rest) to song if last tab selected
+[Del]        : Remove note at cursor
+[Ctrl]-z     : Undo last delete
+[Ins]        : Insert note space (rest) before cursor
+[Shift][Ins] : Insert note space (rest) after cursor
++            : Append note space (rest) to song if last tab selected
 
-[F1]..[F10] : Change color of tab at beat cursor
-[Shift][Fx] : Change background color of page
-[Space],|   : Add space or vertical line
-[Backspace] : Remove space or vertical line if one is found just 
-              before cursor
-[Return]    : Break tabs into two lines
-[Backspace] : Join two lines if beat cursor is at first tab of line
-p           : Save screenshot of tabs as visible on screen using name 
-              of tab file with extension .png
+[F1]..[F10]  : Change color of tab at beat cursor
+[Shift][Fx]  : Change background color of page
+[Space],|    : Add space or vertical line
+[Backspace]  : Remove space or vertical line if one is found just 
+               before cursor
+[Return]     : Break tabs into two lines
+[Backspace]  : Join two lines if beat cursor is at first tab of line
+p            : Save screenshot of tabs as visible on screen using name 
+               of tab file with extension .png
 
 <u>Remarks</u>:
 - 'f' keypress will be translated to f#. Likewise for F
-- [Ctrl]-'c' keypress will be translated to c#. Without [ctrl] to c.
+- [Alt]-'c' keypress will be translated to c#. Without [ctrl] to c.
 - When you change a note and the last tab is not a rest, a rest 
   will be appended to ensure you keep enough empty note space 
   to enter new notes.
