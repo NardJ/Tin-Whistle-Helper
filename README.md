@@ -63,9 +63,10 @@ Right Button : Reset page view
 **Keyboard - Edit Song**
 ```
 Arrow keys   : Move beat cursor and plays note
-d,e,f,g,a,b  : Change note to (low-octave) d..f#..b
-c,D,E,F,G,A,B: Change note to (high-octave) c..f#..b
-[Alt/Shift]-c: Change note to (high-octave) c#
+d,e,f,g,a,b  : Change note to 1st/low-octave d..f#..b
+c,D,E,F,G,A,B: Change note to 2nd/high-octave c#..f#..b
+C            : Chnage note to 3td-octave c#
+[Alt]-c      : Change note to 2nd-octave c
 _            : Change note at cursor to rest
 1...9        : Change length of note
 ^,>,=,@,~    : Add decorator tap, cut, slide, tongue, vibrato
