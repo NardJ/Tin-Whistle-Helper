@@ -1,7 +1,7 @@
 # TODO
 #   bug:tabs do not scroll in linear mode
-#   bug: del on first col not working
-#
+#   do we want to delete consequetive spaces, bars, eot's
+#   [ctrl]-scroll should zoom with intervals from zooms array
 # use pip3 freeze >requirements.txt
 
 import os
@@ -51,7 +51,8 @@ noteNrs    = noteNrsHigh
 oldNoteNr  = 0
 
 noteIDs = ['d','d#','e','f','f#','g','g#','a','a#','b','c','c#','D','D#','E','E#','F','F#','G','G#','A','A#','B','C','C#']
-sepIDs  = ['|',',']
+eot     = 'eot'
+sepIDs  = ['|',',',eot]
 restIDs = ['_']
 decoIDs = ['^', '>', '=', '@', '~']
 
@@ -140,6 +141,14 @@ def loadFile(filename=None,filepath=None):
             if line in colors:
                 tabColor=line
             elif line =='=':
+                # first append newline
+                name=eot
+                dur=0
+                style=''
+                tabCol+=1
+                tabLin+=1
+                tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])   
+                # next proceed to new line               
                 tabRow+=1
                 tabCol=0
             else:    
@@ -184,6 +193,49 @@ def newFile():
 textColor='black'
 backColor='#FFFFDE'
 texts=[]
+def recalcBeats():
+    beat,tabRow,tabCol,tabLin=0,0,0,0
+    for idx,tab in enumerate(tabs):
+        #[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]=tab
+        [_,name,dur,style,tabColor,_,_,_]=tab
+        #print (f"{idx:2}> {tab}")
+        tabs[idx]=[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]
+        #print (f"{'  '}> {tabs[idx]}")
+        #calc new beat, col, row and lin
+        beat+=dur
+        tabCol+=max(1,dur)
+        tabLin+=max(1,dur)
+        if name==eot:
+            tabRow+=1
+            tabCol=0
+def nrTabRows():
+    return tabs[-1][6]+1
+def rowStart(rowNr):
+    for idx in range(len(tabs)):
+        if tabs[idx][6]==rowNr: return idx
+def rowEnd(rowNr):
+    for idx in range(len(tabs)-1,-1,-1):
+        if tabs[idx][6]==rowNr: return idx
+def stripSeps():
+    #strips all seps at beginning or end of each row
+    for rowNr in range(nrTabRows()):
+        firstRowIdx=rowStart(rowNr)
+        firstRowTab=tabs[firstRowIdx]
+        if firstRowTab[1] in sepIDs: tabs.pop(firstRowIdx)
+    for rowNr in range(nrTabRows()):
+        lastRowIdx=rowEnd(rowNr)-1 # last is eot, we want to strip seps just before eot
+        lastRowTab=tabs[lastRowIdx]
+        if lastRowTab[1] in sepIDs and lastRowTab[1]!=eot: tabs.pop(lastRowIdx)
+def gotoPrevBeat():
+    global beatCursor
+    for idx in range(len(tabs)-1,-1,-1):
+        if tabs[idx][0]==beatCursor:
+            for idx2 in range(idx-1,-1,-1):
+                if tabs[idx2][2]>0: 
+                    beatCursor=tabs[idx2][0]
+                    return idx2
+    return -1
+
 def loadFile2(filename=None,filepath=None):
     global tabs,bpm,title
     global textColor,backColor,texts
@@ -193,13 +245,9 @@ def loadFile2(filename=None,filepath=None):
 
     tabs.clear()
     initBars(20)
-    beat=0
-    cur=0
     tabColor=colors[2]
     backColor='#FFFFDE'
-    tabRow=0
-    tabCol=0
-    tabLin=0
+    beat,tabRow,tabCol,tabLin=0,0,0,0 #just placeholders, real values will be calculated after loading by recalcBeats
     #print (f"filename:{filename}|")
     title=os.path.basename(filepath).split('.')[0].replace("_"," ")
     capTitle()
@@ -245,25 +293,19 @@ def loadFile2(filename=None,filepath=None):
                                 if note[-1] in '^>=@~/\\-':
                                     style = note[-1] 
                             if name in (noteIDs+restIDs+sepIDs):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
-                            #print (noteIDs+restIDs+sepIDs)
-                            #quit()
-                            #if name in ['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
                                 if name in sepIDs: dur=0 #('|',','): dur=0
                                 tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
-                                if name not in sepIDs: #name!= '|' and name!=',': 
-                                    beat+=dur                    
                                 notesfound=True
-                                #print ([beat,name,dur,style])
                             else:
                                 print (f"Rejected: [{note}] {[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]}")
-                            tabCol=tabCol+dur if dur>1 else tabCol+1
-                            tabLin=tabLin+dur if dur>1 else tabLin+1
                     if notesfound: # ignore lines with only color
-                        tabRow+=1
-                        tabCol=0
-                        tabLin+=1
+                        name=eot
+                        dur=0
+                        style=''
+                        tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
         
         win.title(f"Tin Whistle Helper - {os.path.basename(filepath).split('.')[0]}")
+        recalcBeats()
         calcTabDims()
     except Exception as e:
         print (f"Error reading tab file:{e}")
@@ -481,8 +523,9 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
     #if x2<0 or x1>winDims[0]: return False
     #if yt<0 or y0>winDims[1]: return False
 
-    if noteId == '': return False
+    if noteId == '' : return False
     if noteId == ',': return False
+    if noteId == eot: return False
 
     if noteId == '|': 
         tabColor = 'black'
@@ -890,7 +933,7 @@ def drag_end(event):
         click(event)
         return
 
-zooms=[25,50,75,100,150,200,250,400]
+zooms=[25,40,50,67,75,85,100,150,200,250,400]
 def setZoom():
     win.varZoom.set(int(100*(beatsize/20)+0.5))
 def setBeatSize():
@@ -912,10 +955,13 @@ def zoomOut():
     win.varZoom.set(zooms[zIdx])
     setBeatSize()
 def scrollwheel(event):
-    s=win.vbar.get()[0]
-    d=-0.1 if event.num==4 else 0.1
-    win.cvs.yview_moveto(s+d)
-
+    if event.state==0:
+        s=win.vbar.get()[0]
+        d=-0.1 if event.num==4 else 0.1
+        win.cvs.yview_moveto(s+d)
+    if event.state==4: # with control
+        if event.num==4: zoomOut()
+        if event.num==5: zoomIn()
 
 def click(event):
     global beatCursor,firstPlayBeat
@@ -1021,7 +1067,7 @@ def reformatBars():
 def tabIdx():
     for idx,tab in enumerate(tabs):
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
-        if beatCursor==beat and name!='|' and name !=',':
+        if beatCursor==beat and name not in sepIDs:
             return idx
         if beatCursor>beat and beatCursor<(beat+dur):
             if idx<len(tabs)-1:
@@ -1029,17 +1075,6 @@ def tabIdx():
             else:
                 return idx    
     return -1
-def moveTabs(afterTabIdx, nrBeats, onRow=-1):
-    delta=nrBeats
-    if onRow==-1:
-        firstTabRow=tabs[afterTabIdx][6]
-    else: 
-        firstTabRow=onRow        
-    for tailIdx in range(afterTabIdx+1,len(tabs)):  # move following tabs according to change
-        tabs[tailIdx][0]+=delta                     #   beat
-        if tabs[tailIdx][6]==firstTabRow:           #   tabCol
-            tabs[tailIdx][5]+=delta 
-        tabs[tailIdx][7]+=delta                     #   tabLin
 
 delTab=None
 delIdx=-1
@@ -1051,22 +1086,28 @@ def keypress(event):
     state=event.state
     # basic info
     curCol,curRow=-1,-1
-    dur,pdur=0,0
+    dur=0
     idx=tabIdx()
     if idx>-1: _,_, dur,_,_, curCol,curRow,_=tabs[idx]
-    pidx=idx-1
-    while pdur==0 and idx>0:
-      _,_,pdur,_,_,_,_,_=tabs[pidx]
-      pidx-=1
 
     # handle navigation
     if key in ('Left','KP_Left'): 
+        pidx=idx-1
+        pdur=0
+        while pdur==0 and idx>0:
+            _,_,pdur,_,_,_,_,_=tabs[pidx]
+            pidx-=1
         if beatCursor>0:            beatCursor-=pdur
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
     if key in ('Right','KP_Right'): 
-        if beatCursor<tabs[-1][0]:  beatCursor+=dur
+        nidx=idx
+        ndur=0
+        while ndur==0 and idx<len(tabs)-2:
+            _,_,ndur,_,_,_,_,_=tabs[nidx]
+            nidx+=1
+        if beatCursor<tabs[-1][0]:  beatCursor+=ndur
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
@@ -1135,7 +1176,8 @@ def keypress(event):
                 newDur=int(char)                  
                 delta=newDur-dur                        # store change in beats
                 tabs[idx][2]=newDur                     # write new length
-                moveTabs(idx,delta)
+                #moveTabs(idx,delta)
+                recalcBeats()
                 calcTabDims()
                 drawBars(True)
     # delete note
@@ -1143,20 +1185,24 @@ def keypress(event):
         # delete tab
         tab=tabs.pop(idx)       
         # move tabs
-        moveTabs(idx-1,-tab[2], tab[6])
-        # check if cursor on tab
-        if idx>=len(tabs): beatCursor=tabs[-1][0]
-        # redraw
-        drawBars(True)
+        stripSeps()
+        recalcBeats()
+        # store del
         delTab=tab
         delIdx=idx
+        # check if cursor on tab
+        if idx>=(len(tabs)-1): 
+            gotoPrevBeat()
+        # redraw
+        drawBars(True)
     # undo del
     if key in ('z') and state==4:
         if delTab!=None:
             tab=tabs[idx]
             tabs.insert(delIdx,delTab)
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=delTab
-            moveTabs(idx,dur)
+            #moveTabs(idx,dur)
+            recalcBeats()
             calcTabDims()
             drawBars(True)
             delTab=None
@@ -1166,8 +1212,8 @@ def keypress(event):
         tab=tabs[idx]
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
         tabs.insert(idx,[beat,'_',1,'',tabColor, tabCol,tabRow,tabLin])
-        moveTabs(idx,1)
-        if state==1: beatCursor+=1 # to append after
+        recalcBeats()
+        if state==1: beatCursor+=tabs[idx-1][2] # to append after and add dur
         calcTabDims()
         drawBars(True)
     # append note (after cursor)
@@ -1184,50 +1230,22 @@ def keypress(event):
         if idx>0:
             idx-=1
             tab=tabs[idx]
-            if tab[1] in ('|',','):
-                firstTabRow=tabs[idx][6]
+            if tab[1] in sepIDs:
+                #firstTabRow=tabs[idx][6]
                 tab=tabs.pop(idx)
-                for tailIdx in range(idx,len(tabs)):  # move following tabs according to change
-                    if tabs[tailIdx][6]==firstTabRow: # tabCol
-                        tabs[tailIdx][5]-=1
-                    tabs[tailIdx][7]-=1               # tabLin
+                recalcBeats()
                 drawBars(True)
 
-    # insert visual seperator
-    if char in ('|',' '):
+    # insert visual seperator of new line
+    if char in sepIDs+[' '] or key=='Return':
         #print ("insert sep")
         if beatCursor==0: return # inserting seperator as first column will shift entire page (bug)
         sep=',' if char==' ' else char
+        if key=='Return': sep=eot
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
         tabs.insert(idx,[beat,sep,0,'',tabColor, tabCol,tabRow,tabLin])
-        for tailIdx in range(idx+1,len(tabs)):  # move following tabs according to change
-            if tabs[tailIdx][6]==tabRow:#tabCol
-                tabs[tailIdx][5]+=1
-            tabs[tailIdx][7]+=1         #tabLin
-        calcTabDims()
-        drawBars(True)
-
-    # del new line
-    if key=='BackSpace':
-        idx+=1
-        beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
-        if tabCol==0 and idx>0:
-            _,_,appDur,_,_,appCol,_,_=tabs[idx-1]
-            appDelta=appCol+appDur
-            for tailIdx in range(idx,len(tabs)):  # move following tabs according to change
-                if tabs[tailIdx][6]==tabRow:      # tabCol
-                    tabs[tailIdx][5]=tabs[tailIdx][5]+appDelta
-                tabs[tailIdx][6]-=1               # tabRow
-            calcTabDims()
-            drawBars(True)
-
-    # insert new line
-    if key=='Return':
-        beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
-        for tailIdx in range(idx,len(tabs)):  # move following tabs according to change
-            if tabs[tailIdx][6]==tabRow:      # tabCol
-                tabs[tailIdx][5]=tabs[tailIdx][5]-tabCol 
-            tabs[tailIdx][6]+=1               # tabRow
+        stripSeps() # make sure we do not place a sep at start of end of row
+        recalcBeats()        
         calcTabDims()
         drawBars(True)
 

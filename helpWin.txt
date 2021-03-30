@@ -37,8 +37,8 @@ and lets you make and edit the tabs. Below are the controls to use this tool.
 <b>Mouse - Change View </b>
 <code>
 Left Button  : Set beat cursor to mouse pointer and plays note
-Drag         : Scroll page
-Scroll Wheel : Scroll page
+Drag / Wheel : Scroll page
+[Ctrl]-Wheel : Zoom page
 Right Button : Reset page view
 </code>
 
