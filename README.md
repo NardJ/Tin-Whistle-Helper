@@ -78,8 +78,8 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
 **Mouse - Change View**
 ```
 Left Button  : Set beat cursor to mouse pointer and plays note
-Drag         : Scroll page
-Scroll Wheel : Scroll page
+Drag / Wheel : Scroll page
+[Ctrl] Wheel : Zoom page
 Right Button : Reset page view
 ```
 **Keyboard - Edit Song**
