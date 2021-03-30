@@ -1,7 +1,6 @@
 # TODO
 #   bug:tabs do not scroll in linear mode
 #   do we want to delete consequetive spaces, bars, eot's
-#   [ctrl]-scroll should zoom with intervals from zooms array
 # use pip3 freeze >requirements.txt
 
 import os
@@ -867,7 +866,7 @@ def startTabScroll():
         if nrBarLines<2 :
             messagebox.showinfo("Cannot play","In page mode, at least to bar lines should be fully visible.\nEnlarge window or use scroll wheel to zoom.")
             return
-        if win.cvs.winfo_width()<tabDims[1]:
+        if win.cvs.winfo_width()<tabDims[0]:
             messagebox.showinfo("Cannot play","In page mode, the window-width should accomodate all bars\nEnlarge window or use scroll wheel to zoom.")
             return
     global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset
