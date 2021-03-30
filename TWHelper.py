@@ -1,5 +1,4 @@
 # TODO
-#   bug:tabs do not scroll in linear mode
 #   do we want to delete consequetive spaces, bars, eot's
 # use pip3 freeze >requirements.txt
 
