@@ -228,7 +228,7 @@ def stripSeps():
 def gotoPrevBeat():
     global beatCursor
     for idx in range(len(tabs)-1,-1,-1):
-        if tabs[idx][0]==beatCursor:
+        if ( tabs[idx][0] == beatCursor ) :
             for idx2 in range(idx-1,-1,-1):
                 if tabs[idx2][2]>0: 
                     beatCursor=tabs[idx2][0]
@@ -664,7 +664,8 @@ def drawBars(force=False):
 
         # resize canvas
         calcTabDims()
-        win.cvs.config(scrollregion=(0,0,tabDims[0],int(tabDims[1]+beat2y(0)+yOffset)))        
+        win.cvs.config(scrollregion=(0,0,int(tabDims[0]+beat2x(1)+xOffset),
+                                         int(tabDims[1]+beat2y(0)+yOffset)))        
 
         # redraw page outline
         #win.cvs.create_rectangle(beat2x(0)-beatsize, beat2y(0)-beatsize-titleHeight, beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize, fill=color)
@@ -727,26 +728,34 @@ def drawBars(force=False):
 
     # check if we need to scroll (window should have room for minimal 2 rows)
     if playing:
-        #  active row    
-        actRow=-1
-        for tab in tabs:
-            beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
-            if beatCursor>=beat and beatCursor<=(beat+dur):actRow=tabRow
-        #  nr of beats on this row        
-        fromBeat,toBeat=-1,-1
-        for tab in tabs:
-            beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
-            if tabRow==actRow: 
-                if fromBeat==-1: fromBeat=beat
-                toBeat=beat
-        nrBeats=toBeat-fromBeat+1
-        #  calc scroll fraction
-        if actRow>0:
-            beatNr=beatCursor-fromBeat
-            relBeat=beatNr/nrBeats
-            rowHeight=beat2h()/tabDims[1]
-            relY=(actRow-1+relBeat)*rowHeight
-            win.cvs.yview_moveto(relY)
+        linMode=win.varLinear.get()   
+        if linMode==True:
+            x = beat2x(beatCursor)
+            cvsW=int(win.cvs.winfo_width())
+            if x>cvsW/2:
+                relX=(x-cvsW/2)/tabDims[0]
+                win.cvs.xview_moveto(relX)
+        else:
+            #  active row    
+            actRow=-1
+            for tab in tabs:
+                beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
+                if beatCursor>=beat and beatCursor<=(beat+dur):actRow=tabRow
+            #  nr of beats on this row        
+            fromBeat,toBeat=-1,-1
+            for tab in tabs:
+                beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
+                if tabRow==actRow: 
+                    if fromBeat==-1: fromBeat=beat
+                    toBeat=beat
+            nrBeats=toBeat-fromBeat+1
+            #  calc scroll fraction
+            if actRow>0:
+                beatNr=beatCursor-fromBeat
+                relBeat=beatNr/nrBeats
+                rowHeight=beat2h()/tabDims[1]
+                relY=(actRow-1+relBeat)*rowHeight
+                win.cvs.yview_moveto(relY)
 
     # set inDrawBars to False
     inDrawBars=False
@@ -784,6 +793,7 @@ def stopTabScroll():
     beatCursor=firstPlayBeat
     endNote()
     playing=False
+    win.cvs.xview_moveto(0)    
     win.cvs.yview_moveto(0)    
     drawBars()
 def pauseTabScroll():
@@ -917,16 +927,30 @@ def drag_enter(event):
     global drag_begin,drag_start,scroll_start
     drag_begin=[event.x,event.y]
     drag_start=time.time()
-    scroll_start=win.vbar.get()
+
+    linMode=win.varLinear.get()   
+    if linMode==True:
+        scroll_start=win.hbar.get()
+    else:
+        scroll_start=win.vbar.get()
 def drag_handler(event):
     global drag_begin
     drawDistance=( (event.x-drag_begin[0]),(event.y-drag_begin[1]) )
     cw,ch=win.cvs.winfo_width(),win.cvs.winfo_height()
-    vScrollSize=scroll_start[1]-scroll_start[0]
-    vScrollOffset=scroll_start[0]-drawDistance[1]/ch
-    if vScrollOffset<0: vScrollOffset=0
-    if vScrollOffset>(1-vScrollSize): vScrollOffset=(1-vScrollSize)
-    win.cvs.yview_moveto(vScrollOffset)
+
+    linMode=win.varLinear.get()   
+    if linMode==True:
+        hScrollSize=scroll_start[1]-scroll_start[0]
+        hScrollOffset=scroll_start[0]-drawDistance[0]/ch
+        if hScrollOffset<0: hScrollOffset=0
+        if hScrollOffset>(1-hScrollSize): hScrollOffset=(1-hScrollSize)
+        win.cvs.xview_moveto(hScrollOffset)
+    else:
+        vScrollSize=scroll_start[1]-scroll_start[0]
+        vScrollOffset=scroll_start[0]-drawDistance[1]/ch
+        if vScrollOffset<0: vScrollOffset=0
+        if vScrollOffset>(1-vScrollSize): vScrollOffset=(1-vScrollSize)
+        win.cvs.yview_moveto(vScrollOffset)
 def drag_end(event):
     if (time.time()-drag_start)<0.2: 
         click(event)
@@ -1060,6 +1084,13 @@ def autoBars():
     growWindow()# to shrink window if width or height is too large
 
 def reformatBars():
+    linMode=win.varLinear.get()   
+    if linMode==True:
+        win.hbar.config(width=win.vbar.cget('width'))
+        win.vbar.config(width=0)
+    else:    
+        win.vbar.config(width=win.hbar.cget('width'))
+        win.hbar.config(width=0)
     calcTabDims()
     drawBars(True)
 
@@ -1503,11 +1534,16 @@ def initWindow():
     # make canvas
     win.vbar=tk.Scrollbar(win,orient=tk.VERTICAL)
     win.vbar.pack(side=tk.RIGHT,fill=tk.Y)
+    win.hbar=tk.Scrollbar(win,orient=tk.HORIZONTAL)
+    win.hbar.pack(side=tk.BOTTOM,fill=tk.X)
     win.cvs = tk.Canvas(win, bg="white" )
     win.cvs.pack(expand=True,fill=tk.BOTH,padx=(0,0),pady=(0,0))
     win.vbar.config(command=win.cvs.yview)
+    win.hbar.config(command=win.cvs.xview)
     win.cvs.config(yscrollcommand=win.vbar.set)
-
+    win.cvs.config(xscrollcommand=win.hbar.set)
+    win.hbar.config(width=0)
+    
     win.cvs.bind("<ButtonPress-1>", drag_enter)
     win.cvs.bind("<B1-Motion>", drag_handler)
     win.cvs.bind("<ButtonRelease-1>", drag_end)    
