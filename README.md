@@ -36,8 +36,8 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
    * type ```python -m pip install -U pyscreenshot --user```
    
 4) You have two options to run Tin-Whistle-Helper:
-   * from your file explorer, navigate to the directory where you extracted the zip file and run (double click) ```TWHelper.py```
-   * from a dos prompt/linux terminal, navigate to the directory where you extracted the zip file and </br>
+   * from your file explorer, </br>navigate to the directory where you extracted the zip file and </br>run (double click) ```TWHelper.py```
+   * from a dos prompt/linux terminal, </br>navigate to the directory where you extracted the zip file and </br>
    type ```python TWHelper.py``` for windows or ```python3 TWHelper.py``` for linux.
 
 </br>
