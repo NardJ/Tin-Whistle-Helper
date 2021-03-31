@@ -1,6 +1,12 @@
 # TODO
-#   do we want to delete consequetive spaces, bars, eot's
+#   
+
+#   README.md > does double click in windows on py file really start
 # use pip3 freeze >requirements.txt
+# package using 
+#   1) 'pyinstaller myscript.py'
+#   2) copy icons folder and non-py files to dist folder
+#   see https://pyinstaller.readthedocs.io/en/stable/usage.html#using-pyinstaller
 
 import os
 from datetime import datetime
@@ -207,6 +213,7 @@ def recalcBeats():
             tabRow+=1
             tabCol=0
 def nrTabRows():
+    if len(tabs)==0: return 0
     return tabs[-1][6]+1
 def rowStart(rowNr):
     for idx in range(len(tabs)):
@@ -214,16 +221,21 @@ def rowStart(rowNr):
 def rowEnd(rowNr):
     for idx in range(len(tabs)-1,-1,-1):
         if tabs[idx][6]==rowNr: return idx
+
 def stripSeps():
-    #strips all seps at beginning or end of each row
+    #strips all seps at beginning of each row
     for rowNr in range(nrTabRows()):
         firstRowIdx=rowStart(rowNr)
-        firstRowTab=tabs[firstRowIdx]
-        if firstRowTab[1] in sepIDs: tabs.pop(firstRowIdx)
+        if firstRowIdx!=None: # if row is present
+            firstRowTab=tabs[firstRowIdx]
+            if firstRowTab[1] in sepIDs: tabs.pop(firstRowIdx)
+    #strips all seps at end of each row
     for rowNr in range(nrTabRows()):
-        lastRowIdx=rowEnd(rowNr)-1 # last is eot, we want to strip seps just before eot
-        lastRowTab=tabs[lastRowIdx]
-        if lastRowTab[1] in sepIDs and lastRowTab[1]!=eot: tabs.pop(lastRowIdx)
+        lastRowIdx=rowEnd(rowNr)
+        if lastRowIdx!=None: # if row is present
+            lastRowIdx-=1 # last is eot, we want to strip seps just before eot
+            lastRowTab=tabs[lastRowIdx]
+            if lastRowTab[1] in sepIDs and lastRowTab[1]!=eot: tabs.pop(lastRowIdx)
 def gotoPrevBeat():
     global beatCursor
     for idx in range(len(tabs)-1,-1,-1):
@@ -527,9 +539,11 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
 
     if noteId == '|': 
         tabColor = 'black'
-        xm=beat2x(beat)-beat2w(1)/2
+        #xm=beat2x( beat)-beat2w(1)/2
+        x=xOffset+tabCol*barInterval+beat2w(1)
+        xm=x-beat2w(1)/2
         y1=y0+holeInterval*0
-        y2=y0+holeInterval*9 
+        y2=y0+holeInterval*9
         cvs.create_line(xm,y1,xm,y2,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
         return
 
@@ -792,6 +806,8 @@ def stopTabScroll():
     beatCursor=firstPlayBeat
     endNote()
     playing=False
+    widgets=[win.btnLoad, win.btnNew,win.btnSave,win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,win.cbCountOff,win.cbLow,win.cbLinear,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
+    for widget in widgets: widget.config(state=tk.NORMAL)
     win.cvs.xview_moveto(0)    
     win.cvs.yview_moveto(0)    
     drawBars()
@@ -885,6 +901,8 @@ def startTabScroll():
     initTabScroll(firstPlayBeat)
     initBars(beatsize) # don't reset zoom
     playing=True
+    widgets=[win.btnLoad, win.btnNew,win.btnSave,win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,win.cbCountOff,win.cbLow,win.cbLinear,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
+    for widget in widgets: widget.config(state=tk.DISABLED)
     #resetView(None)
     win.cvs.yview_moveto(0)
     drawBars()
@@ -1219,6 +1237,8 @@ def keypress(event):
         # store del
         delTab=tab
         delIdx=idx
+        # make sure we have at least one rest (besides eot)
+        if len(tabs)<=1: tabs.insert(0,[0,'_',1,'','green', 0,0,0])    
         # check if cursor on tab
         if idx>=(len(tabs)-1): 
             gotoPrevBeat()
