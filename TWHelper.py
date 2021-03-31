@@ -58,7 +58,7 @@ noteIDs = ['d','d#','e','f','f#','g','g#','a','a#','b','c','c#','D','D#','E','E#
 eot     = 'eot'
 sepIDs  = ['|',',',eot]
 restIDs = ['_']
-decoIDs = ['^', '>', '=', '@', '~']
+decoIDs = ['<','^', '>', '=', '@', '~', '\\','/','-']
 
 def setLowHigh():
     global noteNrs
@@ -300,7 +300,7 @@ def loadFile2(filename=None,filepath=None):
                             dur=1+note.count('.')
                             style=''
                             if len(note)>1:
-                                if note[-1] in '^>=@~/\\-':
+                                if note[-1] in decoIDs:#'^>=@~/\\-':
                                     style = note[-1] 
                             if name in (noteIDs+restIDs+sepIDs):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
                                 if name in sepIDs: dur=0 #('|',','): dur=0
@@ -600,18 +600,18 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         cvs.create_line(xm,y1+2,xm,y2-2,fill=tabColor,width=2)
 
     fnt=("Arial", int(beatsize*0.7))
-    if noteStyle=='^':#tap/strike
+    if noteStyle=='<':#cut
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
-        cvs.create_text(x1,y1,text=u'\u21C5',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
-    if noteStyle=='>':#cut
+        cvs.create_text(x1,y1,text=u'\u2BA4',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
+    if noteStyle=='>':#tap/strike
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u21B4',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
-    if noteStyle=='>^':#roll (cut+tap)
+    if noteStyle=='^':#roll (cut+tap/strike)
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
-        cvs.create_text(x1,y1,text=u'\u21B4\u21C5',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
+        cvs.create_text(x1,y1,text=u'\u2BA4\u21B4',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
     if noteStyle=='=':#slide
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
