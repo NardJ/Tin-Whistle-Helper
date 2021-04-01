@@ -92,7 +92,8 @@ C            : Change note to 3td-octave c#
 [Alt]-c      : Change note to 2nd-octave c
 _            : Change note at cursor to rest
 1...9        : Change length of note
-<,>,^,=,@,~  : Add decorator cut, tap/strike, roll, slide, tongue, vibrato
+<,>,^,=,@,~  : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴, 
+                             slide ⇒, tongue ᳅, vibrato ∿
 [Escape]     : Remove decorator
 
 [Del]        : Remove note at cursor
