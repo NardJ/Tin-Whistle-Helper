@@ -1,5 +1,5 @@
 # TODO
-#   helpwin.txt cut etc van unicode symbol voorzien
+#   make undo work if also stripped separator
 
 #   README.md > does double click in windows on py file really start
 # use pip3 freeze >requirements.txt
