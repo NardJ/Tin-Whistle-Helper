@@ -100,7 +100,6 @@ _            : Change note at cursor to rest
 [Ctrl]-z     : Undo last delete
 [Ins]        : Insert note space (rest) before cursor
 [Shift][Ins] : Insert note space (rest) after cursor
-+            : Append note space (rest) to song if last tab selected
 
 [F1]..[F10]  : Change color of tab at beat cursor
 [Shift][Fx]  : Change background color of page
