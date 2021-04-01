@@ -1,5 +1,5 @@
 # TODO
-#   
+#   helpwin.txt cut etc van unicode symbol voorzien
 
 #   README.md > does double click in windows on py file really start
 # use pip3 freeze >requirements.txt
@@ -108,6 +108,7 @@ def capTitle():
     global title
     title=" ".join([word.capitalize() for word in title.split(" ")])
 
+'''
 def loadFile(filename=None,filepath=None):
     global tabs,bpm,title,beatsize,backColor
     if filepath==None:
@@ -175,6 +176,7 @@ def loadFile(filename=None,filepath=None):
         calcTabDims()
     except Exception as e:
         print (f"Error reading tab file:{e}")
+'''
 
 colors=['blue', 'purple3', '#00BBED','red','DeepPink3','magenta','orange','gold','brown','green','gray39','black',]
 backcolors=['#7BDAFF','#FFC6F4','#CeF1Fd','#ffC0C0','#F7A8Db','#f1Bbf1','#FeE59a','#FFFFDE','#D3B4B4','#A0FdA0','#D4D4D4','#FFFFFF']
@@ -377,12 +379,12 @@ def saveFile():
     rep = filedialog.asksaveasfile(                  # open dialog so user can select file
                                         parent=win,
                                         initialdir=scriptdir,
-                                        defaultextension="*.tbs",
+                                        defaultextension="*.tb",
                                         filetypes=[
                                             ("Tin Whistle Tab files", "*.tb")
                                     ])
     if (rep==None): return
-    print (f"rep:{rep.name}")
+    #print (f"rep:{rep.name}")
     scriptpath=rep.name                                   # use first file in list
     if (scriptpath==None): return    
     ext=scriptpath[-3:]
@@ -399,18 +401,19 @@ def openFile():
     rep = filedialog.askopenfilenames(                  # open dialog so user can select file
                                         parent=win,
                                         initialdir=scriptdir,
-                                        defaultextension="*.tbs",
+                                        defaultextension="*.tb",
                                         filetypes=[
-                                            ("Tin Whistle Tab files", "*.tbs"),
-                                            ("Tin Whistle Tab files", "*.tb")
+                                            #("Tin Whistle Tab files", "*.tbs"),
+                                            ("Tin Whistle Tab files", "*.tb"),
                                     ])
     if (len(rep)==0): return
     scriptpath=rep[0]                                   # use first file in list
     if (scriptpath==None): return    
     ext=scriptpath[-3:]
-    if ext=='tbs': 
-        loadFile(filepath=scriptpath)
-    elif ext=='.tb': 
+    #if ext=='tbs': 
+    #    loadFile(filepath=scriptpath)
+    #elif ext=='.tb': 
+    if ext=='.tb':
         loadFile2(filepath=scriptpath)
     else: return        
     initBars()
@@ -600,28 +603,28 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         cvs.create_line(xm,y1+2,xm,y2-2,fill=tabColor,width=2)
 
     fnt=("Arial", int(beatsize*0.7))
-    if noteStyle=='<':#cut
+    if noteStyle=='<':#cut ⮤
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u2BA4',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
-    if noteStyle=='>':#tap/strike
+    if noteStyle=='>':#tap/strike ↴
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u21B4',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
-    if noteStyle=='^':#roll (cut+tap/strike)
+    if noteStyle=='^':#roll (cut+tap/strike) ⮤↴
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u2BA4\u21B4',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
-    if noteStyle=='=':#slide
+    if noteStyle=='=':#slide ⇒
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u21D2',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
         #cvs.create_text(x1,y1,text=u'\u27B2',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
-    if noteStyle=='@':#tonguing
+    if noteStyle=='@':#tonguing ᳅
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u1CC5',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
-    if noteStyle=='~':#vibrato
+    if noteStyle=='~':#vibrato ∿
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u223F',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
