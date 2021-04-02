@@ -153,6 +153,8 @@ blue c.^ d.> e.>^ f#.= g/ a- b\
 orange c. _ d. _. e. f#... | g | a..
 ``` 
 
+---
+
 ## Disclaimer
 
 This is an alpha version and for testing purposes only. It is not ready 
@@ -161,7 +163,9 @@ The functionality of the next version may differ. Tab files you create
 with this version may not load in the next release. 
 
 
-## Licence
+---
+
+## License
 
 This software is licensed under the Attribution-NonCommercial-ShareAlike 2.0 Generic (CC BY-NC-SA 4.0) license.
 See https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode for a full description of this license.
