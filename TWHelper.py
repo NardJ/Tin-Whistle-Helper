@@ -1,5 +1,7 @@
 # TODO
-#   make undo also work if we stripped separator after deleting note
+#   make section repeatable
+#   fix Down by Sally Gardens
+#   elan nightwish uitwerken
 
 #   README.md > does double click in windows on py file really start
 # use pip3 freeze >requirements.txt
@@ -11,6 +13,7 @@
 import os
 from datetime import datetime
 import time
+import copy
 
 import tkinter as tk
 from tkinter import ttk
@@ -245,6 +248,7 @@ def stripSeps():
             lastRowIdx-=1 # last is eot, we want to strip seps just before eot
             lastRowTab=tabs[lastRowIdx]
             if lastRowTab[1] in sepIDs and lastRowTab[1]!=eot: tabs.pop(lastRowIdx)
+
 def gotoPrevBeat():
     global beatCursor
     for idx in range(len(tabs)-1,-1,-1):
@@ -1234,6 +1238,7 @@ def tabIdx():
 
 delTab=None
 delIdx=-1
+oldTabs=[]
 def keypress(event):
     global beatCursor, tabs,delTab,delIdx,backColor,firstPlayBeat
     #print (event)
@@ -1257,7 +1262,7 @@ def keypress(event):
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
-    if key in ('Right','KP_Right'): 
+    elif key in ('Right','KP_Right'): 
         nidx=idx
         ndur=0
         while ndur==0 and idx<len(tabs)-2:
@@ -1267,14 +1272,14 @@ def keypress(event):
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
-    if key in ('Up','KP_Up'): 
+    elif key in ('Up','KP_Up'): 
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow-1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
-    if key in ('Down','KP_Down'): 
+    elif key in ('Down','KP_Down'): 
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow+1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
@@ -1305,30 +1310,33 @@ def keypress(event):
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if beatCursor>=beat and beatCursor<(beat+dur):
+                oldTabs.append(copy.deepcopy(tabs))
                 tabs[idx][1]=char
                 beatCursor+=dur  
                 # make sure we have a rest so we can keep entering notes
-                #if tabs[-1][1]!='_':
-                beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[-1]
-                newTab=[beat+dur,'_',1,'',tabColor, tabCol+dur,tabRow,tabLin+1]
-                tabs.append(newTab)    
+                if tabs[-1][1]!='_':
+                    beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[-1]
+                    newTab=[beat+dur,'_',1,'',tabColor, tabCol+dur,tabRow,tabLin+1]
+                    tabs.append(newTab)    
                 calcTabDims()          
                 drawBars(True)
                 return
 
     # modify style/decorator
-    if char in decoIDs or key=='Escape':
+    elif char in decoIDs or key=='Escape':
         deco= ' ' if key=='Escape' else char
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if beatCursor>=beat and beatCursor<(beat+dur):
+                oldTabs.append(copy.deepcopy(tabs))
                 tabs[idx][3]=deco
                 drawBars(True)
     # modify length
-    if char in ['1','2','3','4','5','6','7','8','9']:
+    elif char in ['1','2','3','4','5','6','7','8','9']:
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if beatCursor>=beat and beatCursor<(beat+dur):
+                oldTabs.append(copy.deepcopy(tabs))
                 newDur=int(char)                  
                 delta=newDur-dur                        # store change in beats
                 tabs[idx][2]=newDur                     # write new length
@@ -1337,7 +1345,8 @@ def keypress(event):
                 calcTabDims()
                 drawBars(True)
     # delete note
-    if key in ('Delete','KP_Delete'):
+    elif key in ('Delete','KP_Delete'):
+        oldTabs.append(copy.deepcopy(tabs))
         # delete tab
         tab=tabs.pop(idx)       
         # move tabs
@@ -1353,19 +1362,9 @@ def keypress(event):
             gotoPrevBeat()
         # redraw
         drawBars(True)
-    # undo del
-    if key in ('z') and state==4:
-        if delTab!=None:
-            tab=tabs[idx]
-            tabs.insert(delIdx,delTab)
-            beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=delTab
-            #moveTabs(idx,dur)
-            recalcBeats()
-            calcTabDims()
-            drawBars(True)
-            delTab=None
     # insert note (before cursor)
-    if key in ('Insert', 'KP_Insert','KP_0'):
+    elif key in ('Insert', 'KP_Insert','KP_0'):
+        oldTabs.append(copy.deepcopy(tabs))
         if state==1: idx+=1 # to append after
         tab=tabs[idx]
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
@@ -1375,8 +1374,9 @@ def keypress(event):
         calcTabDims()
         drawBars(True)
     # append note (after cursor)
-    if key in ('plus', 'KP_Add'):
+    elif key in ('plus', 'KP_Add'):
         if idx==len(tabs)-1:
+            oldTabs.append(copy.deepcopy(tabs))
             tab=tabs[idx]
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             tabs.append([beat+dur,'_',1,'',tabColor, tabCol+dur,tabRow,tabLin+dur])
@@ -1384,18 +1384,20 @@ def keypress(event):
             calcTabDims()
             drawBars(True)
     # delete visual seperator
-    if key=='BackSpace':
+    elif key=='BackSpace':
         if idx>0:
             idx-=1
             tab=tabs[idx]
             if tab[1] in sepIDs:
+                oldTabs.append(copy.deepcopy(tabs))
                 #firstTabRow=tabs[idx][6]
                 tab=tabs.pop(idx)
                 recalcBeats()
                 drawBars(True)
 
     # insert visual seperator of new line
-    if char in sepIDs+[' '] or key=='Return':
+    elif char in sepIDs+[' '] or key=='Return':
+        oldTabs.append(copy.deepcopy(tabs))
         #print ("insert sep")
         if beatCursor==0: return # inserting seperator as first column will shift entire page (bug)
         sep=',' if char==' ' else char
@@ -1408,17 +1410,29 @@ def keypress(event):
         drawBars(True)
 
     # change tab color
-    if key[0]=='F':
-        print (int(state))
+    elif key[0]=='F':
         if len(key)>1:
             colorNr=int(key[1:])-1
             if colorNr<len(colors):
+                oldTabs.append(copy.deepcopy(tabs))
                 if state==0:
                     tab=tabs[idx]
                     tab[4]=colors[colorNr]
                 if state==1:
                     backColor=backcolors[colorNr]
                 drawBars(True)
+    # undo del
+    elif key in ('z') and state==4:
+        if len(oldTabs)>0:
+            print ("UNDO")
+            tabs=oldTabs.pop()
+            recalcBeats()
+            calcTabDims()
+            drawBars(True)
+        else:
+            print ("STACK EMPTY")    
+    else:
+        print (f"Key {key} unknown.")
 
     # replay from last start
     if  key=="Tab":
