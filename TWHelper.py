@@ -1,5 +1,5 @@
 # TODO
-#   make undo work if also stripped separator
+#   make undo also work if we stripped separator after deleting note
 
 #   README.md > does double click in windows on py file really start
 # use pip3 freeze >requirements.txt
@@ -26,23 +26,30 @@ icondir   = os.path.join(scriptdir,"icons")
 import fluidsynth #pip3 install pyFluidSynth
 import helpWin
 
+def experimental():
+    messagebox.showinfo("Experimental","This feature is experimental and \nprobably will not work properly.")
+
 #https://www.fluidsynth.org/api/LoadingSoundfonts.html
 #https://github.com/nwhitehead/pyfluidsynth
 fs=fluidsynth.Synth()
 sfFlute=None
 sfMetro=None
+chnFlute=None
+chnMetro=None
 def initPlayer():
-    global sfFlute, sfMetro
+    global sfFlute, sfMetro,chnFlute,chnMetro
     fs.start(driver="alsa")
     
     #soundfontpath = os.path.join(scriptdir,"SynthThik.sf2")
     soundfontpath = os.path.join(scriptdir,"198-WSA percussion kit.SF2")
     sfMetro = fs.sfload(soundfontpath)
-    fs.program_select(1, sfMetro, 0, 0)
+    chnMetro= 1
+    fs.program_select(chnMetro, sfMetro, 0, 0)
 
     soundfontpath = os.path.join(scriptdir,"Tin_Whistle_AIR.sf2")
     sfFlute = fs.sfload(soundfontpath)
-    fs.program_select(0, sfFlute, 0, 0)
+    chnFlute= 0
+    fs.program_select(chnFlute, sfFlute, 0, 0)
 
 octL=5
 octM=6
@@ -459,7 +466,7 @@ holeInterval=1.5*beatsize
 xOffset=beatsize
 yOffset=beatsize
 beatCursor=0
-winDims=[1024,800]
+winDims=[1072,800]
 
 tabDims=[0,0]
 def calcTabDims():
@@ -795,6 +802,105 @@ def doCursorPlay():
                 delay=dur*int(60/bpm*1000)
                 noteLength=delay-noteSilence if (noteSilence<delay) else delay
                 win.after(noteLength,endNote,name)
+
+                if win.varDeco.get():
+                    if style==">":#strike one note higher
+                        noteIdx=noteIDs.index(name)
+                        strikeName=noteIDs[noteIdx+2] # full note higher is 2 halves/indices above
+                        strikeLength=200 # msec
+                        if noteLength<400:strikeLength=100
+                        if noteLength<200:strikeLength=50
+                        if noteLength<100:strikeLength=0  
+                        if strikeLength>0:
+                            strikeStart=int((noteLength-strikeLength)/2)
+                            #print (f"noteLength:{noteLength} strikeStart:{strikeStart} strikeLength:{strikeLength} ")              
+                            win.after(strikeStart,endNote,name)
+                            win.after(strikeStart,startNote,strikeName)
+                            win.after(strikeStart+strikeLength,endNote,strikeName)
+                            win.after(strikeStart+strikeLength,startNote,name)
+                    if style=="<":#cut:lift finger on g for d/e/f and b for g/a/b, effect is interuption of note without stopping breath
+                        cutLength=noteSilence # msec
+                        if cutLength>(noteLength/2): cutLength=noteLength/3
+                        if cutLength<50:cutLength=0  
+                        if cutLength>0:
+                            cutStart=int((noteLength-cutLength)/2)
+                            #print (f"noteLength:{noteLength} cutStart:{cutStart} cutLength:{cutLength} ")              
+                            win.after(cutStart,endNote,name)
+                            win.after(cutStart+cutLength,startNote,name)
+                    if style=="^":#roll (cut+tap):
+                        # split note in two halves and apply cut and tap to both
+                        noteLength1=int(noteLength/2)
+                        noteIdx=noteIDs.index(name)
+                        strikeName=noteIDs[noteIdx+1]
+                        strikeLength=200 # msec
+                        if noteLength1<400:strikeLength=100
+                        if noteLength1<200:strikeLength=50
+                        if noteLength1<100:strikeLength=0  
+                        if strikeLength>0:
+                            strikeStart=int((noteLength1-strikeLength)/2)
+                            #print (f"noteLength:{noteLength} strikeStart:{strikeStart} strikeLength:{strikeLength} ")              
+                            win.after(strikeStart,endNote,name)
+                            win.after(strikeStart,startNote,strikeName)
+                            win.after(strikeStart+strikeLength,endNote,strikeName)
+                            win.after(strikeStart+strikeLength,startNote,name)
+
+                        noteLength2=noteLength-noteLength1
+                        cutLength=noteSilence # msec
+                        if cutLength>(noteLength2/2): cutLength=noteLength2/3
+                        if cutLength<50:cutLength=0  
+                        if cutLength>0:
+                            cutStart=int((noteLength2-cutLength)/2)
+                            #print (f"noteLength:{noteLength} cutStart:{noteLength1+cutStart} cutLength:{cutLength} ")              
+                            win.after(noteLength1+cutStart,endNote,name)
+                            win.after(noteLength1+cutStart+cutLength,startNote,name)
+
+                    if style=="=":#slide: from note -> note +half -> note above
+                        pitchBend(2048*2,noteLength)
+                    if style=="@":#tongue
+                        pass
+                    if style=="~":#vibrato
+                        vibrato(name,noteLength)
+
+
+pitchVal=0
+def pitchBend(amount,duration,restart=True):
+    global pitchVal
+    if restart: 
+        pitchVal=0
+
+    fs.pitch_bend(chnFlute,pitchVal*2) # 2048 1 semitone / half noteId
+
+    stepDur=10 # msecs
+    nrSteps=int(duration/stepDur)
+    stepAmount=int(amount/nrSteps)
+    pitchVal+=stepAmount
+    #print (f"duration:{duration} stepDur:{stepDur} nrSteps:{nrSteps} stepAmount:{stepAmount} pitchVal:{pitchVal}")
+    
+    if pitchVal<amount: 
+        win.after(stepDur,pitchBend,amount,duration,False)
+    else:
+        fs.pitch_bend(chnFlute,0)          # 2048 1 semitone / half noteId
+
+vibStart=0
+vibState=2
+def vibrato(noteName,duration,restart=True):
+    global vibState,vibStart
+    if restart:
+        vibStart=time.time()        
+
+    vibPulseWidth=6 # msecs
+    if vibState==0:endNote(noteName)                
+    if vibState==1:startNote(noteName)
+    vibState=(vibState+1) % 10
+
+    vibPassed=time.time()-vibStart
+    vibPassed=vibPassed*1000
+    if vibPassed<duration:
+        win.after(vibPulseWidth,vibrato,noteName,duration,False)
+    else:
+        endNote(noteName)                
+        vibState=2
+
 
 bpm=120
 beatUpdate=0.1
@@ -1464,6 +1570,15 @@ def initWindow():
     #win.cbSound.config(font=("Courier", 12))
     win.cbSound.pack(side=tk.LEFT,padx=(2,2))
 
+    # play decorations
+    win.varDeco=tk.BooleanVar(value=False)
+    win.cbDeco=tk.Checkbutton(win.buttonframe,text=u'\u2BA4\u21B4',variable=win.varDeco,command=experimental)
+    footerbgcolor='white'
+    footerfgcolor='black'
+    win.cbDeco.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
+    #win.cbSound.config(font=("Courier", 12))
+    win.cbDeco.pack(side=tk.LEFT,padx=(2,2))
+
     # Low whistle 
     win.varLow=tk.BooleanVar(value=False)
     win.cbLow=tk.Checkbutton(win.buttonframe,text='Low',variable=win.varLow,command=setLowHigh)
@@ -1584,6 +1699,7 @@ initPlayer()
 #loadFile("Fee Ra Huri.tbs")
 #loadFile("tutorial.tbs")
 loadFile2("tutorial.tb")
+#loadFile2("testDecos.tb")
 drawBars(True)
 #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html
 
