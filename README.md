@@ -160,3 +160,10 @@ for daily use. You will encounter bugs and may loose work.
 The functionality of the next version may differ. Tab files you create 
 with this version may not load in the next release. 
 
+
+## Licence
+
+This software is licensed under the Attribution-NonCommercial-ShareAlike 2.0 Generic (CC BY-NC-SA 4.0) license.
+See https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode for a full description of this license.
+
+
