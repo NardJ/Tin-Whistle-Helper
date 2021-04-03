@@ -94,7 +94,7 @@ C               : Change note to 3td-octave c#
 _               : Change note at cursor to rest
 1...9           : Change length of note
 lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴, 
-                             slide ⇒, tongue ᳅, vibrato ∿
+                                slide ⇒, tongue ᳅, vibrato ∿
 [Escape]        : Remove decorator
 { , }           : Insert start ┃▏or end │▎for a group of notes
                   to repeat. Add extra ending │▎to increase repeats
