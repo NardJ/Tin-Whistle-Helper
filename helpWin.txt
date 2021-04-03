@@ -55,8 +55,11 @@ _            : Change note at cursor to rest
 lt,gt,^,=,@,~: Add decorator cut ⮤, tap/strike ↴, roll ⮤↴, 
                              slide ⇒, tongue ᳅, vibrato ∿
 [Escape]     : Remove decorator
+{ , }        : Insert start ┃▏or end │▎for a group of notes
+               to repeat. Add extra ending │▎to increase repeats
 
-[Del]        : Remove note at cursor
+[Del]        : Remove note or repeat start/end at cursor
+[Shift][Del] : Remove note or repeat start/end after cursor
 [Ctrl]-z     : Undo last delete
 [Ins]        : Insert note space (rest) before cursor
 [Shift][Ins] : Insert note space (rest) after cursor

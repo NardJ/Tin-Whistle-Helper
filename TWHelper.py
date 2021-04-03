@@ -1,5 +1,9 @@
 # TODO
 #   make section repeatable
+#       test if linear mode works
+#   sometimes after del the last tab is not selectable with keys
+#   if navigate with cursor and tab row not visible, bring in screen
+#
 #   fix Down by Sally Gardens
 #   elan nightwish uitwerken
 
@@ -69,6 +73,7 @@ eot     = 'eot'
 sepIDs  = ['|',',',eot]
 restIDs = ['_']
 decoIDs = ['<','^', '>', '=', '@', '~', '\\','/','-']
+repID   = 'rep'
 
 def setLowHigh():
     global noteNrs
@@ -214,16 +219,18 @@ def recalcBeats():
     for idx,tab in enumerate(tabs):
         #[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]=tab
         [_,name,dur,style,tabColor,_,_,_]=tab
-        #print (f"{idx:2}> {tab}")
+        #print (f"{idx:2}> ({tabCol},{tabRow}) {tab}")
         tabs[idx]=[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]
         #print (f"{'  '}> {tabs[idx]}")
         #calc new beat, col, row and lin
-        beat+=dur
-        tabCol+=max(1,dur)
-        tabLin+=max(1,dur)
         if name==eot:
             tabRow+=1
             tabCol=0
+        else:
+            beat+=dur
+            tabCol+=max(1,dur)
+            tabLin+=max(1,dur)
+
 def nrTabRows():
     if len(tabs)==0: return 0
     return tabs[-1][6]+1
@@ -249,6 +256,37 @@ def stripSeps():
             lastRowTab=tabs[lastRowIdx]
             if lastRowTab[1] in sepIDs and lastRowTab[1]!=eot: tabs.pop(lastRowIdx)
 
+def joinRepeats():
+    # first join }'s and sum repeats
+    idx=0
+    while idx < len(tabs)-1:
+        if tabs[idx+0][1][0]==tabs[idx+1][1][0]=='}':
+            nrReps1=int(tabs[idx+0][1][1])
+            nrReps2=int(tabs[idx+1][1][1])
+            nrReps=min(nrReps1+nrReps2,4)            
+            tabs[idx+0][1]=f'}}{nrReps}'
+            tabs.pop(idx+1)
+        else:
+            idx=idx+1
+    # next join {'s
+    idx=0
+    while idx < len(tabs)-1:
+        if tabs[idx+0][1][0]==tabs[idx+1][1][0]=='{':
+            tabs.pop(idx+1)
+        else:
+            idx=idx+1
+    # next set { repeats to } repeats
+    for idxo,tabo in enumerate(tabs):
+        if tabo[1][0]=='{':
+            # apply new repeat also to opening '{'
+            level=1
+            for tabc in (tabs[idxo+1:]):
+                if tabc[1][0]=='{': level+=1
+                if tabc[1][0]=='}':
+                    level-=1
+                    nrReps=int(tabc[1][1])
+                    if level==0: tabo[1]=f'{{{nrReps}'
+
 def gotoPrevBeat():
     global beatCursor
     for idx in range(len(tabs)-1,-1,-1):
@@ -259,11 +297,12 @@ def gotoPrevBeat():
                     return idx2
     return -1
 
-def loadFile2(filename=None,filepath=None):
-    global tabs,bpm,title
+filename=None
+def loadFile2(tfilename=None,filepath=None):
+    global tabs,bpm,title,filename
     global textColor,backColor,texts
     if filepath==None:
-        filepath=os.path.join(scriptdir,filename)        
+        filepath=os.path.join(scriptdir,tfilename)        
     if not os.path.isfile(filepath): return
 
     tabs.clear()
@@ -272,6 +311,7 @@ def loadFile2(filename=None,filepath=None):
     backColor='#FFFFDE'
     beat,tabRow,tabCol,tabLin=0,0,0,0 #just placeholders, real values will be calculated after loading by recalcBeats
     #print (f"filename:{filename}|")
+    filename=os.path.basename(filepath)
     title=os.path.basename(filepath).split('.')[0].replace("_"," ")
     capTitle()
     texts.clear()
@@ -303,7 +343,9 @@ def loadFile2(filename=None,filepath=None):
                     line=line.replace('  ',' , ') # double space is visual space between tabs
                     notes=line.split(" ")
                     notesfound=False
-                    for note in notes:   
+                    firstIdx=len(tabs)
+                    tabCol=0
+                    for note in notes:  
                         if note in colors:         
                             tabColor=note
                         else:   
@@ -315,9 +357,10 @@ def loadFile2(filename=None,filepath=None):
                             if len(note)>1:
                                 if note[-1] in decoIDs:#'^>=@~/\\-':
                                     style = note[-1] 
-                            if name in (noteIDs+restIDs+sepIDs):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
+                            if name in (noteIDs+restIDs+sepIDs) or name in ('{','}'):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
                                 if name in sepIDs: dur=0 #('|',','): dur=0
-                                tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
+                                if name in ('{','}'): name,dur=note,0
+                                tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]) 
                                 notesfound=True
                             else:
                                 print (f"Rejected: [{note}] {[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]}")
@@ -334,13 +377,14 @@ def loadFile2(filename=None,filepath=None):
         print (f"Error reading tab file:{e}")
 
 
-def saveFile2(filename=None,filepath=None):
-    global title
+def saveFile2(tfilename=None,filepath=None):
+    global title,filename
     if filepath==None:
-        filepath=os.path.join(scriptdir,filename)        
+        filepath=os.path.join(scriptdir,tfilename)        
     if not os.path.isfile(filepath): return
 
     title=os.path.basename(filepath).split('.')[0].replace("_"," ")
+    filename=os.path.basename(filepath)
     capTitle()
     drawBars(True)
     eol='\n'
@@ -380,6 +424,8 @@ def saveFile2(filename=None,filepath=None):
                     if name==',': name=''
                     writer.write(f"{name} ")
                     #print(f"{name} ;")
+                if name[0] in ['{','}']:
+                    writer.write(f"{name} ")
 
     except Exception as e:
         print (f"Error writing tab file:{e}")
@@ -390,13 +436,14 @@ def saveFile():
     rep = filedialog.asksaveasfile(                  # open dialog so user can select file
                                         parent=win,
                                         initialdir=scriptdir,
-                                        defaultextension="*.tb",
+                                        initialfile=filename,
+                                        defaultextension=".tb",
                                         filetypes=[
-                                            ("Tin Whistle Tab files", "*.tb")
+                                            ("Tin Whistle Tab files", ".tb")
                                     ])
     if (rep==None): return
     #print (f"rep:{rep.name}")
-    scriptpath=rep.name                                   # use first file in list
+    scriptpath=rep.name                                
     if (scriptpath==None): return    
     ext=scriptpath[-3:]
     if ext=='.tb': 
@@ -501,6 +548,9 @@ def initBars(newBeatsize=None):
     yOffset=beatsize
     titleHeight=beatsize*2
 
+def col2x(tabCol):
+    x=xOffset+tabCol*barInterval
+    return x
 def beat2x(beat):
     fndTab=None
     lin=win.varLinear.get()   
@@ -516,6 +566,9 @@ def beat2x(beat):
     return x
 
 titleHeight=40
+def row2y(tabRow):
+    y=yOffset+tabRow*holeInterval*10
+    return y+titleHeight
 def beat2y(beat):
     y=0
     lin=win.varLinear.get()   
@@ -546,18 +599,63 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
 
     #if x2<0 or x1>winDims[0]: return False
     #if yt<0 or y0>winDims[1]: return False
+    #print (f"drawBar:{beat,dur,noteId,noteStyle,tabColor,tabCol,tabRow,tabLin}")
 
     if noteId == '' : return False
     if noteId == ',': return False
+    if noteId[0] == '{': 
+        tabColor = 'black'
+        # lines
+        x=col2x(tabCol)+beat2w(1)# xOffset+tabCol*barInterval+beat2w(1)
+        y=row2y(tabRow)
+        xm=x-beat2w(1)/2
+        y1=y+holeInterval*0
+        y2=y+holeInterval*0.2
+        cvs.create_line(xm-2,y1,xm-2,y2,fill=tabColor,width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        cvs.create_line(xm+3,y1,xm+3,y2,fill=tabColor,width=1) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        y1=y+holeInterval*0.8
+        y2=y+holeInterval*9
+        cvs.create_line(xm-2,y1,xm-2,y2,fill=tabColor,width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        cvs.create_line(xm+3,y1,xm+3,y2,fill=tabColor,width=1) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        #for debug
+        # nr times to repeat
+        x1=col2x(tabCol)+beat2w(1)/2# xOffset+tabCol*barInterval+beat2w(1)
+        y1=y+holeInterval*0.5
+        fnt=("Arial", int(beatsize*0.5))
+        cvs.create_text(x1,y1,text=noteId.replace('{',u'\u00D7'),font=fnt,fill=tabColor)
+
+        return False
+    if noteId[0] == '}': 
+        tabColor = 'black'
+        x=col2x(tabCol)+beat2w(1)# xOffset+tabCol*barInterval+beat2w(1)
+        y=row2y(tabRow)
+        # lines
+        tabColor = 'black'
+        xm=x-beat2w(1)/2
+        y1=y+holeInterval*0
+        y2=y+holeInterval*0.2
+        cvs.create_line(xm-3,y1,xm-3,y2,fill=tabColor,width=1) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        cvs.create_line(xm+2,y1,xm+2,y2,fill=tabColor,width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        y1=y+holeInterval*0.8
+        y2=y+holeInterval*9
+        cvs.create_line(xm-3,y1,xm-3,y2,fill=tabColor,width=1) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        cvs.create_line(xm+2,y1,xm+2,y2,fill=tabColor,width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        # nr times to repeat
+        x1=col2x(tabCol)+beat2w(1)/2# xOffset+tabCol*barInterval+beat2w(1)
+        y1=y+holeInterval*0.5
+        fnt=("Arial", int(beatsize*0.5))
+        cvs.create_text(x1,y1,text=noteId.replace('}',u'\u00D7'),font=fnt,fill=tabColor)
+        return False
     if noteId == eot: return False
 
     if noteId == '|': 
         tabColor = 'black'
         #xm=beat2x( beat)-beat2w(1)/2
-        x=xOffset+tabCol*barInterval+beat2w(1)
+        x=col2x(tabCol)+beat2w(1)# xOffset+tabCol*barInterval+beat2w(1)
+        y=row2y(tabRow)
         xm=x-beat2w(1)/2
-        y1=y0+holeInterval*0
-        y2=y0+holeInterval*9
+        y1=y+holeInterval*0
+        y2=y+holeInterval*9
         cvs.create_line(xm,y1,xm,y2,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
         return
 
@@ -695,16 +793,8 @@ def drawBars(force=False):
                                          int(tabDims[1]+beat2y(0)+yOffset)))        
 
         # redraw page outline
-        #win.cvs.create_rectangle(beat2x(0)-beatsize, beat2y(0)-beatsize-titleHeight, beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize, fill=color)
         bBox=pageBBox()
         win.cvs.create_rectangle(bBox[0],bBox[1],bBox[2],bBox[3], fill=backColor)
-        p1=(int(bBox[0]),int(bBox[1]))
-        p2=(int(bBox[2]),int(bBox[3]))
-        color=(0,255,0)
-        t1=time.time()
-        
-        t1=time.time()
-        rect=(int(bBox[0]),int(bBox[1]),int(bBox[2]),int(bBox[3]))
         
         # draw title and other text
         if len(texts)==0: #only display filename as title if no texts were given in the file
@@ -727,6 +817,7 @@ def drawBars(force=False):
                     win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor="nw", font=(fName, int(beatsize*fSize), fStyle),text=text,fill=fillColor)
                     y2=int(y1-titleHeight+beatsize*0.75)
         #t1=time.time()
+
         # redraw tabs
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
@@ -754,7 +845,7 @@ def drawBars(force=False):
     cursorBar=win.cvs.create_line(x,y,x,y+h,fill='red',width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
 
     # check if we need to scroll (window should have room for minimal 2 rows)
-    if playing:
+    if playing and repeatNr==(nrRepeats-1): # only scroll on last repeat
         linMode=win.varLinear.get()   
         if linMode==True:
             x = beat2x(beatCursor)
@@ -774,8 +865,8 @@ def drawBars(force=False):
                 beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
                 if tabRow==actRow: 
                     if fromBeat==-1: fromBeat=beat
-                    toBeat=beat
-            nrBeats=toBeat-fromBeat+1
+                    toBeat=beat+dur
+            nrBeats=toBeat-fromBeat
             #  calc scroll fraction
             if actRow>0:
                 beatNr=beatCursor-fromBeat
@@ -788,7 +879,16 @@ def drawBars(force=False):
     inDrawBars=False
 
 noteSilence=50 #msec
+nrRepeats=1
+repeatNr=0
+repeatStart=0
 def doCursorPlay():
+    # nrRepeats
+    # repeatNr
+    # advMetroMult: if eot and repeatNr<nrRepeats-1: reset
+    # drawBars - only scroll if repeatNr==nrRepeats-1
+
+    global repeatNr,nrRepeats,repeatStart,beatCursor
     if int(beatCursor)!=round(beatCursor,1): return
     if metroMultIdx>0:
         metroInterval=2**(metroMultIdx-1)
@@ -797,6 +897,30 @@ def doCursorPlay():
     if not win.varSound.get(): 
         endNote()
         return
+
+    #check if we are starting new tab with repeat or new line
+    if playing and int(beatCursor)==round(beatCursor,2):
+        for tab in tabs:
+            beat,name,dur,style,tabColor,tabCol,tabRow,tabLin=tab
+            if beat==round(beatCursor,2):
+                print (f"{repeatNr}/{nrRepeats} {tab}")
+                if name==eot:
+                    repeatNr=0
+                    nrRepeats=1
+                    print (f"eot: init {repeatNr}/{nrRepeats}") 
+                if name[0]=='{':
+                    repeatStart=beatCursor
+                    print (f"start loop:{repeatNr}/{nrRepeats} set loopStart:{repeatStart}")    
+                if name[0]=='}':
+                    if repeatNr<nrRepeats:
+                        beatCursor=repeatStart
+                        print (f"end loop:{repeatNr}/{nrRepeats} set beatCursor:{beatCursor}")    
+                        repeatNr+=1
+                    else:
+                        repeatNr=0
+                        nrRepeats=1
+                        print (f"eot: init {repeatNr}/{nrRepeats}") 
+                    break
     #print (f"{beatCursor}")
     for tab in tabs:
         beat,name,dur,style,tabColor,tabCol,tabRow,tabLin=tab
@@ -952,8 +1076,8 @@ def advTabScroll():
             beatCursor+=beatUpdate
             beatCursor=round(beatCursor,3)
             win.beatCursor.set(f"{beatCursor:>5.1f}")
-            drawBars()
             doCursorPlay()
+            drawBars()
 
 def delay2beatUpdate(delay):
     return int((60/bpm*1000)*beatUpdate)
@@ -1156,7 +1280,7 @@ def resetView(event):
     drawBars(True)
 
 def pageBBox():
-    return (beat2x(0)-beatsize, beat2y(0)-beatsize-titleHeight, beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize)
+    return (0,0,beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize)
 def barLinesFullyVisible(customWinHeight=None):
     if customWinHeight==None:
         return (win.cvs.winfo_height()-yOffset-beat2y(0))/beat2h()
@@ -1227,7 +1351,7 @@ def reformatBars():
 def tabIdx():
     for idx,tab in enumerate(tabs):
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
-        if beatCursor==beat and name not in sepIDs:
+        if beatCursor==beat and name not in sepIDs and name[0] not in ['{','}']:
             return idx
         if beatCursor>beat and beatCursor<(beat+dur):
             if idx<len(tabs)-1:
@@ -1236,11 +1360,9 @@ def tabIdx():
                 return idx    
     return -1
 
-delTab=None
-delIdx=-1
 oldTabs=[]
 def keypress(event):
-    global beatCursor, tabs,delTab,delIdx,backColor,firstPlayBeat
+    global beatCursor, tabs,backColor,firstPlayBeat
     #print (event)
     key=event.keysym
     char=event.char
@@ -1256,9 +1378,9 @@ def keypress(event):
         pidx=idx-1
         pdur=0
         while pdur==0 and idx>0:
-            _,_,pdur,_,_,_,_,_=tabs[pidx]
+            beat,_,pdur,_,_,_,_,_=tabs[pidx]
             pidx-=1
-        if beatCursor>0:            beatCursor-=pdur
+            beatCursor=beat
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
@@ -1266,9 +1388,10 @@ def keypress(event):
         nidx=idx
         ndur=0
         while ndur==0 and idx<len(tabs)-2:
-            _,_,ndur,_,_,_,_,_=tabs[nidx]
             nidx+=1
-        if beatCursor<tabs[-1][0]:  beatCursor+=ndur
+            beat,_,ndur,_,_,_,_,_=tabs[nidx]
+        if ndur==0: nidx=idx # needed for last tabs, in which case no next tab with dur>0 can be found
+        else: beatCursor=beat        
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
@@ -1288,7 +1411,7 @@ def keypress(event):
         firstPlayBeat=beatCursor
 
     # modify note
-    if char in (noteIDs+restIDs):#['d','e','f','g','a','b','c','D','E','F','G','A','B','_','C']:
+    elif char in (noteIDs+restIDs):#['d','e','f','g','a','b','c','D','E','F','G','A','B','_','C']:
         if state==0:
             if char=='f': char='f#'
             if char=='c': char='c#'
@@ -1347,14 +1470,15 @@ def keypress(event):
     # delete note
     elif key in ('Delete','KP_Delete'):
         oldTabs.append(copy.deepcopy(tabs))
+        # increase idx if shift
+        if state==1: idx+=1
         # delete tab
         tab=tabs.pop(idx)       
+        # reduce idx if shift
+        if state==1: idx-=1
         # move tabs
         stripSeps()
         recalcBeats()
-        # store del
-        delTab=tab
-        delIdx=idx
         # make sure we have at least one rest (besides eot)
         if len(tabs)<=1: tabs.insert(0,[0,'_',1,'','green', 0,0,0])    
         # check if cursor on tab
@@ -1388,23 +1512,45 @@ def keypress(event):
         if idx>0:
             idx-=1
             tab=tabs[idx]
-            if tab[1] in sepIDs:
+            #print (f"Backspace:{idx}|{tab}")
+            if tab[1] in sepIDs or tab[1][0] in ['{','}']:
                 oldTabs.append(copy.deepcopy(tabs))
-                #firstTabRow=tabs[idx][6]
-                tab=tabs.pop(idx)
+                if tab[1][0] in ['{','}']:
+                    if tab[1][0]=='}' and int(tab[1][1])>1:
+                        tab[1]=f'}}{int(tab[1][1])-1}'
+                        joinRepeats()           # to make repeats on { match new repeats on }
+                    else:
+                        tab=tabs.pop(idx)
+                else:
+                        tab=tabs.pop(idx)
                 recalcBeats()
                 drawBars(True)
 
     # insert visual seperator of new line
-    elif char in sepIDs+[' '] or key=='Return':
+    elif char in sepIDs+[' '] or key in ['Return','KP_Enter']:
         oldTabs.append(copy.deepcopy(tabs))
         #print ("insert sep")
         if beatCursor==0: return # inserting seperator as first column will shift entire page (bug)
         sep=',' if char==' ' else char
-        if key=='Return': sep=eot
+        if key in ['Return','KP_Enter']: sep=eot
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
         tabs.insert(idx,[beat,sep,0,'',tabColor, tabCol,tabRow,tabLin])
         stripSeps() # make sure we do not place a sep at start of end of row
+        recalcBeats()        
+        calcTabDims()
+        drawBars(True)
+
+    elif char in ['[',']']+['{','}']:
+        if char in ['{','}']: idx+=1
+        if char == '[': char='{'
+        if char == ']': char='}'
+        oldTabs.append(copy.deepcopy(tabs))
+        #print ("insert rep")
+        rep=char+"1"
+        beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
+        tabs.insert(idx,[beat,rep,0,'',tabColor, tabCol,tabRow,tabLin])
+        joinRepeats()                                           # join double { and } to increase repeat number
+        while tabs[idx][1][0] in ['{','}'] and idx>0: idx-=1    # we do not want the new } to be selected
         recalcBeats()        
         calcTabDims()
         drawBars(True)
@@ -1424,22 +1570,19 @@ def keypress(event):
     # undo del
     elif key in ('z') and state==4:
         if len(oldTabs)>0:
-            print ("UNDO")
             tabs=oldTabs.pop()
             recalcBeats()
             calcTabDims()
             drawBars(True)
         else:
             print ("STACK EMPTY")    
-    else:
-        print (f"Key {key} unknown.")
 
     # replay from last start
-    if  key=="Tab":
+    elif  key=="Tab":
         if playing: stopTabScroll()
         startTabScroll()
 
-    if key in ('p','P'):
+    elif key in ('p','P'):
         try:
             # autosize
             if state==1: autoBars()
@@ -1467,9 +1610,15 @@ def keypress(event):
         
     # debug 
     #print (event)
-    if key in ('Home'):
+    elif key in ('Home'):
         for idx,tab in enumerate(tabs):
             print (f"{idx:2d}> {tab}")
+
+    elif key in ('Control_L','Alt_L','Shift_L'):
+        pass # modifiers used in conjunction with other keys should not trigger "Key unknown" message.
+
+    else:
+        print (f"Key {key} unknown.")
 
     
 def showHelp():
@@ -1712,8 +1861,8 @@ initWindow()
 initPlayer()
 #loadFile("Fee Ra Huri.tbs")
 #loadFile("tutorial.tbs")
-loadFile2("tutorial.tb")
-#loadFile2("testDecos.tb")
+#loadFile2("tutorial.tb")
+loadFile2("test2.tb")
 drawBars(True)
 #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html
 
