@@ -18,7 +18,7 @@ def show():
 
     popupMdown = tk.Toplevel(win)
     popupMdown.transient(win) 
-    popupMdown.wm_title("Tin Whistle Helper - Usage guide")
+    popupMdown.wm_title("Tin Whistle Helper - Manual")
     #backcolor=rootWin["bg"]#"#DDDDDD"
     popupMdown.configure(background='white')
 
