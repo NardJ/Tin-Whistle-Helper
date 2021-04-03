@@ -77,45 +77,47 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
 
 **Mouse - Change View**
 ```
-Left Button  : Set beat cursor to mouse pointer and plays note
-Drag / Wheel : Scroll page
-[Ctrl]-Wheel : Zoom page
-Right Button : Reset page view
+Left Button     : Set beat cursor to mouse pointer and plays note
+Drag / Wheel    : Scroll page
+[Ctrl]-Wheel    : Zoom page
+Right Button    : Reset page view
 ```
 **Keyboard - Edit Song**
 ```
-Arrow keys   : Move beat cursor and plays note
-[Tab]        : Play song from current position of beat cursor
-d,e,f,g,a,b  : Change note to 1st/low-octave d..f#..b
-c,D,E,F,G,A,B: Change note to 2nd/high-octave c#..f#..b
-C            : Change note to 3td-octave c#
-[Alt]-c      : Change note to 2nd-octave c
-_            : Change note at cursor to rest
-1...9        : Change length of note
-<,>,^,=,@,~  : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴, 
+Arrow keys      : Move beat cursor and plays note
+[Tab]           : Play song from current position of beat cursor
+d,e,f,g,a,b     : Change note to 1st/low-octave d..f#..b
+c,D,E,F,G,A,B   : Change note to 2nd/high-octave c#..f#..b
+C               : Change note to 3td-octave c#
+[Alt]-d,f,g,a,c : Change note to 1st/low-octave d#,f,g#,a#,c
+[Alt]-D,F,G,A,C : Change note to 2nd/high-octave d#,f,g#,a#,c
+_               : Change note at cursor to rest
+1...9           : Change length of note
+lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴, 
                              slide ⇒, tongue ᳅, vibrato ∿
-[Escape]     : Remove decorator
+[Escape]        : Remove decorator
+{ , }           : Insert start ┃▏or end │▎for a group of notes
+                  to repeat. Add extra ending │▎to increase repeats
 
-[Del]        : Remove note at cursor
-[Ctrl]-z     : Undo last delete
-[Ins]        : Insert note space (rest) before cursor
-[Shift][Ins] : Insert note space (rest) after cursor
+[Del]           : Remove note or repeat start/end at cursor
+[Shift][Del]    : Remove note or repeat start/end after cursor
+[Ctrl]-z        : Undo last delete
+[Ins]           : Insert note space (rest) before cursor
+[Shift][Ins]    : Insert note space (rest) after cursor
 
-[F1]..[F10]  : Change color of tab at beat cursor
-[Shift][Fx]  : Change background color of page
-[Space],|    : Add space or vertical line
-[Backspace]  : Remove space or vertical line if one is found just 
-               before cursor
-[Return]     : Break tabs into two lines
-[Backspace]  : Join two lines if beat cursor is at first tab of line
-p            : Save screenshot of tabs as visible on screen using name 
-               of tab file with extension .png
+[F1]..[F10]     : Change color of tab at beat cursor
+[Shift][Fx]     : Change background color of page
+[Space],|       : Add space or vertical line
+[Backspace]     : Remove space or vertical line if one is found just 
+                  before cursor
+[Return]        : Break tabs into two lines
+[Backspace]     : Join two lines if beat cursor is at first tab of line
+p               : Save screenshot of tabs as visible on screen using name 
+                  of tab file with extension .png
 ```
 
 ### Remarks:
 ```
-- 'f' keypress will be translated to f#. Likewise for F
-- [Ctrl]-'c' keypress will be translated to c#. Without [ctrl] to c.
 - When you change a note and the last tab is not a rest, a rest 
   will be appended to ensure you keep enough empty note space 
   to enter new notes.
