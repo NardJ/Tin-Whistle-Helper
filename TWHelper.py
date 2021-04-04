@@ -1,6 +1,5 @@
 # TODO
-#   make section repeatable
-#       test if linear mode works
+#   check save print screen to image
 #   sometimes after del the last tab is not selectable with keys
 #   if navigate with cursor and tab row not visible, bring in screen
 #
@@ -256,36 +255,62 @@ def stripSeps():
             lastRowTab=tabs[lastRowIdx]
             if lastRowTab[1] in sepIDs and lastRowTab[1]!=eot: tabs.pop(lastRowIdx)
 
-def joinRepeats():
-    # first join }'s and sum repeats
-    idx=0
-    while idx < len(tabs)-1:
-        if tabs[idx+0][1][0]==tabs[idx+1][1][0]=='}':
-            nrReps1=int(tabs[idx+0][1][1])
-            nrReps2=int(tabs[idx+1][1][1])
-            nrReps=min(nrReps1+nrReps2,4)            
-            tabs[idx+0][1]=f'}}{nrReps}'
-            tabs.pop(idx+1)
-        else:
-            idx=idx+1
-    # next join {'s
-    idx=0
-    while idx < len(tabs)-1:
-        if tabs[idx+0][1][0]==tabs[idx+1][1][0]=='{':
-            tabs.pop(idx+1)
-        else:
-            idx=idx+1
-    # next set { repeats to } repeats
-    for idxo,tabo in enumerate(tabs):
-        if tabo[1][0]=='{':
-            # apply new repeat also to opening '{'
-            level=1
-            for tabc in (tabs[idxo+1:]):
-                if tabc[1][0]=='{': level+=1
-                if tabc[1][0]=='}':
-                    level-=1
-                    nrReps=int(tabc[1][1])
-                    if level==0: tabo[1]=f'{{{nrReps}'
+def hasRepeats(fromIdx=0,toIdx=-1):
+    if toIdx==-1: toIdx=len(tabs)
+    for idx in range(fromIdx,toIdx):
+        if tabs[idx][1][0]=='}': return True
+    return False
+
+def firstRepeat(fromIdx=0,toIdx=-1):
+    if toIdx==-1: toIdx=len(tabs)
+    for idx in range(fromIdx,toIdx):
+        if tabs[idx][1][0]=='{': return idx
+def getRepeatMatchIdx(fromIdx,toIdx=-1):
+    m=tabs[fromIdx][1][0]
+    if m=='{':
+        if toIdx==-1: toIdx=len(tabs)
+        level=1
+        for idx in range(fromIdx+1,toIdx):
+            if tabs[idx][1][0]=='{': level+=1
+            if tabs[idx][1][0]=='}':
+                level-=1
+                if level==0: return idx
+    elif m=='}':
+        if toIdx==-1: toIdx=-1
+        level=1
+        for idx in range(fromIdx-1,toIdx,-1):
+            if tabs[idx][1][0]=='}': level+=1
+            if tabs[idx][1][0]=='{':
+                level-=1
+                if level==0: return idx
+def unrollRepeats(fromIdx=0,toIdx=-1):
+    global tabs
+    if toIdx==-1: toIdx=len(tabs)
+    #find first repeat
+    startIdx=firstRepeat(fromIdx,toIdx)
+    #proceed if repeats found
+    if not startIdx: return
+    oldTabs.append(copy.deepcopy(tabs))
+    endIdx=getRepeatMatchIdx(startIdx,toIdx)
+    # first remove all child repeats
+    subIdx=firstRepeat(startIdx+1,toIdx)
+    #print (f"start:{startIdx} end:{endIdx} sub:{subIdx} {subIdx!=None}")
+    while subIdx!=None:
+        unrollRepeats(subIdx)
+        subIdx=firstRepeat(startIdx+1,toIdx)
+    # next unroll repeat
+    nrRepeats=int(tabs[startIdx][1][1])
+    newTabs=tabs[:startIdx]
+    postTabs=tabs[endIdx+1:] if endIdx+1<len(tabs) else []
+    unrollTabs=tabs[startIdx+1:endIdx]
+    for i in range(nrRepeats):
+        newTabs+=unrollTabs
+    newTabs+=postTabs
+    tabs=newTabs
+    # redraw
+    recalcBeats()
+    drawBars(True)
+
 
 def gotoPrevBeat():
     global beatCursor
@@ -517,7 +542,7 @@ holeInterval=1.5*beatsize
 xOffset=beatsize
 yOffset=beatsize
 beatCursor=0
-winDims=[1072,800]
+winDims=[1104,800]
 
 tabDims=[0,0]
 def calcTabDims():
@@ -845,7 +870,7 @@ def drawBars(force=False):
     cursorBar=win.cvs.create_line(x,y,x,y+h,fill='red',width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
 
     # check if we need to scroll (window should have room for minimal 2 rows)
-    if playing and repeatNr==(nrRepeats-1): # only scroll on last repeat
+    if playing and nrRepeats<=1: # only scroll on last repeat
         linMode=win.varLinear.get()   
         if linMode==True:
             x = beat2x(beatCursor)
@@ -879,16 +904,11 @@ def drawBars(force=False):
     inDrawBars=False
 
 noteSilence=50 #msec
-nrRepeats=1
-repeatNr=0
+nrRepeats=0
 repeatStart=0
+repeatStartIdx=0
 def doCursorPlay():
-    # nrRepeats
-    # repeatNr
-    # advMetroMult: if eot and repeatNr<nrRepeats-1: reset
-    # drawBars - only scroll if repeatNr==nrRepeats-1
-
-    global repeatNr,nrRepeats,repeatStart,beatCursor
+    global nrRepeats,repeatStart,beatCursor,repeatStartIdx
     if int(beatCursor)!=round(beatCursor,1): return
     if metroMultIdx>0:
         metroInterval=2**(metroMultIdx-1)
@@ -898,30 +918,28 @@ def doCursorPlay():
         endNote()
         return
 
-    #check if we are starting new tab with repeat or new line
+    # check if we are starting new tab with repeat or new line
     if playing and int(beatCursor)==round(beatCursor,2):
-        for tab in tabs:
+        #print (f"beat:{int(beatCursor)}")
+        for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor,tabCol,tabRow,tabLin=tab
             if beat==round(beatCursor,2):
-                print (f"{repeatNr}/{nrRepeats} {tab}")
-                if name==eot:
-                    repeatNr=0
-                    nrRepeats=1
-                    print (f"eot: init {repeatNr}/{nrRepeats}") 
                 if name[0]=='{':
                     repeatStart=beatCursor
-                    print (f"start loop:{repeatNr}/{nrRepeats} set loopStart:{repeatStart}")    
-                if name[0]=='}':
-                    if repeatNr<nrRepeats:
+                    repeatStartIdx=idx
+                    nrRepeats=int(name[1])
+                    #print (f"{{ {beat}")
+                if name[0]=='}':# and idx>repeatStartIdx:
+                    #print (f"}} {beat}")
+                    if nrRepeats>1:
                         beatCursor=repeatStart
-                        print (f"end loop:{repeatNr}/{nrRepeats} set beatCursor:{beatCursor}")    
-                        repeatNr+=1
+                        nrRepeats-=1
                     else:
-                        repeatNr=0
-                        nrRepeats=1
-                        print (f"eot: init {repeatNr}/{nrRepeats}") 
-                    break
-    #print (f"{beatCursor}")
+                        nrRepeats=0
+                        repeatStart=0
+                        repeatStartIdx=0
+
+    # play note
     for tab in tabs:
         beat,name,dur,style,tabColor,tabCol,tabRow,tabLin=tab
         if (beat==round(beatCursor,2)):
@@ -1043,7 +1061,7 @@ def stopTabScroll():
     beatCursor=firstPlayBeat
     endNote()
     playing=False
-    widgets=[win.btnLoad, win.btnNew,win.btnSave,win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,win.cbCountOff,win.cbLow,win.cbLinear,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
+    widgets=[win.btnLoad, win.btnNew,win.btnSave,win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,win.cbCountOff,win.cbLow,win.cbLinear,win.btnUnroll,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
     for widget in widgets: widget.config(state=tk.NORMAL)
     win.cvs.xview_moveto(0)    
     win.cvs.yview_moveto(0)    
@@ -1138,7 +1156,7 @@ def startTabScroll():
     initTabScroll(firstPlayBeat)
     initBars(beatsize) # don't reset zoom
     playing=True
-    widgets=[win.btnLoad, win.btnNew,win.btnSave,win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,win.cbCountOff,win.cbLow,win.cbLinear,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
+    widgets=[win.btnLoad, win.btnNew,win.btnSave,win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,win.cbCountOff,win.cbLow,win.cbLinear,win.btnUnroll,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
     for widget in widgets: widget.config(state=tk.DISABLED)
     #resetView(None)
     win.cvs.yview_moveto(0)
@@ -1340,6 +1358,13 @@ def autoBars():
 def reformatBars():
     linMode=win.varLinear.get()   
     if linMode==True:
+        if hasRepeats():
+            ret=messagebox.askyesno("Unroll tabs?","Tabs need to be unrolled to play in linear mode. \n\nDo you want to proceed?")        
+            if ret==False: 
+                win.varLinear.set(False)
+                return
+            else:
+                unrollRepeats()
         win.hbar.config(width=win.vbar.cget('width'))
         win.vbar.config(width=0)
     else:    
@@ -1359,7 +1384,15 @@ def tabIdx():
             else:
                 return idx    
     return -1
-
+def tabLineStart(idx):
+    for i in range(idx-1,-1,-1):
+        if tabs[i][1]==eot: return i+1
+    return 0
+def tabLineEnd(idx):
+    for i in range(idx+1,len(tabs)):
+        if tabs[i][1]==eot: return i  
+    return len(tabs)      
+    
 oldTabs=[]
 def keypress(event):
     global beatCursor, tabs,backColor,firstPlayBeat
@@ -1367,6 +1400,7 @@ def keypress(event):
     key=event.keysym
     char=event.char
     state=event.state
+    keysym=f"{event.keysym}"
     # basic info
     curCol,curRow=-1,-1
     dur=0
@@ -1515,22 +1549,33 @@ def keypress(event):
             #print (f"Backspace:{idx}|{tab}")
             if tab[1] in sepIDs or tab[1][0] in ['{','}']:
                 oldTabs.append(copy.deepcopy(tabs))
-                if tab[1][0] in ['{','}']:
-                    if tab[1][0]=='}' and int(tab[1][1])>1:
-                        tab[1]=f'}}{int(tab[1][1])-1}'
-                        joinRepeats()           # to make repeats on { match new repeats on }
-                    else:
-                        tab=tabs.pop(idx)
-                else:
-                        tab=tabs.pop(idx)
+                tab=tabs.pop(idx)
                 recalcBeats()
                 drawBars(True)
 
     # insert visual seperator of new line
     elif char in sepIDs+[' '] or key in ['Return','KP_Enter']:
+        # make undo possible
         oldTabs.append(copy.deepcopy(tabs))
+        # handle shift
+        if state==1: idx+=1
+        # check if not breaking up repeat
+        fromIdx=tabLineStart(idx)
+        toIdx=tabLineEnd(idx)
+        fromRep,toRep=None,None
+        for i in range(fromIdx,toIdx):
+            if tabs[i][1][0]=='{':fromRep=i
+            if tabs[i][1][0]=='}':toRep=i
+        print (fromRep,toRep)
+        if fromRep!=None and toRep!=None:
+            if idx==fromRep+1:idx-=1
+            if idx==toRep:idx+=1
+            if fromRep<idx<toRep:
+                tabs.pop(toRep)            
+                tabs.pop(fromRep)
         #print ("insert sep")
-        if beatCursor==0: return # inserting seperator as first column will shift entire page (bug)
+        #if beatCursor==0: return # inserting seperator as first column will shift entire page (bug)
+        if idx==0: return # inserting seperator as first column will shift entire page (bug)
         sep=',' if char==' ' else char
         if key in ['Return','KP_Enter']: sep=eot
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
@@ -1540,17 +1585,49 @@ def keypress(event):
         calcTabDims()
         drawBars(True)
 
-    elif char in ['[',']']+['{','}']:
-        if char in ['{','}']: idx+=1
-        if char == '[': char='{'
-        if char == ']': char='}'
+    elif keysym in ['braceleft','braceright']+['bracketleft','bracketright']:
+        # Do not allow overwriting
+        # Replace with correct symbol
+        if keysym in ('braceleft','bracketleft'): char='{'
+        if keysym in ('braceright','bracketright'): char='}'
+        # Read state of modifiers
+        shift=1 if state%2==1 else 0
+        state-=shift
+        if shift: idx+=1 # shift modifier
         oldTabs.append(copy.deepcopy(tabs))
-        #print ("insert rep")
-        rep=char+"1"
+        # Construct new name
+        nr=2
+        if state==4:nr=3 #Ctrl
+        if state==8:nr=4 #LAlt
+        rep=f"{char}{nr}"
+        # retrieve some info from current tabline
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
+        fromIdx=tabLineStart(idx)
+        toIdx=tabLineEnd(idx)
+        # remove old / duplicate
+        for i in range (fromIdx,toIdx):
+            if tabs[i][1][0]==char:
+                tabs.pop(i)
+                if i<idx:idx-=1
+                toIdx-=1
         tabs.insert(idx,[beat,rep,0,'',tabColor, tabCol,tabRow,tabLin])
-        joinRepeats()                                           # join double { and } to increase repeat number
-        while tabs[idx][1][0] in ['{','}'] and idx>0: idx-=1    # we do not want the new } to be selected
+        # make nr repeats of { equal to }
+        for i in range (fromIdx,toIdx):
+            if char=='{': 
+                if tabs[i][1][0]=='}':tabs[i][1]=f'}}{nr}'
+            if char=='}': 
+                if tabs[i][1][0]=='{':tabs[i][1]=f'{{{nr}'
+        # make sure '{' comes before '}'
+        idx1,idx2=None,None
+        for i in range (fromIdx,toIdx):
+            if tabs[i][1][0]=='{': idx1=i
+            if tabs[i][1][0]=='}': idx2=i
+        if idx1!=None and idx2!=None:
+            if (idx2<idx1):
+                tabs[idx1][1],tabs[idx2][1]=tabs[idx2][1],tabs[idx1][1]
+        # we do not want the new } to be selected 
+        while tabs[idx][1][0] in ['{','}'] and idx>0: idx-=1    
+        # recalc and redraw
         recalcBeats()        
         calcTabDims()
         drawBars(True)
@@ -1770,6 +1847,11 @@ def initWindow():
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
 
+    imgPath=os.path.join(icondir,"unroll.png")
+    win.imgUnroll = tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btnUnroll=tk.Button(win.buttonframe,command=unrollRepeats,relief=tk.FLAT,bg='white',image=win.imgUnroll)
+    win.btnUnroll.pack(side=tk.LEFT,padx=(0,2))
+
     imgPath=os.path.join(icondir,"linear.png")
     win.imgLinear = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     imgPath=os.path.join(icondir,"wrap.png")
@@ -1859,10 +1941,11 @@ def initWindow():
 
 initWindow()
 initPlayer()
-#loadFile("Fee Ra Huri.tbs")
+#loadFile2("Fee Ra Huri.tb")
 #loadFile("tutorial.tbs")
-#loadFile2("tutorial.tb")
-loadFile2("test2.tb")
+loadFile2("tutorial.tb")
+#loadFile2("test3.tb")
+
 drawBars(True)
 #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html
 

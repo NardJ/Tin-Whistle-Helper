@@ -56,9 +56,9 @@ _               : Change note at cursor to rest
 lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴, 
                                 slide ⇒, tongue ᳅, vibrato ∿
 [Escape]        : Remove decorator
-{ , }           : Insert start ┃▏or end │▎for a group of notes
-                  to repeat. Add extra ending │▎to increase repeats
-
+{ , }           : Insert start ┃▏or end │▎for group of notes to repeat
+                  Use [Ctrl]/[Alt] for 2x,3x.
+[Shift] { , }   : Insert start ┃▏or end │▎after cursor.                  
 [Del]           : Remove note or repeat start/end at cursor
 [Shift][Del]    : Remove note or repeat start/end after cursor
 [Ctrl]-z        : Undo last delete
@@ -70,7 +70,8 @@ lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴,
 [Space],|       : Add space or vertical line
 [Backspace]     : Remove space or vertical line if one is found just 
                   before cursor
-[Return]        : Break tabs into two lines
+[Return]        : Break tabs into two lines before cursor
+[Shift][Return] : Break tabs into two lines after cursor
 [Backspace]     : Join two lines if beat cursor is at first tab of line
 p               : Save screenshot of tabs as visible on screen using name 
                   of tab file with extension .png
