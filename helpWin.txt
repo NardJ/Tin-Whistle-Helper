@@ -22,6 +22,7 @@ and lets you make and edit the tabs. Below are the controls to use this tool.
          If not playing, resets beat cursor to first beat
 [▶]    : Play song from current position of beat cursor
 [▮▮]   : Pause song / Resume song 
+[@]    : Unroll repeated parts (needed for linear play)
 [⬏]    : Switch from page view (wrapped) to linear view
 [⤢]    : Autosize window and zoom level
 [↙]    : Reduce zoom level to fit window size
