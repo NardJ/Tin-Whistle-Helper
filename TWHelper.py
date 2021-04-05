@@ -1,7 +1,10 @@
 # TODO
+#   save edited "Sally..." will give corrupted file
 #   check save print screen to image
 #   sometimes after del the last tab is not selectable with keys
-#   if navigate with cursor and tab row not visible, bring in screen
+#   if navigate with cursor and tab row not visible, bring in screen#
+#   tab while playing increases speed (disable)
+#   key for stop
 #
 #   fix Down by Sally Gardens
 #   elan nightwish uitwerken
@@ -1656,8 +1659,14 @@ def keypress(event):
 
     # replay from last start
     elif  key=="Tab":
-        if playing: stopTabScroll()
+        if playing: return#$stopTabScroll()
         startTabScroll()
+    elif  key=="q":
+        stopTabScroll()
+    elif  key=="w":
+        pauseTabScroll()
+    elif  key=="r":
+        autoBars()
 
     elif key in ('p','P'):
         try:
@@ -1832,10 +1841,10 @@ def initWindow():
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
     
     # play symbols (see:https://en.wikipedia.org/wiki/Media_control_symbols)
-    win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopTabScroll)
-    win.btnStop.pack(side=tk.LEFT,padx=(1,0))
     win.btnPlay=tk.Button(win.buttonframe,text=u'\u25B6',relief=tk.FLAT,width=1,command=startTabScroll)
     win.btnPlay.pack(side=tk.LEFT,padx=(1,0))
+    win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopTabScroll)
+    win.btnStop.pack(side=tk.LEFT,padx=(1,0))
     win.btnPause=tk.Button(win.buttonframe,text=u'\u23F8',relief=tk.FLAT,width=1,command=pauseTabScroll)
     win.btnPause.pack(side=tk.LEFT,padx=(1,0))
 
@@ -1943,8 +1952,9 @@ initWindow()
 initPlayer()
 #loadFile2("Fee Ra Huri.tb")
 #loadFile("tutorial.tbs")
-loadFile2("tutorial.tb")
+#loadFile2("tutorial.tb")
 #loadFile2("test3.tb")
+loadFile2("Down By The Sally Gardens.tb")
 
 drawBars(True)
 #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html

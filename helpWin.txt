@@ -47,6 +47,10 @@ Right Button    : Reset page view
 <code>
 Arrow keys      : Move beat cursor and plays note
 [Tab]           : Play song from current position of beat cursor
+q               : Stop song 
+w               : Pause song
+r               : Autosize window and zoom level
+
 d,e,f,g,a,b     : Change note to 1st/low-octave d..f#..b
 c,D,E,F,G,A,B   : Change note to 2nd/high-octave c#..f#..b
 C               : Change note to 3td-octave c#
