@@ -5,7 +5,7 @@ tested with Python27 and Python34  by  vegaseat  09sep2014
 
 import tkinter as tk
 class CreateToolTip(object):
-    delay=1500
+    delay=1000
     '''
     create a tooltip for a given widget
     '''
