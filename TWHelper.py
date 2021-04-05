@@ -1,10 +1,7 @@
 # TODO
-#   save edited "Sally..." will give corrupted file
 #   check save print screen to image
 #   sometimes after del the last tab is not selectable with keys
 #   if navigate with cursor and tab row not visible, bring in screen#
-#   tab while playing increases speed (disable)
-#   key for stop
 #
 #   fix Down by Sally Gardens
 #   elan nightwish uitwerken
@@ -448,11 +445,11 @@ def saveFile2(tfilename=None,filepath=None):
                     nlen=(dur-1)*'.'
                     writer.write(f"{name}{nlen}{style} ")
                     #print(f"{name}{nlen}{style} ;")
-                if name in ['|',',']:
+                elif name in ['|',',']:
                     if name==',': name=''
                     writer.write(f"{name} ")
                     #print(f"{name} ;")
-                if name[0] in ['{','}']:
+                elif name[0] in ['{','}']:
                     writer.write(f"{name} ")
 
     except Exception as e:
@@ -1410,8 +1407,21 @@ def keypress(event):
     idx=tabIdx()
     if idx>-1: _,_, dur,_,_, curCol,curRow,_=tabs[idx]
 
+    # handle play keys 
+    if playing:
+        if  key=="q":
+            stopTabScroll()
+        elif  key=="w":
+            pauseTabScroll()
+        return
+    if  key=="Tab":
+        if playing: return
+        startTabScroll()
+    elif  key=="r":
+        autoBars()
+
     # handle navigation
-    if key in ('Left','KP_Left'): 
+    elif key in ('Left','KP_Left'): 
         pidx=idx-1
         pdur=0
         while pdur==0 and idx>0:
@@ -1656,17 +1666,6 @@ def keypress(event):
             drawBars(True)
         else:
             print ("STACK EMPTY")    
-
-    # replay from last start
-    elif  key=="Tab":
-        if playing: return#$stopTabScroll()
-        startTabScroll()
-    elif  key=="q":
-        stopTabScroll()
-    elif  key=="w":
-        pauseTabScroll()
-    elif  key=="r":
-        autoBars()
 
     elif key in ('p','P'):
         try:
