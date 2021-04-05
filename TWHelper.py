@@ -563,7 +563,7 @@ holeInterval=1.5*beatsize
 xOffset=beatsize
 yOffset=beatsize
 beatCursor=0
-winDims=[1104,800]
+winDims=[1118,800]
 
 tabDims=[0,0]
 def calcTabDims():
@@ -708,11 +708,13 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
     holes=notes[noteId]
 
     if noteId    == '_':
-        dashPatt =  (2,4)
-        tabColor =  'gray80'
+        dashPatt =  (1,3)
+        linewidth=  3
+        #tabColor =  'gray70'
         noteId   =  '' # so no rest is printed
     else:
         dashPatt=None
+        linewidth=  1
 
     for holeNr in range(6):
         openNote=(holes[holeNr]==0)
@@ -731,20 +733,20 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         ym=(y1+y2)/2
         r=beatsize/2
         if openNote or closedNote:
-            cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill=fillColor,outline=tabColor,start=90,extent=180,style=arcstyle,dash=dashPatt)
-            cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill=fillColor,outline=tabColor,start=270,extent=180,style=arcstyle,dash=dashPatt)
+            cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill=fillColor,outline=tabColor,start=90,extent=180,style=arcstyle,dash=dashPatt,width=linewidth)
+            cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill=fillColor,outline=tabColor,start=270,extent=180,style=arcstyle,dash=dashPatt,width=linewidth)
         if openNote:
-            cvs.create_line(x1+beatsize/2,y1,x2-beatsize/2,y1,fill=tabColor,dash=dashPatt) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
-            cvs.create_line(x1+beatsize/2,y2,x2-beatsize/2,y2,fill=tabColor,dash=dashPatt)
+            cvs.create_line(x1+beatsize/2,y1,x2-beatsize/2,y1,fill=tabColor,dash=dashPatt,width=linewidth) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+            cvs.create_line(x1+beatsize/2,y2,x2-beatsize/2,y2,fill=tabColor,dash=dashPatt,width=linewidth)
         if (closedNote):
-            cvs.create_rectangle(x1+beatsize/2,y1,x2-beatsize/2,y2,fill=fillColor,outline=tabColor,dash=dashPatt) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
+            cvs.create_rectangle(x1+beatsize/2,y1,x2-beatsize/2,y2,fill=fillColor,outline=tabColor,dash=dashPatt,width=linewidth) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
         if halfNote:
-            cvs.create_arc(x1, y2-beatsize, x1+beatsize, y2,fill=tabColor,outline=tabColor,start=90,extent=90,dash=dashPatt)
-            cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill=tabColor,outline=tabColor,start=0,extent=90,dash=dashPatt)
-            cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill='white',outline=tabColor,start=270,extent=-90,style=tk.ARC,dash=dashPatt)
-            cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill='white',outline=tabColor,start=0,extent=-90,style=tk.ARC,dash=dashPatt)
-            cvs.create_rectangle(x1+beatsize/2,y1,x2-beatsize/2,ym,fill=tabColor,outline=tabColor,dash=dashPatt) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
-            cvs.create_line(x1+beatsize/2,y2,x2-beatsize/2+1,y2,fill=tabColor,dash=dashPatt) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
+            cvs.create_arc(x1, y2-beatsize, x1+beatsize, y2,fill=tabColor,outline=tabColor,start=90,extent=90,dash=dashPatt,width=linewidth)
+            cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill=tabColor,outline=tabColor,start=0,extent=90,dash=dashPatt,width=linewidth)
+            cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill='white',outline=tabColor,start=270,extent=-90,style=tk.ARC,dash=dashPatt,width=linewidth)
+            cvs.create_arc(x2-beatsize, y2-beatsize, x2, y2,fill='white',outline=tabColor,start=0,extent=-90,style=tk.ARC,dash=dashPatt,width=linewidth)
+            cvs.create_rectangle(x1+beatsize/2,y1,x2-beatsize/2,ym,fill=tabColor,outline=tabColor,dash=dashPatt,width=linewidth) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
+            cvs.create_line(x1+beatsize/2,y2,x2-beatsize/2+1,y2,fill=tabColor,dash=dashPatt,width=linewidth) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
 
     highOct=(holes[6])
     if highOct:
@@ -1782,13 +1784,12 @@ def initWindow():
     win.img2xSlower= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btn2xSlower=tk.Button(win.buttonframe,image=win.img2xSlower,relief=tk.FLAT,width=9,command=decrease2xBPM)
     win.btn2xSlower.pack(side=tk.LEFT,padx=(2,0))
-    win.btn2xSlower.tooltip=CreateToolTip(win.btn2xSlower,"Slow down play\nspeed 50%.")
-
+    win.btn2xSlower.tooltip=CreateToolTip(win.btn2xSlower,"Slow down play\n by 50%.")
     imgPath=os.path.join(icondir,"triLeftS.png")
     win.imgSlower= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnSlower=tk.Button(win.buttonframe,image=win.imgSlower,relief=tk.FLAT,width=9,command=decreaseBPM)
     win.btnSlower.pack(side=tk.LEFT,padx=(0,2))
-    win.btnSlower.tooltip=CreateToolTip(win.btnSlower,"Slow down play\nspeed 5 bpm.")
+    win.btnSlower.tooltip=CreateToolTip(win.btnSlower,"Slow down play\n by 5 bpm.")
     win.bpm = tk.StringVar()
     win.bpm.set(f"{bpm:3}")
     win.speed = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.bpm, width=3)     
@@ -1799,12 +1800,12 @@ def initWindow():
     win.imgFaster= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnFaster=tk.Button(win.buttonframe,image=win.imgFaster,relief=tk.FLAT,width=9,command=fasterBPM)
     win.btnFaster.pack(side=tk.LEFT,padx=(2,0))
-    win.btnFaster.tooltip=CreateToolTip(win.btnFaster,"Speed up play\nspeed 5 bpm.")
+    win.btnFaster.tooltip=CreateToolTip(win.btnFaster,"Speed up play\n by 5 bpm.")
     imgPath=os.path.join(icondir,"chevRightS.png")
     win.img2xFaster= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btn2xFaster=tk.Button(win.buttonframe,image=win.img2xFaster,relief=tk.FLAT,width=9,command=faster2xBPM)
     win.btn2xFaster.pack(side=tk.LEFT,padx=(0,2))
-    win.btn2xFaster.tooltip=CreateToolTip(win.btn2xFaster,"Speed up play\nspeed 200%.")
+    win.btn2xFaster.tooltip=CreateToolTip(win.btn2xFaster,"Speed up play\n by 200%.")
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,0))
@@ -1912,7 +1913,10 @@ def initWindow():
     win.cbLinear.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor,)
     #win.cbSound.config(font=("Courier", 12))
     win.cbLinear.pack(side=tk.LEFT,padx=(0,2))
-    win.cbLinear.tooltip=CreateToolTip(win.cbLinear,"Page or \nlinear view.")
+    win.cbLinear.tooltip=CreateToolTip(win.cbLinear,"Page / Linear view.")
+
+    # draw sep
+    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(6,6))
 
     imgPath=os.path.join(icondir,"autosize.png")
     win.imgAuto = tk.PhotoImage(file=imgPath)#.subsample(4,4)
