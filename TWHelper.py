@@ -1,6 +1,6 @@
 # TODO
 #   check save print screen to image
-#   sometimes after del the last tab is not selectable with keys
+#   new file does not allow last tab to be selectable with keys
 #   if navigate with cursor and tab row not visible, bring in screen#
 #
 #   fix Down by Sally Gardens
@@ -23,6 +23,8 @@ from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
 from pyscreenshot import grab
+
+from tooltip import CreateToolTip
 
 #GLOBALS
 scriptpath= os.path.realpath(__file__) 
@@ -195,19 +197,31 @@ def loadFile(filename=None,filepath=None):
 colors=['blue', 'purple3', '#00BBED','red','DeepPink3','magenta','orange','gold','brown','green','gray39','black',]
 backcolors=['#7BDAFF','#FFC6F4','#CeF1Fd','#ffC0C0','#F7A8Db','#f1Bbf1','#FeE59a','#FFFFDE','#D3B4B4','#A0FdA0','#D4D4D4','#FFFFFF']
 def newFile():
-    global beatCursor,tabs,bpm,title,backColor
+    global beatCursor,tabs,bpm,title,backColor,filename
+    if len(oldTabs)>0:
+        ret=messagebox.askyesno("Discard changes?","You have unsaved changes.\nDiscard and start new file?")
+        if ret==False:return
     bpm=120
     title="New File"
+    filename=f"{title}.tb"
     tabs.clear()
     texts.clear()
     beatCursor=0
     tabColor=colors[2]
     backColor='#FFFFDE'
-    for beat in range (20):
+    beat=0
+    for i in range (4):
         tabs.append([beat,'_',1,'','green',beat,0,beat])                        
+        beat+=1
+    tabs.append([beat,',',0,'','green',beat,0,beat])                        
+    beat+=1
+    for i  in range (4):
+        tabs.append([beat,'_',1,'','green',beat,0,beat])                        
+        beat+=1
 
     win.title(f"Tin Whistle Helper - {title}")
     calcTabDims()
+    recalcBeats()
     drawBars(True)
 
 textColor='black'
@@ -325,7 +339,8 @@ def gotoPrevBeat():
 filename=None
 def loadFile2(tfilename=None,filepath=None):
     global tabs,bpm,title,filename
-    global textColor,backColor,texts
+    global textColor,backColor,texts   
+
     if filepath==None:
         filepath=os.path.join(scriptdir,tfilename)        
     if not os.path.isfile(filepath): return
@@ -473,13 +488,19 @@ def saveFile():
     ext=scriptpath[-3:]
     if ext=='.tb': 
         saveFile2(filepath=scriptpath)
+        oldTabs.clear()
     else: return        
     print (f"Saved:{scriptpath}")
 
     
 
-def openFile():
+def loadFile():
     global beatCursor,metroMultIdx
+
+    if len(oldTabs)>0:
+        ret=messagebox.askyesno("Discard changes?","You have unsaved changes.\nDiscard and load other file?")
+        if ret==False:return
+
     stopTabScroll() # needed otherwise timer prevents updates of filedialog
     rep = filedialog.askopenfilenames(                  # open dialog so user can select file
                                         parent=win,
@@ -1736,20 +1757,23 @@ def initWindow():
 
     win.buttonframe=tk.Frame(win,background="white",border=0,highlightthickness=0,relief=tk.FLAT)
     win.buttonframe.pack(side=tk.BOTTOM,padx=(0,0),pady=(0,0),ipadx=2,ipady=2,expand=False,fill=tk.X)
-    win.btnLoad=tk.Button(win.buttonframe,text="Load",relief=tk.FLAT,width=4,command=openFile)
+    win.btnLoad=tk.Button(win.buttonframe,text="Load",relief=tk.FLAT,width=4,command=loadFile)
     win.btnLoad.pack(side=tk.LEFT,padx=(1,0))
+    win.btnLoad.tooltip=CreateToolTip(win.btnLoad,"Load file.\n(Discard changes.)")
 
     imgPath=os.path.join(icondir,"new.png")
     win.imgNew= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnNew=tk.Button(win.buttonframe,image=win.imgNew,relief=tk.FLAT,width=24,command=newFile)
     #win.btnNew=tk.Button(win.buttonframe,text="New",relief=tk.FLAT,width=4,command=newFile)
     win.btnNew.pack(side=tk.LEFT,padx=(1,0))
+    win.btnNew.tooltip=CreateToolTip(win.btnNew,"New blank file.\n(Discard changes.)")
 
     imgPath=os.path.join(icondir,"save.png")
     win.imgSave= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnSave=tk.Button(win.buttonframe,image=win.imgSave,relief=tk.FLAT,width=24,command=saveFile)
     #win.btnSave=tk.Button(win.buttonframe,text="Save",relief=tk.FLAT,width=4,command=saveFile)
     win.btnSave.pack(side=tk.LEFT,padx=(1,0))
+    win.btnSave.tooltip=CreateToolTip(win.btnSave,"Save file.\n(Clear undo stack.)")
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
@@ -1758,10 +1782,13 @@ def initWindow():
     win.img2xSlower= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btn2xSlower=tk.Button(win.buttonframe,image=win.img2xSlower,relief=tk.FLAT,width=9,command=decrease2xBPM)
     win.btn2xSlower.pack(side=tk.LEFT,padx=(2,0))
+    win.btn2xSlower.tooltip=CreateToolTip(win.btn2xSlower,"Slow down play\nspeed 50%.")
+
     imgPath=os.path.join(icondir,"triLeftS.png")
     win.imgSlower= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnSlower=tk.Button(win.buttonframe,image=win.imgSlower,relief=tk.FLAT,width=9,command=decreaseBPM)
     win.btnSlower.pack(side=tk.LEFT,padx=(0,2))
+    win.btnSlower.tooltip=CreateToolTip(win.btnSlower,"Slow down play\nspeed 5 bpm.")
     win.bpm = tk.StringVar()
     win.bpm.set(f"{bpm:3}")
     win.speed = tk.Label(win.buttonframe, relief=tk.FLAT,bg='white',textvariable = win.bpm, width=3)     
@@ -1772,10 +1799,12 @@ def initWindow():
     win.imgFaster= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnFaster=tk.Button(win.buttonframe,image=win.imgFaster,relief=tk.FLAT,width=9,command=fasterBPM)
     win.btnFaster.pack(side=tk.LEFT,padx=(2,0))
+    win.btnFaster.tooltip=CreateToolTip(win.btnFaster,"Speed up play\nspeed 5 bpm.")
     imgPath=os.path.join(icondir,"chevRightS.png")
     win.img2xFaster= tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btn2xFaster=tk.Button(win.buttonframe,image=win.img2xFaster,relief=tk.FLAT,width=9,command=faster2xBPM)
     win.btn2xFaster.pack(side=tk.LEFT,padx=(0,2))
+    win.btn2xFaster.tooltip=CreateToolTip(win.btn2xFaster,"Speed up play\nspeed 200%.")
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,0))
@@ -1788,6 +1817,7 @@ def initWindow():
     win.cbCountOff.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
     #win.cbSound.config(font=("Courier", 12))
     win.cbCountOff.pack(side=tk.LEFT,padx=(2,2))
+    win.cbCountOff.tooltip=CreateToolTip(win.cbCountOff,"Count of 4 \nbeats before play.")
 
     # play metro (see:https://en.wikipedia.org/wiki/Media_control_symbols)
     win.metroFrame=tk.Frame(win.buttonframe,background="white",border=0,highlightthickness=0,relief=tk.FLAT)
@@ -1804,6 +1834,7 @@ def initWindow():
     win.imMetro = tk.Label(win.metroFrame, image=win.imgMetro,cursor="exchange")
     win.imMetro.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
     win.imMetro.pack(side=tk.LEFT)
+    win.imMetro.tooltip=CreateToolTip(win.imMetro,"Slow down \nmetro 50%.")
     
     win.lbMetroMult.bind("<Button-1>",advMetroMult)
     win.imMetro.bind("<Button-1>",advMetroMult)
@@ -1817,6 +1848,7 @@ def initWindow():
     win.cbSound.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
     #win.cbSound.config(font=("Courier", 12))
     win.cbSound.pack(side=tk.LEFT,padx=(2,2))
+    win.cbSound.tooltip=CreateToolTip(win.cbSound,"Turn on/off\n whistle.")
 
     # play decorations
     win.varDeco=tk.BooleanVar(value=False)
@@ -1826,6 +1858,7 @@ def initWindow():
     win.cbDeco.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
     #win.cbSound.config(font=("Courier", 12))
     win.cbDeco.pack(side=tk.LEFT,padx=(2,2))
+    win.cbDeco.tooltip=CreateToolTip(win.cbDeco,"Play \ndecorations.")
 
     # Low whistle 
     win.varLow=tk.BooleanVar(value=False)
@@ -1835,6 +1868,7 @@ def initWindow():
     win.cbLow.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
     #win.cbSound.config(font=("Courier", 12))
     win.cbLow.pack(side=tk.LEFT,padx=(2,2))
+    win.cbLow.tooltip=CreateToolTip(win.cbLow,"High/Low \nwhistle.")
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
@@ -1842,10 +1876,15 @@ def initWindow():
     # play symbols (see:https://en.wikipedia.org/wiki/Media_control_symbols)
     win.btnPlay=tk.Button(win.buttonframe,text=u'\u25B6',relief=tk.FLAT,width=1,command=startTabScroll)
     win.btnPlay.pack(side=tk.LEFT,padx=(1,0))
+    win.btnPlay.tooltip=CreateToolTip(win.btnPlay,"Start tabs\n scroll.")
+
     win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopTabScroll)
     win.btnStop.pack(side=tk.LEFT,padx=(1,0))
+    win.btnStop.tooltip=CreateToolTip(win.btnStop,"Stop tabs\n scroll.")
+
     win.btnPause=tk.Button(win.buttonframe,text=u'\u23F8',relief=tk.FLAT,width=1,command=pauseTabScroll)
     win.btnPause.pack(side=tk.LEFT,padx=(1,0))
+    win.btnPause.tooltip=CreateToolTip(win.btnPause,"Pause tabs\n scroll.")
 
     win.beatCursor = tk.StringVar()
     win.beatCursor.set(f"{beatCursor:>5.1f}")
@@ -1859,6 +1898,7 @@ def initWindow():
     win.imgUnroll = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnUnroll=tk.Button(win.buttonframe,command=unrollRepeats,relief=tk.FLAT,bg='white',image=win.imgUnroll)
     win.btnUnroll.pack(side=tk.LEFT,padx=(0,2))
+    win.btnUnroll.tooltip=CreateToolTip(win.btnUnroll,"Unroll repeated\nsections.")
 
     imgPath=os.path.join(icondir,"linear.png")
     win.imgLinear = tk.PhotoImage(file=imgPath)#.subsample(4,4)
@@ -1872,21 +1912,25 @@ def initWindow():
     win.cbLinear.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor,)
     #win.cbSound.config(font=("Courier", 12))
     win.cbLinear.pack(side=tk.LEFT,padx=(0,2))
+    win.cbLinear.tooltip=CreateToolTip(win.cbLinear,"Page or \nlinear view.")
 
     imgPath=os.path.join(icondir,"autosize.png")
     win.imgAuto = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnAuto4Bars=tk.Button(win.buttonframe,image=win.imgAuto,relief=tk.FLAT,command=autoBars)
     win.btnAuto4Bars.pack(side=tk.LEFT,padx=(1,0))
+    win.btnAuto4Bars.tooltip=CreateToolTip(win.btnAuto4Bars,"Enlarge window and zoom out to fit tab \nwidth(page view) or height (linear view).")
 
     imgPath=os.path.join(icondir,"shrink.png")
     win.imgShrink = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnShrink4Bars=tk.Button(win.buttonframe,image=win.imgShrink,relief=tk.FLAT,command=shrinkBars)
     win.btnShrink4Bars.pack(side=tk.LEFT,padx=(1,0))
+    win.btnShrink4Bars.tooltip=CreateToolTip(win.btnShrink4Bars,"Zoom out to fit tabs width(page view) \nor height (linear view) in window.")
 
     imgPath=os.path.join(icondir,"grow.png")
     win.imgGrow = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnGrow4Bars=tk.Button(win.buttonframe,image=win.imgGrow,relief=tk.FLAT,command=growWindow)
     win.btnGrow4Bars.pack(side=tk.LEFT,padx=(1,2))
+    win.btnGrow4Bars.tooltip=CreateToolTip(win.btnGrow4Bars,"Enlarge window to fit tabs width(page view) \nor height (linear view) in window.")
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
@@ -1897,6 +1941,7 @@ def initWindow():
     win.btnZoomOut=tk.Button(win.buttonframe,image=win.imgZoomOut,bg='white',relief=tk.FLAT,command=zoomOut)
     win.btnZoomOut.pack(side=tk.LEFT,padx=(0,0))
     win.btnZoomOut.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
+    win.btnZoomOut.tooltip=CreateToolTip(win.btnZoomOut,"Zoom out \n(shrink) tabs.")
 
     win.varZoom = tk.IntVar()
     win.varZoom.set(100)
@@ -1910,6 +1955,7 @@ def initWindow():
     win.btnZoomIn=tk.Button(win.buttonframe,image=win.imgZoomIn,bg='white',relief=tk.FLAT,command=zoomIn)
     win.btnZoomIn.pack(side=tk.LEFT,padx=(0,0))
     win.btnZoomIn.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
+    win.btnZoomIn.tooltip=CreateToolTip(win.btnZoomIn,"Zoom in \n(enlarge) tabs.")
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
