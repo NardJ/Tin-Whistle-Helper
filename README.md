@@ -89,7 +89,7 @@ Arrow keys      : Move beat cursor and plays note
 q               : Stop song 
 w               : Pause song
 r               : Autosize window and zoom level
-<br>
+
 d,e,f,g,a,b     : Change note to 1st/low-octave d..f#..b
 c,D,E,F,G,A,B   : Change note to 2nd/high-octave c#..f#..b
 C               : Change note to 3td-octave c#
@@ -108,7 +108,7 @@ lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴,
 [Ctrl]-z        : Undo last delete
 [Ins]           : Insert note space (rest) before cursor
 [Shift][Ins]    : Insert note space (rest) after cursor
-<br>
+
 [F1]..[F10]     : Change color of tab at beat cursor
 [Shift][Fx]     : Change background color of page
 [Space],|       : Add space or vertical line
@@ -117,7 +117,7 @@ lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴,
 [Return]        : Break tabs into two lines before cursor
 [Shift][Return] : Break tabs into two lines after cursor
 [Backspace]     : Join two lines if beat cursor is at first tab of line
-<br>
+
 p               : Save screenshot of tabs as visible on screen using name 
                   of tab file with extension .png
 ```
