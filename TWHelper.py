@@ -27,8 +27,11 @@ from tooltip import CreateToolTip
 #GLOBALS
 scriptpath= os.path.realpath(__file__) 
 scriptdir = os.path.dirname(scriptpath)
-icondir   = os.path.join(scriptdir,"icons")
-
+tabdir    = os.path.join(scriptdir,"tabs")
+icondir   = os.path.join(scriptdir,"resources/icons")
+sf2dir    = os.path.join(scriptdir,"resources/sf2")
+screenshotdir=os.path.join(scriptdir,"screenshots")
+helpdir   = os.path.join(scriptdir,"resources")
 import fluidsynth #pip3 install pyFluidSynth
 import helpWin
 
@@ -47,12 +50,12 @@ def initPlayer():
     fs.start(driver="alsa")
     
     #soundfontpath = os.path.join(scriptdir,"SynthThik.sf2")
-    soundfontpath = os.path.join(scriptdir,"198-WSA percussion kit.SF2")
+    soundfontpath = os.path.join(sf2dir,"198-WSA percussion kit.SF2")
     sfMetro = fs.sfload(soundfontpath)
     chnMetro= 1
     fs.program_select(chnMetro, sfMetro, 0, 0)
 
-    soundfontpath = os.path.join(scriptdir,"Tin_Whistle_AIR.sf2")
+    soundfontpath = os.path.join(sf2dir,"Tin_Whistle_AIR.sf2")
     sfFlute = fs.sfload(soundfontpath)
     chnFlute= 0
     fs.program_select(chnFlute, sfFlute, 0, 0)
@@ -340,7 +343,7 @@ def loadFile2(tfilename=None,filepath=None):
     global textColor,backColor,texts   
 
     if filepath==None:
-        filepath=os.path.join(scriptdir,tfilename)        
+        filepath=os.path.join(tabdir,tfilename)        
     if not os.path.isfile(filepath): return
 
     tabs.clear()
@@ -418,7 +421,7 @@ def loadFile2(tfilename=None,filepath=None):
 def saveFile2(tfilename=None,filepath=None):
     global title,filename
     if filepath==None:
-        filepath=os.path.join(scriptdir,tfilename)        
+        filepath=os.path.join(tabdir,tfilename)        
     if not os.path.isfile(filepath): return
 
     title=os.path.basename(filepath).split('.')[0].replace("_"," ")
@@ -473,7 +476,7 @@ def saveFile():
     stopTabScroll() # needed otherwise timer prevents updates of filedialog
     rep = filedialog.asksaveasfile(                  # open dialog so user can select file
                                         parent=win,
-                                        initialdir=scriptdir,
+                                        initialdir=tabdir,
                                         initialfile=filename,
                                         defaultextension=".tb",
                                         filetypes=[
@@ -502,7 +505,7 @@ def loadFile():
     stopTabScroll() # needed otherwise timer prevents updates of filedialog
     rep = filedialog.askopenfilenames(                  # open dialog so user can select file
                                         parent=win,
-                                        initialdir=scriptdir,
+                                        initialdir=tabdir,
                                         defaultextension="*.tb",
                                         filetypes=[
                                             #("Tin Whistle Tab files", "*.tbs"),
@@ -1739,7 +1742,7 @@ def keypress(event):
                 y1=y+min(bBox[3],win.cvs.winfo_height())
                 im=grab(bbox=(x,y,x1,y1))
                 # save image
-                filename=os.path.join(scriptdir,title+".png")
+                filename=os.path.join(screenshotdir,title+".png")
                 im.save(filename,format='png')
                 print (f"Saved screenshot as '{filename}'")
                 messagebox.showinfo("Saved screenshot",f"Saved screenshot as '{filename}'")
@@ -1770,7 +1773,7 @@ def keypress(event):
                     ims.paste(im, (0,int(toffset)))
                     toffset+=(y2-y1)
                 # save image
-                filename=os.path.join(scriptdir,title+".png")
+                filename=os.path.join(screenshotdir,title+".png")
                 ims.save(filename,format='png')
                 print (f"Saved screenshot as '{filename}'")
                 messagebox.showinfo("Saved screenshot",f"Saved screenshot as '{filename}'")
@@ -1795,7 +1798,7 @@ def keypress(event):
 
     
 def showHelp():
-    helpWin.init(win)
+    helpWin.init(win,helpdir)
     helpWin.show()
 
 def resizeWindow(event):

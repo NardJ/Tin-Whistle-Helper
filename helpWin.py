@@ -7,13 +7,15 @@ from tkRTFText import RTFText
 scriptpath= os.path.realpath(__file__) 
 scriptdir = os.path.dirname(scriptpath)
 win=None
+helpdir=None
 
-def init(rootWin):
-    global win
+def init(rootWin,helpDir):
+    global win,helpdir
     win=rootWin
+    helpdir=helpDir
 
 def show():
-    with open(os.path.join(scriptdir,"helpWin.txt"), "r") as reader: # open file
+    with open(os.path.join(helpdir,"helpWin.txt"), "r") as reader: # open file
         msg=reader.readlines()    
 
     popupMdown = tk.Toplevel(win)
