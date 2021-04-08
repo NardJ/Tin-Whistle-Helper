@@ -1164,15 +1164,15 @@ def startTabScroll():
     nrBarLines=barLinesFullyVisible()#(win.cvs.winfo_height())/beat2h()
     if win.varLinear.get():
         if nrBarLines<1:
-            messagebox.showinfo("Cannot play","In linear mode the full bar height should be fully visible.\nEnlarge window or use scroll wheel to zoom.")
+            messagebox.showinfo("Cannot play","In linear mode the full bar height should be fully visible.\nEnlarge window or use [Ctrl]-scroll wheel to zoom.")
             return
         #check if one row on screen
     else:        
         if nrBarLines<2 :
-            messagebox.showinfo("Cannot play","In page mode, at least to bar lines should be fully visible.\nEnlarge window or use scroll wheel to zoom.")
+            messagebox.showinfo("Cannot play","In page mode, at least to bar lines should be fully visible.\nEnlarge window or use [Ctrl]-scroll wheel to zoom.")
             return
         if win.cvs.winfo_width()<tabDims[0]:
-            messagebox.showinfo("Cannot play","In page mode, the window-width should accomodate all bars\nEnlarge window or use scroll wheel to zoom.")
+            messagebox.showinfo("Cannot play","In page mode, the window-width should accomodate all bars\nEnlarge window or use [Ctrl]-scroll wheel to zoom.")
             return
     global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset
     if playing: # restart from original
