@@ -81,7 +81,7 @@ lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴,
 
 p               : Save screenshot of tabs as visible on screen to file  
                   with name of tab file and extension .png
-P               : Save screenshot of ALL tabs with name of tab file and 
+[shift]-p       : Save screenshot of ALL tabs with name of tab file and 
                   extension .png
 
 <u>Remarks</u>:
