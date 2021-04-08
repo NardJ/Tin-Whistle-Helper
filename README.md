@@ -158,10 +158,11 @@ text : "by NardJ", 1,3.3, "Times",0.4, "normal"
 text : "♫", 21,0, "Arial",3, "normal",purple
 
 # tabs
-red d e f# g a b c c#  green D E F# G A B C#  
-blue c.^ d.> e.>^ f#.= g/ a- b\ 
-orange c. _ d. _. e. f#... | g | a..
+red d d# e f f# g g# a a# b  c c# green D D# E F F# G G# A A# B  C. C# 
+blue c.< d.> e.^ f#.= g@ a~ g/ a- b\ 
+{2 orange c.  _ d. _. e. f#... | g | a.. }2
 ``` 
+![Figure 2](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/Tutorial.png "Screenshot")
 
 ---
 
