@@ -118,8 +118,10 @@ lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴,
 [Shift][Return] : Break tabs into two lines after cursor
 [Backspace]     : Join two lines if beat cursor is at first tab of line
 
-p               : Save screenshot of tabs as visible on screen using name 
-                  of tab file with extension .png
+p               : Save screenshot of tabs as visible on screen to file  
+                  with name of tab file and extension .png
+[Shift]-p       : Save screenshot of ALL tabs with name of tab file and 
+                  extension .png
 ```
 
 ### Remarks:
