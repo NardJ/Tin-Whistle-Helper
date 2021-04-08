@@ -78,8 +78,11 @@ lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴,
 [Return]        : Break tabs into two lines before cursor
 [Shift][Return] : Break tabs into two lines after cursor
 [Backspace]     : Join two lines if beat cursor is at first tab of line
-p               : Save screenshot of tabs as visible on screen using name 
-                  of tab file with extension .png
+
+p               : Save screenshot of tabs as visible on screen to file  
+                  with name of tab file and extension .png
+P               : Save screenshot of ALL tabs with name of tab file and 
+                  extension .png
 
 <u>Remarks</u>:
 - When you change a note and the last tab is not a rest, a rest 

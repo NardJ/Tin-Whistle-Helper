@@ -1,8 +1,4 @@
 # TODO
-#   check save print screen to image
-#   new file does not allow last tab to be selectable with keys
-#   if navigate with cursor and tab row not visible, bring in screen#
-#
 #   fix Down by Sally Gardens
 #   elan nightwish uitwerken
 
@@ -13,6 +9,7 @@
 #   2) copy icons folder and non-py files to dist folder
 #   see https://pyinstaller.readthedocs.io/en/stable/usage.html#using-pyinstaller
 
+import traceback
 import os
 from datetime import datetime
 import time
@@ -23,6 +20,7 @@ from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
 from pyscreenshot import grab
+from PIL import Image
 
 from tooltip import CreateToolTip
 
@@ -633,6 +631,7 @@ def beat2w(dur):
 
 def beat2h():
     return holeInterval*9
+row2h=beat2h
 
 def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLin=0):
     cvs=win.cvs
@@ -1277,13 +1276,38 @@ def scrollwheel(event):
         s=win.vbar.get()[0]
         d=-0.1 if event.num==4 else 0.1
         win.cvs.yview_moveto(s+d)
+        print (f"scroll:{win.vbar.get()} {win.vbar.get()[0]*tabDims[1]}")
     if event.state==4: # with control
         if event.num==4: zoomOut()
         if event.num==5: zoomIn()
+def scroll2Row(row):
+    rowHeight=beat2h()/tabDims[1]
+    relY=row*rowHeight
+    win.cvs.yview_moveto(relY)
 
+#selector=None
+def keepBeatVisible(beatN=-1):
+    if beatN==-1: beatN=beatCursor
+    for tab in tabs:
+        beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
+        if beatN>=beat and beatN<=(beat+dur):
+            print (f"beatN:{beatN} tab:{tab}")
+            y=row2y(tabRow)
+            h=row2h()
+            minY=win.cvs.canvasy(0) # converts mouse event coordinate to canvas coordinate
+            maxY=win.cvs.canvasy(win.cvs.winfo_height())
+            print (f"  drawY:{y,y+h}")
+            print (f"  visible:{minY,maxY}")
+            if y<minY or (y+h)>maxY: scroll2Row(tabRow)                    
+    
 def click(event):
-    global beatCursor,firstPlayBeat
+    global beatCursor,firstPlayBeat#,selector
     eventX,eventY=event.x,event.y+win.vbar.get()[0]*tabDims[1]
+    #win.cvs.delete(selector)
+    eventX=win.cvs.canvasx(event.x)
+    eventY=win.cvs.canvasy(event.y)
+    #selector=win.cvs.create_rectangle(eventX+-3,eventY-3,eventX+3,eventY+3,fill="red",outline="blue",width=1) 
+
     for tab in tabs:
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
         x=beat2x(beat)
@@ -1451,17 +1475,20 @@ def keypress(event):
             beat,_,pdur,_,_,_,_,_=tabs[pidx]
             pidx-=1
             beatCursor=beat
+        keepBeatVisible()
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
     elif key in ('Right','KP_Right'): 
         nidx=idx
         ndur=0
-        while ndur==0 and idx<len(tabs)-2:
+        lastTab=len(tabs)-2 if tabs[-1][1]==eot else len(tabs)-1
+        while ndur==0 and idx<lastTab:
             nidx+=1
             beat,_,ndur,_,_,_,_,_=tabs[nidx]
         if ndur==0: nidx=idx # needed for last tabs, in which case no next tab with dur>0 can be found
         else: beatCursor=beat        
+        keepBeatVisible()
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
@@ -1469,6 +1496,7 @@ def keypress(event):
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow-1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
+        keepBeatVisible()
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
@@ -1476,6 +1504,7 @@ def keypress(event):
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow+1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
+        keepBeatVisible()
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
@@ -1700,21 +1729,57 @@ def keypress(event):
             drawBars()
             win.cvs.update()
             bBox=pageBBox()
-            # get screenshot bounding box
             x=win.winfo_rootx()+win.cvs.winfo_x()+bBox[0]
             y=win.winfo_rooty()+win.cvs.winfo_y()+bBox[1]
-            x1=x+min(bBox[2],win.cvs.winfo_width())
-            y1=y+min(bBox[3],win.cvs.winfo_height())
-            im=grab(bbox=(x,y,x1,y1))
-            # save image
-            filename=os.path.join(scriptdir,title+".png")
-            im.save(filename,format='png')
-            print (f"Saved screenshot as '{filename}'")
+            #x1=x+min(bBox[2],win.cvs.winfo_width())
+            x1=x+win.cvs.winfo_width()
+            
+            if key=='p':
+                # get screenshot bounding box
+                y1=y+min(bBox[3],win.cvs.winfo_height())
+                im=grab(bbox=(x,y,x1,y1))
+                # save image
+                filename=os.path.join(scriptdir,title+".png")
+                im.save(filename,format='png')
+                print (f"Saved screenshot as '{filename}'")
+                messagebox.showinfo("Saved screenshot",f"Saved screenshot as '{filename}'")
+            if key=='P':
+                bBox=pageBBox()
+                region=(int(bBox[2]),int(bBox[3]))
+                ims = Image.new('RGB', region,backColor)
+                offset=0
+                toffset=0
+                win.cvs.yview_moveto(0)
+                win.cvs.update()
+                for row in range(tabs[-1][6]+1):
+                    scroll2Row(row)# - scrolls, but row2y does not account for scroll
+                    win.cvs.update()
+                    yOrg=win.winfo_rooty()+win.cvs.winfo_y()
+                    offsetY=win.cvs.canvasy(0)
+                    rY=row2y(row)-offsetY
+                    nY=row2y(row+1)-offsetY
+                    if row==0: 
+                        y1=yOrg
+                        y2=yOrg+nY
+                    else: 
+                        y1=yOrg+rY
+                        y2=yOrg+nY
+                    im=grab(bbox=(x,y1,x1,y2))
+                    #filename=os.path.join(scriptdir,f"{title}-{row}.png")
+                    #im.save(filename,format='png')
+                    ims.paste(im, (0,int(toffset)))
+                    toffset+=(y2-y1)
+                # save image
+                filename=os.path.join(scriptdir,title+".png")
+                ims.save(filename,format='png')
+                print (f"Saved screenshot as '{filename}'")
+                messagebox.showinfo("Saved screenshot",f"Saved screenshot as '{filename}'")
             # show cursor
             beatCursor=cpbeatCursor
             drawBars()
         except Exception as e:
             print (f"Error saving screenshot file:{e}")
+            traceback.print_exc()
         
     # debug 
     #print (event)
