@@ -1,0 +1,26 @@
+# Fool's Jig
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+380
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+text:"Fool's Jig",1,1.75,"MS Serif",1.2,"bold"
+text:"┌──────────────────────────────┐",31.5,1.20,"Terminal",0.35,"normal"
+text:"│  Public Domain               │",31.5,1.75,"Terminal",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",31.5,2.3,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",31.5,2.85,"Terminal",0.35,"normal"
+
+# Tabs
+green d. e d. f#  a. f# d e f#  g. f# g. b  a. e d e f#  g.. b. g 
+f#.. a. f#  e. d e. f#  e. g f#. e  d. e d. f#  a. f# d e f# 
+g. f# g. b  a. f# d. _  D. c# D. b  a. g f#. e  f#.. d.. 
+d.... _  d. _ a b c#  d. a f#. a  b. a f#. a  D. a f#. a 
+b. a g. f#  g.. E. g  f#.. D. f#  e. d e. f#  e. g f#. e 
+d. e d. f#  a. f# d e f#  g. f# g. b  a. f# d. _  D. c# D. b 
+a. g f#. e  f#.. d..  d.. _.. 

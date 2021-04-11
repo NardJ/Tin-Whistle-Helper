@@ -1,0 +1,23 @@
+# Drowsy Maggie
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+480
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+text:"Drowsy Maggie",1,1.75,"MS Serif",1.2,"bold"
+text:"┌──────────────────────────────┐",71.0,1.20,"Terminal",0.35,"normal"
+text:"│  Public Domain               │",71.0,1.75,"Terminal",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",71.0,2.3,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",71.0,2.85,"Terminal",0.35,"normal"
+
+# Tabs
+green e... b. e. D. e. b. e.  e... b. e. a. f#. d. f#.  e... b. e. D. e. b. e.  b..... c#. D. a. f#. d. 
+e... b. e. D. e. b. e.  e... b. e. a. f#. d. f#.  e... b. e. D. e. e. e.  b..... c#. D. a. f#. a. 
+D... F#. D. c#. D. E. c#.  D. E. F#. G. A. F#. G. E.  D... F#. D. c#. D. E. c#.  b..... c#. D. a. f#. a. 
+D... F#. D. c#. D. E. c#.  D. E. F#. G. A. F#. G. E.  A. F#. G. E. F#. D. E.. c#  b..... c#. D. a. f#. d. 

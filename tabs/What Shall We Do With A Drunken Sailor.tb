@@ -1,0 +1,23 @@
+# What Shal We Do With A Drunken Sailor
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+480
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+text:"What Shall We Do With A Drunken Sailor",1,1.75,"MS Serif",0.8,"bold"
+text:"┌──────────────────────────────┐",32.5,1.20,"Terminal",0.35,"normal"
+text:"│  Public Domain               │",32.5,1.75,"Terminal",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",32.5,2.3,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",32.5,2.85,"Terminal",0.35,"normal"
+
+# Tabs
+green b. b b b. b b  b. e. g. b.  a. a a a. a a  a. d. f#. a. 
+brown b. b b b. b b  b. c#. D. E.  D. b. a. f#.  e... e... 
+orange b... b...  b. e. g. b.  a... a...  a. d. f#. a. 
+red b... b...  b. c#. D. E.  D. b. a. f#.  e... e... 

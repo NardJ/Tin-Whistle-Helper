@@ -1,0 +1,23 @@
+# Whiskey In The Jar
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+480
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+text:"Whiskey In The Jar",1,1.75,"MS Serif",1.2,"bold"
+text:"┌──────────────────────────────┐",55.5,1.20,"Terminal",0.35,"normal"
+text:"│  Public Domain               │",55.5,1.75,"Terminal",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",55.5,2.3,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",55.5,2.85,"Terminal",0.35,"normal"
+
+# Tabs
+green f#.  a.. a a. b.  a. f#... a.  b.. b b. c#.  b. f#... a.  b.. b b. c#. 
+D... c#. b.  a b. D.. c#.  b. f#... f#.  a.. a a. b.  a. f#... f#.  b.. b b. c#. 
+b. f#... a.  b.. b b. c#.  D... c#. b.  a b. D.. c#.  b. a. f#. d.  e. e e e. f#. 
+e..... f#. f#.. e  f# a.. a..... b. b.. a  b c#.. D. b.  a. f#. e. f#.  d..... 

@@ -1,0 +1,23 @@
+# The Wild Rover
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+480
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+text:"The Wild Rover",1,1.75,"MS Serif",1.2,"bold"
+text:"┌──────────────────────────────┐",56.5,1.20,"Terminal",0.35,"normal"
+text:"│  Public Domain               │",56.5,1.75,"Terminal",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",56.5,2.3,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",56.5,2.85,"Terminal",0.35,"normal"
+
+# Tabs
+green a.  g.. a g.  e. d. b.  b.. a b.  c... b c#  D. b. D.  c a.. f#.  d. b. a. 
+g... g.  g.. a g.  e. d. b.  b.. a b.  c... b c#  D. b. D.  c a.. f#.  d. b. a. 
+g. f#. g.  a.....  a.....  f#. d.../  d.....-  d.\ b. b.  b. a. b.  c...../ 
+c...\ b c  D...../  D.\ b. g.  f#. e.../  e...\ e e  d. b. a.  g...../ g.....\ 

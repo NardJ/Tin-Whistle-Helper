@@ -1,12 +1,15 @@
 # TODO
-#   fix Down by Sally Gardens
-#   elan nightwish uitwerken
+#   Bug: On zoom, cursor does not align properly
+#   Bug: Decorations
+#   Distribute: Shortcuts and package for linux and windows
+#   
+#   Elan - Nightwish uitwerken
 
 #   README.md > does double click in windows on py file really start
 # use pip3 freeze >requirements.txt
 # package using 
-#   1) 'pyinstaller myscript.py'
-#   2) copy icons folder and non-py files to dist folder
+#   1) 'pyinstaller TWHelper.py'
+#   2) copy resources/screenshots/tabs folder to dist folder
 #   see https://pyinstaller.readthedocs.io/en/stable/usage.html#using-pyinstaller
 
 import traceback
@@ -203,6 +206,7 @@ def newFile():
         ret=messagebox.askyesno("Discard changes?","You have unsaved changes.\nDiscard and start new file?")
         if ret==False:return
     bpm=120
+    win.bpm.set(f"{bpm:3}")
     title="New File"
     filename=f"{title}.tb"
     tabs.clear()
@@ -326,25 +330,41 @@ def unrollRepeats(fromIdx=0,toIdx=-1):
     recalcBeats()
     drawBars(True)
 
+def gotoPrevBeat(idx):
+    global beatCursor
+    if idx>len(tabs):idx=len(tabs)
+    pidx=idx
+    pdur=0
+    beat=beatCursor
+    while pdur==0 and idx>0:
+        pidx-=1
+        beat,_,pdur,_,_,_,_,_=tabs[pidx]
+    beatCursor=beat
+    return pidx
 
-def gotoPrevBeat():
+'''
+def gotoPrevBeat2():
     global beatCursor
     for idx in range(len(tabs)-1,-1,-1):
+        print (f"{idx}> {beatCursor} vs {tabs[idx][0]}")
         if ( tabs[idx][0] == beatCursor ) :
             for idx2 in range(idx-1,-1,-1):
                 if tabs[idx2][2]>0: 
                     beatCursor=tabs[idx2][0]
                     return idx2
+    print ("not fnd")
     return -1
+'''
 
 filename=None
-def loadFile2(tfilename=None,filepath=None):
-    global tabs,bpm,title,filename
+filepath=None
+def loadFile2(tfilename=None,tfilepath=None):
+    global tabs,bpm,title,filename,filepath
     global textColor,backColor,texts   
 
-    if filepath==None:
-        filepath=os.path.join(tabdir,tfilename)        
-    if not os.path.isfile(filepath): return
+    if tfilepath==None:
+        tfilepath=os.path.join(tabdir,tfilename)        
+    if not os.path.isfile(tfilepath): return
 
     tabs.clear()
     initBars(20)
@@ -352,12 +372,13 @@ def loadFile2(tfilename=None,filepath=None):
     backColor='#FFFFDE'
     beat,tabRow,tabCol,tabLin=0,0,0,0 #just placeholders, real values will be calculated after loading by recalcBeats
     #print (f"filename:{filename}|")
-    filename=os.path.basename(filepath)
-    title=os.path.basename(filepath).split('.')[0].replace("_"," ")
+    filepath=tfilepath
+    filename=os.path.basename(tfilepath)
+    title=os.path.basename(tfilepath).split('.')[0].replace("_"," ")
     capTitle()
     texts.clear()
     try:
-        with open(filepath,'r') as reader:
+        with open(tfilepath,'r') as reader:
             lines=reader.readlines()
         #remove comments and empty lines
         for idx in range(len(lines)-1,-1,-1):            
@@ -373,7 +394,10 @@ def loadFile2(tfilename=None,filepath=None):
             line=line.strip()   # remove leading and trailing spaces and eol chars
             if len(line)>0:     # ignore empty lines
                 if ':' in line: # read colors and text to display
-                    cmd,val=line.split(':')
+                    colIdx=line.index(':')
+                    cmd=line[:colIdx]
+                    val=line[colIdx+1:]
+                    #cmd,val=line.split(':')
                     cmd=cmd.strip()
                     vals=val.split(",")
                     for idx in range(len(vals)): vals[idx]=vals[idx].strip()
@@ -381,15 +405,20 @@ def loadFile2(tfilename=None,filepath=None):
                     if cmd=='back' : backColor=vals[0]
                     if cmd=='text' : texts.append(vals)
                 else:           # read notes                
+                    line=line.replace('   ',' , , ') # tripple space is visual space between tabs
                     line=line.replace('  ',' , ') # double space is visual space between tabs
+                    while '  ' in line:
+                        line=line.replace('  ','') # more spaces are removed visual space between tabs
                     notes=line.split(" ")
                     notesfound=False
                     firstIdx=len(tabs)
                     tabCol=0
+                    #print (f"line:'{line}\'")
                     for note in notes:  
                         if note in colors:         
                             tabColor=note
                         else:   
+                            #print (f"note:'{note}'")
                             name=note[0]
                             if len(note)>1: 
                                 if note[1]=='#': name+='#'
@@ -411,26 +440,31 @@ def loadFile2(tfilename=None,filepath=None):
                         style=''
                         tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
         
-        win.title(f"Tin Whistle Helper - {os.path.basename(filepath).split('.')[0]}")
+        win.title(f"Tin Whistle Helper - {os.path.basename(tfilepath).split('.')[0]}")
         recalcBeats()
         calcTabDims()
     except Exception as e:
         print (f"Error reading tab file:{e}")
+        print (f"line:'{line}'")
+        print (f"Note:'{note}'")
+        traceback.print_exc()
 
 
-def saveFile2(tfilename=None,filepath=None):
-    global title,filename
-    if filepath==None:
-        filepath=os.path.join(tabdir,tfilename)        
-    if not os.path.isfile(filepath): return
 
-    title=os.path.basename(filepath).split('.')[0].replace("_"," ")
-    filename=os.path.basename(filepath)
+def saveFile2(tfilename=None,tfilepath=None):
+    global title,filename,filepath
+    if tfilepath==None:
+        tfilepath=os.path.join(tabdir,tfilename)        
+    if not os.path.isfile(tfilepath): return
+
+    title=os.path.basename(tfilepath).split('.')[0].replace("_"," ")
+    filepath=tfilepath
+    filename=os.path.basename(tfilepath)
     capTitle()
     drawBars(True)
     eol='\n'
     try:
-        with open(filepath,'w') as writer:   
+        with open(tfilepath,'w') as writer:   
             writer.write(f"# {title}{eol}")
             writer.write(f"#   made with TWHelper{eol}")
             writer.write(f"#   see https://github.com/NardJ/Tin-Whistle-Helper{eol}")
@@ -470,6 +504,7 @@ def saveFile2(tfilename=None,filepath=None):
 
     except Exception as e:
         print (f"Error writing tab file:{e}")
+        traceback.print_exc()
     
 def saveFile():
     global beatCursor,metroMultIdx
@@ -488,7 +523,7 @@ def saveFile():
     if (scriptpath==None): return    
     ext=scriptpath[-3:]
     if ext=='.tb': 
-        saveFile2(filepath=scriptpath)
+        saveFile2(tfilepath=scriptpath)
         oldTabs.clear()
     else: return        
     print (f"Saved:{scriptpath}")
@@ -519,7 +554,7 @@ def loadFile():
     #    loadFile(filepath=scriptpath)
     #elif ext=='.tb': 
     if ext=='.tb':
-        loadFile2(filepath=scriptpath)
+        loadFile2(tfilepath=scriptpath)
     else: return        
     initBars()
     beatCursor=0
@@ -594,6 +629,7 @@ def initBars(newBeatsize=None):
     xOffset=beatsize
     yOffset=beatsize
     titleHeight=beatsize*2
+    print (f"initBars:{beatsize} {holeInterval} {yOffset} {titleHeight}")
 
 def col2x(tabCol):
     x=xOffset+tabCol*barInterval
@@ -1279,7 +1315,7 @@ def scrollwheel(event):
         s=win.vbar.get()[0]
         d=-0.1 if event.num==4 else 0.1
         win.cvs.yview_moveto(s+d)
-        print (f"scroll:{win.vbar.get()} {win.vbar.get()[0]*tabDims[1]}")
+        #print (f"scroll:{win.vbar.get()} {win.vbar.get()[0]*tabDims[1]}")
     if event.state==4: # with control
         if event.num==4: zoomOut()
         if event.num==5: zoomIn()
@@ -1294,13 +1330,13 @@ def keepBeatVisible(beatN=-1):
     for tab in tabs:
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
         if beatN>=beat and beatN<=(beat+dur):
-            print (f"beatN:{beatN} tab:{tab}")
+            #print (f"beatN:{beatN} tab:{tab}")
             y=row2y(tabRow)
             h=row2h()
             minY=win.cvs.canvasy(0) # converts mouse event coordinate to canvas coordinate
             maxY=win.cvs.canvasy(win.cvs.winfo_height())
-            print (f"  drawY:{y,y+h}")
-            print (f"  visible:{minY,maxY}")
+            #print (f"  drawY:{y,y+h}")
+            #print (f"  visible:{minY,maxY}")
             if y<minY or (y+h)>maxY: scroll2Row(tabRow)                    
     
 def click(event):
@@ -1585,7 +1621,7 @@ def keypress(event):
         if len(tabs)<=1: tabs.insert(0,[0,'_',1,'','green', 0,0,0])    
         # check if cursor on tab
         if idx>=(len(tabs)-1): 
-            gotoPrevBeat()
+            gotoPrevBeat(idx)
         # redraw
         drawBars(True)
     # insert note (before cursor)
@@ -1634,7 +1670,6 @@ def keypress(event):
         for i in range(fromIdx,toIdx):
             if tabs[i][1][0]=='{':fromRep=i
             if tabs[i][1][0]=='}':toRep=i
-        print (fromRep,toRep)
         if fromRep!=None and toRep!=None:
             if idx==fromRep+1:idx-=1
             if idx==toRep:idx+=1
@@ -1721,6 +1756,18 @@ def keypress(event):
             drawBars(True)
         else:
             print ("STACK EMPTY")    
+
+    elif key in ('l') and state==4:#debug
+        loadFile2(tfilepath=filepath)
+        initBars()
+        beatCursor=0
+        metroMultIdx=0
+        advMetroMult()
+        drawBars(True)
+
+    elif key in ('s') and state==4:#debug
+        saveFile2(tfilepath=filepath)
+
 
     elif key in ('p','P'):
         try:
@@ -1825,7 +1872,7 @@ def initWindow():
     win.tk.call('wm', 'iconphoto', win._w, tk.PhotoImage(file=iconpath))
     # set fonts
 
-    win.buttonframe=tk.Frame(win,background="white",border=0,highlightthickness=0,relief=tk.FLAT)
+    win.buttonframe=tk.Frame(win,background="white",border=0,highlightthickness=0,relief=tk.FLAT,takefocus=0)
     win.buttonframe.pack(side=tk.BOTTOM,padx=(0,0),pady=(0,0),ipadx=2,ipady=2,expand=False,fill=tk.X)
     win.btnLoad=tk.Button(win.buttonframe,text="Load",relief=tk.FLAT,width=4,command=loadFile)
     win.btnLoad.pack(side=tk.LEFT,padx=(1,0))
@@ -1833,14 +1880,14 @@ def initWindow():
 
     imgPath=os.path.join(icondir,"new.png")
     win.imgNew= tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnNew=tk.Button(win.buttonframe,image=win.imgNew,relief=tk.FLAT,width=24,command=newFile)
+    win.btnNew=tk.Button(win.buttonframe,image=win.imgNew,relief=tk.FLAT,width=24,command=newFile,takefocus=0)
     #win.btnNew=tk.Button(win.buttonframe,text="New",relief=tk.FLAT,width=4,command=newFile)
     win.btnNew.pack(side=tk.LEFT,padx=(1,0))
     win.btnNew.tooltip=CreateToolTip(win.btnNew,"New blank file.\n(Discard changes.)")
 
     imgPath=os.path.join(icondir,"save.png")
     win.imgSave= tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnSave=tk.Button(win.buttonframe,image=win.imgSave,relief=tk.FLAT,width=24,command=saveFile)
+    win.btnSave=tk.Button(win.buttonframe,image=win.imgSave,relief=tk.FLAT,width=24,command=saveFile,takefocus=0)
     #win.btnSave=tk.Button(win.buttonframe,text="Save",relief=tk.FLAT,width=4,command=saveFile)
     win.btnSave.pack(side=tk.LEFT,padx=(1,0))
     win.btnSave.tooltip=CreateToolTip(win.btnSave,"Save file.\n(Clear undo stack.)")
@@ -1850,12 +1897,12 @@ def initWindow():
 
     imgPath=os.path.join(icondir,"chevLeftS.png")
     win.img2xSlower= tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btn2xSlower=tk.Button(win.buttonframe,image=win.img2xSlower,relief=tk.FLAT,width=9,command=decrease2xBPM)
+    win.btn2xSlower=tk.Button(win.buttonframe,image=win.img2xSlower,relief=tk.FLAT,width=9,command=decrease2xBPM,takefocus=0)
     win.btn2xSlower.pack(side=tk.LEFT,padx=(2,0))
     win.btn2xSlower.tooltip=CreateToolTip(win.btn2xSlower,"Slow down play\n by 50%.")
     imgPath=os.path.join(icondir,"triLeftS.png")
     win.imgSlower= tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnSlower=tk.Button(win.buttonframe,image=win.imgSlower,relief=tk.FLAT,width=9,command=decreaseBPM)
+    win.btnSlower=tk.Button(win.buttonframe,image=win.imgSlower,relief=tk.FLAT,width=9,command=decreaseBPM,takefocus=0)
     win.btnSlower.pack(side=tk.LEFT,padx=(0,2))
     win.btnSlower.tooltip=CreateToolTip(win.btnSlower,"Slow down play\n by 5 bpm.")
     win.bpm = tk.StringVar()
@@ -1866,12 +1913,12 @@ def initWindow():
     win.speedl.pack(side=tk.LEFT,padx=(0,0))
     imgPath=os.path.join(icondir,"triRightS.png")
     win.imgFaster= tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnFaster=tk.Button(win.buttonframe,image=win.imgFaster,relief=tk.FLAT,width=9,command=fasterBPM)
+    win.btnFaster=tk.Button(win.buttonframe,image=win.imgFaster,relief=tk.FLAT,width=9,command=fasterBPM,takefocus=0)
     win.btnFaster.pack(side=tk.LEFT,padx=(2,0))
     win.btnFaster.tooltip=CreateToolTip(win.btnFaster,"Speed up play\n by 5 bpm.")
     imgPath=os.path.join(icondir,"chevRightS.png")
     win.img2xFaster= tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btn2xFaster=tk.Button(win.buttonframe,image=win.img2xFaster,relief=tk.FLAT,width=9,command=faster2xBPM)
+    win.btn2xFaster=tk.Button(win.buttonframe,image=win.img2xFaster,relief=tk.FLAT,width=9,command=faster2xBPM,takefocus=0)
     win.btn2xFaster.pack(side=tk.LEFT,padx=(0,2))
     win.btn2xFaster.tooltip=CreateToolTip(win.btn2xFaster,"Speed up play\n by 200%.")
 
@@ -1880,7 +1927,7 @@ def initWindow():
 
     # countOff 
     win.varCountOff=tk.BooleanVar(value=False)
-    win.cbCountOff=tk.Checkbutton(win.buttonframe,text='CO',variable=win.varCountOff)
+    win.cbCountOff=tk.Checkbutton(win.buttonframe,text='CO',variable=win.varCountOff,takefocus=0)
     footerbgcolor='white'
     footerfgcolor='black'
     win.cbCountOff.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
@@ -1911,7 +1958,7 @@ def initWindow():
 
     # play sound (see:https://en.wikipedia.org/wiki/Media_control_symbols)
     win.varSound=tk.BooleanVar(value=True)
-    win.cbSound=tk.Checkbutton(win.buttonframe,text=u'\u266B\u269F',variable=win.varSound)
+    win.cbSound=tk.Checkbutton(win.buttonframe,text=u'\u266B\u269F',variable=win.varSound,takefocus=0)
     footerbgcolor='white'
     footerfgcolor='black'
     win.cbSound.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
@@ -1921,7 +1968,7 @@ def initWindow():
 
     # play decorations
     win.varDeco=tk.BooleanVar(value=False)
-    win.cbDeco=tk.Checkbutton(win.buttonframe,text=u'\u2BA4\u21B4',variable=win.varDeco,command=experimental)
+    win.cbDeco=tk.Checkbutton(win.buttonframe,text=u'\u2BA4\u21B4',variable=win.varDeco,command=experimental,takefocus=0)
     footerbgcolor='white'
     footerfgcolor='black'
     win.cbDeco.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
@@ -1931,7 +1978,7 @@ def initWindow():
 
     # Low whistle 
     win.varLow=tk.BooleanVar(value=False)
-    win.cbLow=tk.Checkbutton(win.buttonframe,text='Low',variable=win.varLow,command=setLowHigh)
+    win.cbLow=tk.Checkbutton(win.buttonframe,text='Low',variable=win.varLow,command=setLowHigh,takefocus=0)
     footerbgcolor='white'
     footerfgcolor='black'
     win.cbLow.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
@@ -1943,15 +1990,15 @@ def initWindow():
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
     
     # play symbols (see:https://en.wikipedia.org/wiki/Media_control_symbols)
-    win.btnPlay=tk.Button(win.buttonframe,text=u'\u25B6',relief=tk.FLAT,width=1,command=startTabScroll)
+    win.btnPlay=tk.Button(win.buttonframe,text=u'\u25B6',relief=tk.FLAT,width=1,command=startTabScroll,takefocus=0)
     win.btnPlay.pack(side=tk.LEFT,padx=(1,0))
     win.btnPlay.tooltip=CreateToolTip(win.btnPlay,"Start tabs\n scroll.")
 
-    win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopTabScroll)
+    win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopTabScroll,takefocus=0)
     win.btnStop.pack(side=tk.LEFT,padx=(1,0))
     win.btnStop.tooltip=CreateToolTip(win.btnStop,"Stop tabs\n scroll.")
 
-    win.btnPause=tk.Button(win.buttonframe,text=u'\u23F8',relief=tk.FLAT,width=1,command=pauseTabScroll)
+    win.btnPause=tk.Button(win.buttonframe,text=u'\u23F8',relief=tk.FLAT,width=1,command=pauseTabScroll,takefocus=0)
     win.btnPause.pack(side=tk.LEFT,padx=(1,0))
     win.btnPause.tooltip=CreateToolTip(win.btnPause,"Pause tabs\n scroll.")
 
@@ -1965,7 +2012,7 @@ def initWindow():
 
     imgPath=os.path.join(icondir,"unroll.png")
     win.imgUnroll = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnUnroll=tk.Button(win.buttonframe,command=unrollRepeats,relief=tk.FLAT,bg='white',image=win.imgUnroll)
+    win.btnUnroll=tk.Button(win.buttonframe,command=unrollRepeats,relief=tk.FLAT,bg='white',image=win.imgUnroll,takefocus=0)
     win.btnUnroll.pack(side=tk.LEFT,padx=(0,2))
     win.btnUnroll.tooltip=CreateToolTip(win.btnUnroll,"Unroll repeated\nsections.")
 
@@ -1974,7 +2021,7 @@ def initWindow():
     imgPath=os.path.join(icondir,"wrap.png")
     win.imgWrap = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.varLinear=tk.BooleanVar(value=False)
-    win.cbLinear=tk.Checkbutton(win.buttonframe,variable=win.varLinear,command=reformatBars,
+    win.cbLinear=tk.Checkbutton(win.buttonframe,variable=win.varLinear,command=reformatBars,takefocus=0,
                                 indicatoron=False,selectimage=win.imgWrap,image=win.imgLinear)
     footerbgcolor='white'
     footerfgcolor='black'
@@ -1988,19 +2035,19 @@ def initWindow():
 
     imgPath=os.path.join(icondir,"autosize.png")
     win.imgAuto = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnAuto4Bars=tk.Button(win.buttonframe,image=win.imgAuto,relief=tk.FLAT,command=autoBars)
+    win.btnAuto4Bars=tk.Button(win.buttonframe,image=win.imgAuto,relief=tk.FLAT,command=autoBars,takefocus=0)
     win.btnAuto4Bars.pack(side=tk.LEFT,padx=(1,0))
     win.btnAuto4Bars.tooltip=CreateToolTip(win.btnAuto4Bars,"Enlarge window and zoom out to fit tab \nwidth(page view) or height (linear view).")
 
     imgPath=os.path.join(icondir,"shrink.png")
     win.imgShrink = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnShrink4Bars=tk.Button(win.buttonframe,image=win.imgShrink,relief=tk.FLAT,command=shrinkBars)
+    win.btnShrink4Bars=tk.Button(win.buttonframe,image=win.imgShrink,relief=tk.FLAT,command=shrinkBars,takefocus=0)
     win.btnShrink4Bars.pack(side=tk.LEFT,padx=(1,0))
     win.btnShrink4Bars.tooltip=CreateToolTip(win.btnShrink4Bars,"Zoom out to fit tabs width(page view) \nor height (linear view) in window.")
 
     imgPath=os.path.join(icondir,"grow.png")
     win.imgGrow = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnGrow4Bars=tk.Button(win.buttonframe,image=win.imgGrow,relief=tk.FLAT,command=growWindow)
+    win.btnGrow4Bars=tk.Button(win.buttonframe,image=win.imgGrow,relief=tk.FLAT,command=growWindow,takefocus=0)
     win.btnGrow4Bars.pack(side=tk.LEFT,padx=(1,2))
     win.btnGrow4Bars.tooltip=CreateToolTip(win.btnGrow4Bars,"Enlarge window to fit tabs width(page view) \nor height (linear view) in window.")
 
@@ -2010,7 +2057,7 @@ def initWindow():
     # zoom
     imgPath=os.path.join(icondir,"zoomout.png")
     win.imgZoomOut = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnZoomOut=tk.Button(win.buttonframe,image=win.imgZoomOut,bg='white',relief=tk.FLAT,command=zoomOut)
+    win.btnZoomOut=tk.Button(win.buttonframe,image=win.imgZoomOut,bg='white',relief=tk.FLAT,command=zoomOut,takefocus=0)
     win.btnZoomOut.pack(side=tk.LEFT,padx=(0,0))
     win.btnZoomOut.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
     win.btnZoomOut.tooltip=CreateToolTip(win.btnZoomOut,"Zoom out \n(shrink) tabs.")
@@ -2024,7 +2071,7 @@ def initWindow():
 
     imgPath=os.path.join(icondir,"zoomin.png")
     win.imgZoomIn = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnZoomIn=tk.Button(win.buttonframe,image=win.imgZoomIn,bg='white',relief=tk.FLAT,command=zoomIn)
+    win.btnZoomIn=tk.Button(win.buttonframe,image=win.imgZoomIn,bg='white',relief=tk.FLAT,command=zoomIn,takefocus=0)
     win.btnZoomIn.pack(side=tk.LEFT,padx=(0,0))
     win.btnZoomIn.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
     win.btnZoomIn.tooltip=CreateToolTip(win.btnZoomIn,"Zoom in \n(enlarge) tabs.")
@@ -2035,14 +2082,14 @@ def initWindow():
     # help
     imgPath=os.path.join(icondir,"help.png")
     win.imgHelp = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.btnHelp=tk.Button(win.buttonframe,image=win.imgHelp,bg='white',relief=tk.FLAT,command=showHelp)
+    win.btnHelp=tk.Button(win.buttonframe,image=win.imgHelp,bg='white',relief=tk.FLAT,command=showHelp,takefocus=0)
     win.btnHelp.pack(side=tk.RIGHT,padx=(0,3))
     win.btnHelp.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
 
     # make canvas
-    win.vbar=tk.Scrollbar(win,orient=tk.VERTICAL)
+    win.vbar=tk.Scrollbar(win,orient=tk.VERTICAL,takefocus=0)
     win.vbar.pack(side=tk.RIGHT,fill=tk.Y)
-    win.hbar=tk.Scrollbar(win,orient=tk.HORIZONTAL)
+    win.hbar=tk.Scrollbar(win,orient=tk.HORIZONTAL,takefocus=0)
     win.hbar.pack(side=tk.BOTTOM,fill=tk.X)
     win.cvs = tk.Canvas(win, bg="white" )
     win.cvs.pack(expand=True,fill=tk.BOTH,padx=(0,0),pady=(0,0))
@@ -2068,10 +2115,11 @@ def initWindow():
 initWindow()
 initPlayer()
 #loadFile2("Fee Ra Huri.tb")
-#loadFile("tutorial.tbs")
 #loadFile2("tutorial.tb")
-#loadFile2("test3.tb")
-loadFile2("Down By The Sally Gardens.tb")
+
+# public domain tunes
+#loadFile2("Down By The Sally Gardens.tb")
+loadFile2("Fig For A Kiss.tb")
 
 drawBars(True)
 #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html

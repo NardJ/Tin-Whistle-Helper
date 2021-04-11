@@ -1,0 +1,23 @@
+# Cooley's Reel
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+480
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+text:"Cooley's Reel",1,1.75,"MS Serif",1.2,"bold"
+text:"┌──────────────────────────────┐",76,1.20,"Terminal",0.35,"normal"
+text:"│  Public Domain               │",76,1.75,"Terminal",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",76,2.3,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",76,2.85,"Terminal",0.35,"normal"
+
+# Tabs
+green e b b a b. e b  b. a b D b a g  f# e d a d b d a d  f# d f# a D a f# d  e b b a b. e b  b. a b D E F# G  A F# E D b a f#  d e f# d e. e d 
+e b b a b. e b  b. a b D b a g  f# e d a d b d a d  f# d f# a D a f# d  e b b a b. e b  b. a b D E F# G  A F# E D b a f#  d e f# d e. G F# 
+E b b. E b G b  E b. b G E D b  a. f# a d a f# a  a. f# a D E F# G E  b b. E b G b  E b b. D E F# G  A F# E D D b a f#  d e f# d e. G F# 
+E b b. E b G b  E b. b G E D b  a. f# a d a f# a  a. f# a D E F# G E  b b. E b G b  E b b. D E F# G  A F# E D D b a f#  d e f# d e... 

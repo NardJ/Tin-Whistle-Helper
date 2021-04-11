@@ -10,8 +10,13 @@ color:black
 back :#FFFFDE
 
 # Text
+text:"Fig For A Kiss",1,1.75,"MS Serif",1.2,"bold"
+text:"┌──────────────────────────────┐",49.5,1.20,"Terminal",0.35,"normal"
+text:"│  Public Domain               │",49.5,1.75,"Terminal",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",49.5,2.3,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",49.5,2.85,"Terminal",0.35,"normal"
 
 # Tabs
-blue {2 g. b e. b b a g f#. a d. a a g f# g. b e. b b a g b D b a g f# e.^ _ }2 
-brown G. E G. E E D b F#. D D. b D. E F#. _ G. E G. E E D b D. b g. g b. D E. _ 
-green F# G. E G. E E D b F#. D D. b D. E F#. _ G F# E F# E D E D b b c# D b a g f#. d= e... 
+orange g. b e. b b a g  f#. a d. a a g f#  g. b e. b b a g  b D b a g f# e..^ 
+brown G. E G. E E D b  F#. D D. b D. E  F#. _ G. E G. E  E D b D. b g. g  b. D E. _ F# G. 
+green E G. E E D b F#.  D D. b D. E F#.  _ G F# E F# E D E D  b b c# D b a g f#.  d= e... 

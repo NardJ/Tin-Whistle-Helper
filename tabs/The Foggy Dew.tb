@@ -1,0 +1,22 @@
+# The Foggy Dew
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+240
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+text:"The Foggie Dew",1,1.75,"MS Serif",1.2,"bold"
+text:"┌──────────────────────────────┐",41.0,1.20,"Terminal",0.35,"normal"
+text:"│  Public Domain               │",41.0,1.75,"Terminal",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",41.0,2.3,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",41.0,2.85,"Terminal",0.35,"normal"
+
+# Tabs
+green {2 b D  E. D b  E. D b  a. b.  d. e f#  g b a g  e.. d  e..... }2 
+a.  g. b.  D. c b  a. a.  b. g a  b. G F#  E D b D E..... b D 
+E. D b  E. D b  a. b.  d. e f#  g b a g  e.. e  e. _. 

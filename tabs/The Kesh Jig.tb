@@ -1,0 +1,22 @@
+# The Kesh Jig
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+240
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+text:"The Kesh Jig",1,1.75,"MS Serif",1.2,"bold"
+text:"┌──────────────────────────────┐",59,1.20,"Terminal",0.35,"normal"
+text:"│  Public Domain               │",59,1.75,"Terminal",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",59,2.3,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",59,2.85,"Terminal",0.35,"normal"
+
+# Tabs
+green g.. g a b  a.. a b D  E D D G D D  E D b D b a  g.. g a b  a.. a b D  E D D G D b  a g f# g. d 
+g.. g a b  a.. a b D  E D D G D D  E D b D b a  g.. g a b  a.. a b D  E D D G D b  a g f# g. a 
+{2 b.. D b D  E G E D b g  b.. D b g  a b a a g a  b.. D b D  E F# E D b D  G.. A G A  B G F# G.. }2 

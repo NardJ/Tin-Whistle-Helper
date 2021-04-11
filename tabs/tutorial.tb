@@ -14,7 +14,7 @@ back : #FFFFDE
 # text: "yourText", x, y, "fontName", fontSize, "fontStyle", color [optional]
 #   text can also be unicode symbols 
 #   numbers (x,y,fontSize) are relative to tab widths
-#   fontName  can be all installed like "Arial","Times", "Helvetica" 
+#   fontName  can be all installed like "Arial", "Times", "Helvetica", "Terminal" 
 #   fontStyle can be "bold", "italic", "normal" of combinations like "bold italic"
 text : "Tutorial", 1,1.75, "Times",1.2, "bold"
 text : "by NardJ", 1,3.3, "Times",0.4, "normal"
