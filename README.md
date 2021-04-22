@@ -139,7 +139,7 @@ p               : Save screenshot of tabs as visible on screen to file
 ## Tab file format
 
 It is also possible to edit the tbs and tb files directory.
-Editng makes some more options available, like multiple texts, 
+Editing makes some more options available, like multiple texts, 
 custom placed and colored.View tutorial.tb and tutorial.tbs for 
 more instructions.
 
