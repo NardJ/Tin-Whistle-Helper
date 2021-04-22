@@ -140,7 +140,7 @@ p               : Save screenshot of tabs as visible on screen to file
 
 It is also possible to edit the tbs and tb files directory.
 Editing makes some more options available, like multiple texts, 
-custom placed and colored.View tutorial.tb and tutorial.tbs for 
+custom placed and colored. View *tutorial.tb* for 
 more instructions.
 
 Example file
