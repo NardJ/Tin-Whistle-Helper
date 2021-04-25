@@ -1,5 +1,4 @@
 # TODO
-#   Bug: Decorations - roll klinkt niet echt...is een adempauze beter dan een cut?
 #   Distribute: Shortcuts and package for linux and windows
 #   Tabs: make all display TWHelper github page
 #   
@@ -1134,7 +1133,7 @@ def doCursorPlay():
                         slideSemitones={'c#':0,'b':3,'a':2,'g':2,'f#':1,'e':3,'d':2, 
                                       'C#':0,'B':3,'A':2,'G':2,'F#':1,'E':3,'D':2}
                         slideAmount=slideSemitones[name]
-                        pitchBend(2048*slideAmount,noteLength)
+                        pitchBend(2048*slideAmount,noteLength,0.6,0.8)
                         
                     if style=="@":#tongue
                         pass
@@ -1143,21 +1142,37 @@ def doCursorPlay():
 
 
 pitchVal=0
-def pitchBend(amount,duration,restart=True):
-    global pitchVal
+totBendDur=0
+def pitchBend(amount,duration,bendFromPerc=0,bendToPerc=1,restart=True):
+    global pitchVal,totBendDur
     if restart: 
         pitchVal=0
+        totBendDur=0
+        #print ("---")
+        #print (f"Amount    :{amount}")
+        #print (f"Duration  :{duration}")
+        #print (f"Bend range:{bendFromPerc}-{bendToPerc}")
+    bendFrom     = bendFromPerc*duration
+    bendTo       = bendToPerc*duration 
+    bendDuration = (bendToPerc-bendFromPerc)*duration
 
     fs.pitch_bend(chnFlute,pitchVal*2) # 2048 1 semitone / half noteId
+    #print (f"{totBendDur}:{pitchVal}")
 
     stepDur=10 # msecs
-    nrSteps=int(duration/stepDur)
+    nrSteps=int(bendDuration/stepDur)
     stepAmount=int(amount/nrSteps)
-    pitchVal+=stepAmount
+    if totBendDur>bendFrom:
+        if pitchVal<amount: 
+            pitchVal+=stepAmount
+        else:
+            pitchVal=amount 
+    totBendDur+=stepDur
     #print (f"duration:{duration} stepDur:{stepDur} nrSteps:{nrSteps} stepAmount:{stepAmount} pitchVal:{pitchVal}")
     
-    if pitchVal<amount: 
-        win.after(stepDur,pitchBend,amount,duration,False)
+    #if pitchVal<amount: 
+    if totBendDur<duration:
+        win.after(stepDur,pitchBend,amount,duration,bendFromPerc,bendToPerc,False)
     else:
         fs.pitch_bend(chnFlute,0)          # 2048 1 semitone / half noteId
 
