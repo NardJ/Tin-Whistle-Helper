@@ -1,7 +1,7 @@
 # TODO
-#   Bug: On zoom, cursor does not align properly
-#   Bug: Decorations
+#   Bug: Decorations - roll klinkt niet echt...is een adempauze beter dan een cut?
 #   Distribute: Shortcuts and package for linux and windows
+#   Tabs: make all display TWHelper github page
 #   
 #   Elan - Nightwish uitwerken
 
@@ -629,7 +629,7 @@ def initBars(newBeatsize=None):
     xOffset=beatsize
     yOffset=beatsize
     titleHeight=beatsize*2
-    print (f"initBars:{beatsize} {holeInterval} {yOffset} {titleHeight}")
+    #print (f"initBars:{beatsize} {holeInterval} {yOffset} {titleHeight}")
 
 def col2x(tabCol):
     x=xOffset+tabCol*barInterval
@@ -858,7 +858,7 @@ inDrawBars=False
 def drawBars(force=False):
     global xOffset,yOffset,cursorBar,cursorBar2,oldOffsets,oldBeatsize,inDrawBars
     # prevent double draws, which mainly occur on window resize
-    if inDrawBars: return
+    if inDrawBars and not force: return
     inDrawBars=True
 
     curTabIdx=-1
@@ -1011,11 +1011,15 @@ def doCursorPlay():
                 win.after(noteLength,endNote,name)
 
                 if win.varDeco.get():
-                    if style==">":#strike one note higher
-                        noteIdx=noteIDs.index(name)
-                        strikeName=noteIDs[noteIdx+2] # full note higher is 2 halves/indices above
-                        strikeLength=200 # msec
-                        if noteLength<400:strikeLength=100
+                    if style==">":#strike/tap one note higher
+                        #https://www.youtube.com/watch?v=4JemxBMeZ3g
+                        strikeNotes={'c#':'b','b':'a','a':'g','g':'f#','f#':'e','e':'d','d':'C#', 
+                                     'C#':'B','B':'A','A':'G','G':'F#','F#':'E','E':'D','D':'C#'}
+                        #noteIdx=noteIDs.index(name)
+                        #strikeName=noteIDs[noteIdx+2] # full note higher is 2 halves/indices above
+                        strikeName=strikeNotes[name]
+                        strikeLength=70#200 # msec
+                        if noteLength<400:strikeLength=70
                         if noteLength<200:strikeLength=50
                         if noteLength<100:strikeLength=0  
                         if strikeLength>0:
@@ -1025,6 +1029,26 @@ def doCursorPlay():
                             win.after(strikeStart,startNote,strikeName)
                             win.after(strikeStart+strikeLength,endNote,strikeName)
                             win.after(strikeStart+strikeLength,startNote,name)
+                    if style=="<":#cut:lift finger on g for d/e/f and b for g/a/b see: https://learntinwhistle.com/lessons/tin-whistle-cuts/                        
+                        #https://www.youtube.com/watch?v=QXVSNLtD6AI
+                        if name[0] in 'c':cutName='_'
+                        if name[0] in 'def':cutName='a'
+                        if name[0] in 'DEF':cutName='A'
+                        if name[0] in 'gab':cutName='c#'
+                        if name[0] in 'GAB':cutName='C#'
+                        cutLength=70#200 # msec
+                        if noteLength<400:cutLength=70
+                        if noteLength<200:cutLength=50
+                        if noteLength<100:cutLength=0  
+                        if cutLength>0:
+                            cutStart=int((noteLength-cutLength)/2)
+                            #print (f"noteLength:{noteLength} strikeStart:{strikeStart} strikeLength:{strikeLength} ")              
+                            win.after(cutStart,endNote,name)
+                            if cutName!='_':
+                                win.after(cutStart,startNote,cutName)
+                                win.after(cutStart+cutLength,endNote,cutName)
+                            win.after(cutStart+cutLength,startNote,name)
+                    '''
                     if style=="<":#cut:lift finger on g for d/e/f and b for g/a/b, effect is interuption of note without stopping breath
                         cutLength=noteSilence # msec
                         if cutLength>(noteLength/2): cutLength=noteLength/3
@@ -1034,6 +1058,48 @@ def doCursorPlay():
                             #print (f"noteLength:{noteLength} cutStart:{cutStart} cutLength:{cutLength} ")              
                             win.after(cutStart,endNote,name)
                             win.after(cutStart+cutLength,startNote,name)
+                    '''
+                    if style=="^":#roll (cut+tap):
+                        # split note in two halves and apply cut and tap to both
+                        noteLength1=int(noteLength/2)
+                        if name[0] in 'c':cutName='_'
+                        if name[0] in 'def':cutName='a'
+                        if name[0] in 'DEF':cutName='A'
+                        if name[0] in 'gab':cutName='c#'
+                        if name[0] in 'GAB':cutName='C#'
+                        cutLength=70#200 # msec
+                        if noteLength<400:cutLength=70
+                        if noteLength<200:cutLength=50
+                        if noteLength<100:cutLength=0  
+                        if cutLength>0:
+                            cutStart=int((noteLength1-cutLength)/2)
+                            #print (f"noteLength:{noteLength} strikeStart:{strikeStart} strikeLength:{strikeLength} ")              
+                            win.after(cutStart,endNote,name)
+                            if cutName!='_':
+                                win.after(cutStart,startNote,cutName)
+                                win.after(cutStart+cutLength,endNote,cutName)
+                            win.after(cutStart+cutLength,startNote,name)
+
+                        noteLength2=noteLength-noteLength1
+                        
+                        strikeNotes={'c#':'b','b':'a','a':'g','g':'f#','f#':'e','e':'d','d':'C#', 
+                                     'C#':'B','B':'A','A':'G','G':'F#','F#':'E','E':'D','D':'C#'}
+                        #noteIdx=noteIDs.index(name)
+                        #strikeName=noteIDs[noteIdx+2] # full note higher is 2 halves/indices above
+                        strikeName=strikeNotes[name]
+                        strikeLength=200 # msec
+                        if noteLength1<400:strikeLength=100
+                        if noteLength1<200:strikeLength=50
+                        if noteLength1<100:strikeLength=0  
+                        if strikeLength>0:
+                            strikeStart=int((noteLength2-strikeLength)/2)
+                            #print (f"noteLength:{noteLength} strikeStart:{strikeStart} strikeLength:{strikeLength} ")              
+                            win.after(noteLength1+strikeStart,endNote,name)
+                            win.after(noteLength1+strikeStart,startNote,strikeName)
+                            win.after(noteLength1+strikeStart+strikeLength,endNote,strikeName)
+                            win.after(noteLength1+strikeStart+strikeLength,startNote,name)
+
+                    '''
                     if style=="^":#roll (cut+tap):
                         # split note in two halves and apply cut and tap to both
                         noteLength1=int(noteLength/2)
@@ -1060,9 +1126,16 @@ def doCursorPlay():
                             #print (f"noteLength:{noteLength} cutStart:{noteLength1+cutStart} cutLength:{cutLength} ")              
                             win.after(noteLength1+cutStart,endNote,name)
                             win.after(noteLength1+cutStart+cutLength,startNote,name)
+                    '''
 
                     if style=="=":#slide: from note -> note +half -> note above
-                        pitchBend(2048*2,noteLength)
+                        # https://www.youtube.com/watch?v=oF47eHR01-k
+                        # slide is not linear, fix!
+                        slideSemitones={'c#':0,'b':3,'a':2,'g':2,'f#':1,'e':3,'d':2, 
+                                      'C#':0,'B':3,'A':2,'G':2,'F#':1,'E':3,'D':2}
+                        slideAmount=slideSemitones[name]
+                        pitchBend(2048*slideAmount,noteLength)
+                        
                     if style=="@":#tongue
                         pass
                     if style=="~":#vibrato
@@ -1494,17 +1567,20 @@ def keypress(event):
     if idx>-1: _,_, dur,_,_, curCol,curRow,_=tabs[idx]
 
     # handle play keys 
-    if playing:
-        if  key=="q":
-            stopTabScroll()
-        elif  key=="w":
+    if  key=="w":
+        if playing:
             pauseTabScroll()
         return
-    if  key=="Tab":
+    elif  key=="Tab":
         if playing: return
         startTabScroll()
+        return
     elif  key=="r":
         autoBars()
+        return
+    elif key=="q":
+        stopTabScroll()
+        return
 
     # handle navigation
     elif key in ('Left','KP_Left'): 
@@ -2119,7 +2195,9 @@ initPlayer()
 
 # public domain tunes
 #loadFile2("Down By The Sally Gardens.tb")
-loadFile2("Fig For A Kiss.tb")
+#loadFile2("Fig For A Kiss.tb")
+loadFile2("testDecos.tb")
+autoBars() # make sure tabs are fully on screen
 
 drawBars(True)
 #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html
