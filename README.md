@@ -33,7 +33,7 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
 
 3) Install fluidsynth:
    Linux: ```apt-get install fluidsynth```
-   Windows: https://www.fluidsynth.org/download/
+   Windows: https://github.com/FluidSynth/fluidsynth/releases/tag/v2.2.0 (Download and unpack)
   
 4) Install the pyscreenshot and pyFluidSynth (For linux replace ```python``` with ```python3```):
    * type ```python -m pip install -U pyFluidSynth --user```
