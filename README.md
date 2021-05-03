@@ -31,15 +31,16 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
 
 2) Download the source code in zip or tar.gz. Unpack to a suitable folder.
 
-3) Install fluidsynth:
+3) Install fluidsynth - not sure if this is needed:
    Linux: ```apt-get install fluidsynth```
    Windows: https://github.com/FluidSynth/fluidsynth/releases/tag/v2.2.0 (Download and unpack)
   
-4) Install the pyscreenshot and pyFluidSynth (For linux replace ```python``` with ```python3```):
+4) Install pillow, pyscreenshot and pyFluidSynth (For linux replace ```python``` with ```python3```):
+   * type ```python -m pip install -U pillow --user```
    * type ```python -m pip install -U pyFluidSynth --user```
    * type ```python -m pip install -U pyscreenshot --user```
 
-4) You have two options to run Tin-Whistle-Helper:
+5) You have two options to run Tin-Whistle-Helper:
    * from your file explorer, </br>navigate to the directory where you extracted the zip file and </br>run (double click) ```TWHelper.py```
    * from a dos prompt/linux terminal, </br>navigate to the directory where you extracted the zip file and </br>
    type ```python TWHelper.py``` for windows or ```python3 TWHelper.py``` for linux.
