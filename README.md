@@ -71,6 +71,7 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
          If not playing, resets beat cursor to first beat
 [▶]    : Play song from current position of beat cursor
 [▮▮]   : Pause song / Resume song 
+[@]    : Unroll repeated parts (needed for linear play)
 [⬏]    : Switch from page view (wrapped) to linear view
 [⤢]    : Autosize window and zoom level
 [↙]    : Reduce zoom level to fit window size
