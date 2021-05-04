@@ -66,6 +66,7 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
  ⊠ CO  : Count Off 4 beats after pressing play before starting song
  ⏅     : Sets number of beats for metronome to sound
  ⊠ ♫⚟  : Play the notes of the song
+ ⊠ ⮤↴  : Play decorations (experimental)
  ⊠ Low : Play the song one octave lower to resemble a low whistle
 [■]    : If playing, stops song and set beat cursor to starting beat
          If not playing, resets beat cursor to first beat
