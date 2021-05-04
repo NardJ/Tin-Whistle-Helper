@@ -68,9 +68,9 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
  ⊠ ♫⚟  : Play the notes of the song
  ⊠ ⮤↴  : Play decorations (experimental)
  ⊠ Low : Play the song one octave lower to resemble a low whistle
+[▶]    : Play song from current position of beat cursor
 [■]    : If playing, stops song and set beat cursor to starting beat
          If not playing, resets beat cursor to first beat
-[▶]    : Play song from current position of beat cursor
 [▮▮]   : Pause song / Resume song 
 [@]    : Unroll repeated parts (needed for linear play)
 [⬏]    : Switch from page view (wrapped) to linear view
