@@ -17,10 +17,11 @@ and lets you make and edit the tabs. Below are the controls to use this tool.
  ⊠ CO  : Count Off 4 beats after pressing play before starting song
  ⏅     : Sets number of beats for metronome to sound
  ⊠ ♫⚟  : Play the notes of the song
+ ⊠ ⮤↴  : Play decorations (experimental)
  ⊠ Low : Play the song one octave lower to resemble a low whistle
+[▶]    : Play song from current position of beat cursor
 [■]    : If playing, stops song and set beat cursor to starting beat
          If not playing, resets beat cursor to first beat
-[▶]    : Play song from current position of beat cursor
 [▮▮]   : Pause song / Resume song 
 [@]    : Unroll repeated parts (needed for linear play)
 [⬏]    : Switch from page view (wrapped) to linear view
