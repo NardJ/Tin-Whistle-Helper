@@ -29,7 +29,7 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
 
 1) Install Python **3** from https://www.python.org/downloads/ if needed. 
 
-2) Download the source code in zip or tar.gz. Unpack to a suitable folder.
+2) Download the source code of Tin-Whistle-Helper in zip or tar.gz format. Unpack to a suitable folder.
 
 3) Install fluidsynth - not sure if this is needed:
    * Linux: ```apt-get install fluidsynth```
