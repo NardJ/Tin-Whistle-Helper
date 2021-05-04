@@ -11,8 +11,15 @@
 #   2) copy resources/screenshots/tabs folder to dist folder
 #   see https://pyinstaller.readthedocs.io/en/stable/usage.html#using-pyinstaller
 
+# make splash to thank for usage of fluidsynt?
+# make sure you have fluidsynth installed on linux or in path on windows (main dir and all subdirs)
+# TEST: if fluidsynth not installed, disable play note etc.
+# box in tb2 files are not aligned correctly in windows
+
 import traceback
 import os
+from sys import platform
+
 from datetime import datetime
 import time
 import copy
@@ -21,6 +28,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter.messagebox import Message
 from pyscreenshot import grab
 from PIL import Image
 
@@ -34,11 +42,21 @@ icondir   = os.path.join(scriptdir,"resources/icons")
 sf2dir    = os.path.join(scriptdir,"resources/sf2")
 screenshotdir=os.path.join(scriptdir,"screenshots")
 helpdir   = os.path.join(scriptdir,"resources")
-import fluidsynth #pip3 install pyFluidSynth
-import helpWin
 
+fluidsynthLoaded=False
+try:
+    import fluidsynth #pip3 install pyFluidSynth
+    fluidsynthLoaded=True
+except Exception as e:
+    print (f"Error on import fluidsynth:{e}")
+    traceback.print_exc()
+
+import helpWin
+import infoDialog
 def experimental():
-    messagebox.showinfo("Experimental","This feature is experimental and \nprobably will not work properly.")
+    infoDialog.show(win,title= "Experimental",
+                        message="This feature is experimental and \nprobably will not work properly.",
+                        timeout=2000)
 
 #https://www.fluidsynth.org/api/LoadingSoundfonts.html
 #https://github.com/nwhitehead/pyfluidsynth
@@ -49,8 +67,18 @@ chnFlute=None
 chnMetro=None
 def initPlayer():
     global sfFlute, sfMetro,chnFlute,chnMetro
-    fs.start(driver="alsa")
-    
+    # check if fluidsynth could be loaded
+    if not fluidsynthLoaded: return
+    # select appropriate driver
+    if "linux" in platform:
+        fs.start(driver="alsa")
+    if platform=="win32":
+        fs.start(driver="dsound")
+    if platform=="darwin":#OS X
+        print ("OS X is not yet supported. Please contact me (https://github.com/NardJ/Tin-Whistle-Helper) to add support.")
+        quit()
+
+    # load instruments
     #soundfontpath = os.path.join(scriptdir,"SynthThik.sf2")
     soundfontpath = os.path.join(sf2dir,"198-WSA percussion kit.SF2")
     sfMetro = fs.sfload(soundfontpath)
@@ -87,6 +115,7 @@ def setLowHigh():
     noteNrs=noteNrsLow if win.varLow.get() else noteNrsHigh
 
 def startNote(noteId):    
+    if not fluidsynthLoaded: return
     global oldNoteNr
     if noteId in noteNrs:
         noteNr=noteNrs[noteId]
@@ -94,7 +123,8 @@ def startNote(noteId):
         oldNoteNr=noteNr
     #print (f"On : {noteId}")
 startNote('')
-def endNote(noteId=None):    
+def endNote(noteId=None):
+    if not fluidsynthLoaded: return    
     noteNr=oldNoteNr if noteId==None else noteNrs[noteId]
     fs.noteoff(0, noteNr)
     #print (f"Off: {noteId}")
@@ -112,11 +142,13 @@ quit()
 '''
 
 def startTick():
+    if not fluidsynthLoaded: return
     noteNr=12*9+2
     fs.noteoff(1, noteNr)
     fs.noteon(1, noteNr,127)
 
 def closePlayer():
+    if not fluidsynthLoaded: return
     fs.delete()
 
 win=None
@@ -377,7 +409,7 @@ def loadFile2(tfilename=None,tfilepath=None):
     capTitle()
     texts.clear()
     try:
-        with open(tfilepath,'r') as reader:
+        with open(tfilepath,'r',encoding='utf-8') as reader:
             lines=reader.readlines()
         #remove comments and empty lines
         for idx in range(len(lines)-1,-1,-1):            
@@ -444,8 +476,8 @@ def loadFile2(tfilename=None,tfilepath=None):
         calcTabDims()
     except Exception as e:
         print (f"Error reading tab file:{e}")
-        print (f"line:'{line}'")
-        print (f"Note:'{note}'")
+        #if line: print (f"line:'{line}'") # not working, at least not under windows
+        #print (f"Note:'{note}'")
         traceback.print_exc()
 
 
@@ -463,7 +495,7 @@ def saveFile2(tfilename=None,tfilepath=None):
     drawBars(True)
     eol='\n'
     try:
-        with open(tfilepath,'w') as writer:   
+        with open(tfilepath,'w',encoding='utf-8') as writer:   
             writer.write(f"# {title}{eol}")
             writer.write(f"#   made with TWHelper{eol}")
             writer.write(f"#   see https://github.com/NardJ/Tin-Whistle-Helper{eol}")
@@ -1145,6 +1177,7 @@ pitchVal=0
 totBendDur=0
 def pitchBend(amount,duration,bendFromPerc=0,bendToPerc=1,restart=True):
     global pitchVal,totBendDur
+    if not fluidsynthLoaded: return
     if restart: 
         pitchVal=0
         totBendDur=0
@@ -1180,6 +1213,7 @@ vibStart=0
 vibState=2
 def vibrato(noteName,duration,restart=True):
     global vibState,vibStart
+    if not fluidsynthLoaded: return
     if restart:
         vibStart=time.time()        
 
@@ -1210,7 +1244,10 @@ def stopTabScroll():
     beatCursor=firstPlayBeat
     endNote()
     playing=False
-    widgets=[win.btnLoad, win.btnNew,win.btnSave,win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,win.cbCountOff,win.cbLow,win.cbLinear,win.btnUnroll,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
+    widgets=[win.btnLoad, win.btnNew,win.btnSave,
+            win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,
+            win.cbCountOff,win.cbLow,win.cbDeco,win.lbMetroMult,win.imMetro,win.cbSound,
+            win.cbLinear,win.btnUnroll,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
     for widget in widgets: widget.config(state=tk.NORMAL)
     win.cvs.xview_moveto(0)    
     win.cvs.yview_moveto(0)    
@@ -1305,7 +1342,10 @@ def startTabScroll():
     initTabScroll(firstPlayBeat)
     initBars(beatsize) # don't reset zoom
     playing=True
-    widgets=[win.btnLoad, win.btnNew,win.btnSave,win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,win.cbCountOff,win.cbLow,win.cbLinear,win.btnUnroll,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
+    widgets=[win.btnLoad, win.btnNew,win.btnSave,
+            win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,
+            win.cbCountOff,win.cbLow,win.cbDeco,win.lbMetroMult,win.imMetro,win.cbSound,
+            win.cbLinear,win.btnUnroll,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
     for widget in widgets: widget.config(state=tk.DISABLED)
     #resetView(None)
     win.cvs.yview_moveto(0)
@@ -1455,6 +1495,7 @@ metroMults=['0','1',u'\u00BD',u'\u00BC']
 metroMultIdx=1
 def advMetroMult(event=None):
     global metroMultIdx
+    if playing: return
     metroMultIdx=(metroMultIdx+1) % len(metroMults)
     win.lbMetroMult.configure(text=metroMults[metroMultIdx]+u'\u00D7')
     if metroMultIdx==0:
@@ -2013,69 +2054,71 @@ def initWindow():
     win.btn2xFaster.pack(side=tk.LEFT,padx=(0,2))
     win.btn2xFaster.tooltip=CreateToolTip(win.btn2xFaster,"Speed up play\n by 200%.")
 
-    # draw sep
-    win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,0))
+    if fluidsynthLoaded: 
 
-    # countOff 
-    win.varCountOff=tk.BooleanVar(value=False)
-    win.cbCountOff=tk.Checkbutton(win.buttonframe,text='CO',variable=win.varCountOff,takefocus=0)
-    footerbgcolor='white'
-    footerfgcolor='black'
-    win.cbCountOff.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
-    #win.cbSound.config(font=("Courier", 12))
-    win.cbCountOff.pack(side=tk.LEFT,padx=(2,2))
-    win.cbCountOff.tooltip=CreateToolTip(win.cbCountOff,"Count of 4 \nbeats before play.")
+        # draw sep
+        win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,0))
 
-    # play metro (see:https://en.wikipedia.org/wiki/Media_control_symbols)
-    win.metroFrame=tk.Frame(win.buttonframe,background="white",border=0,highlightthickness=0,relief=tk.FLAT)
-    win.metroFrame.pack(side=tk.LEFT,padx=(0,6),pady=(0,0),ipadx=2,ipady=2,expand=False,fill=tk.Y)
-    win.varMetro=tk.BooleanVar(value=True)
-    win.lbMetroMult = tk.Label(win.metroFrame, text='1'+u'\u00D7',anchor="e",width=3,background='white',cursor="exchange")#"pirate")#"exchange")
-    win.lbMetroMult.pack(side=tk.LEFT)
-    footerbgcolor='white'
-    footerfgcolor='black'
-    imgPath=os.path.join(icondir,"Metronome18.png")
-    imgPathG=os.path.join(icondir,"Metronome18G.png")
-    win.imgMetro = tk.PhotoImage(file=imgPath)#.subsample(4,4)
-    win.imgMetroG = tk.PhotoImage(file=imgPathG)#.subsample(4,4)
-    win.imMetro = tk.Label(win.metroFrame, image=win.imgMetro,cursor="exchange")
-    win.imMetro.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
-    win.imMetro.pack(side=tk.LEFT)
-    win.imMetro.tooltip=CreateToolTip(win.imMetro,"Slow down \nmetro 50%.")
-    
-    win.lbMetroMult.bind("<Button-1>",advMetroMult)
-    win.imMetro.bind("<Button-1>",advMetroMult)
-    
+        # countOff 
+        win.varCountOff=tk.BooleanVar(value=False)
+        win.cbCountOff=tk.Checkbutton(win.buttonframe,text='CO',variable=win.varCountOff,takefocus=0)
+        footerbgcolor='white'
+        footerfgcolor='black'
+        win.cbCountOff.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
+        #win.cbSound.config(font=("Courier", 12))
+        win.cbCountOff.pack(side=tk.LEFT,padx=(2,2))
+        win.cbCountOff.tooltip=CreateToolTip(win.cbCountOff,"Count of 4 \nbeats before play.")
 
-    # play sound (see:https://en.wikipedia.org/wiki/Media_control_symbols)
-    win.varSound=tk.BooleanVar(value=True)
-    win.cbSound=tk.Checkbutton(win.buttonframe,text=u'\u266B\u269F',variable=win.varSound,takefocus=0)
-    footerbgcolor='white'
-    footerfgcolor='black'
-    win.cbSound.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
-    #win.cbSound.config(font=("Courier", 12))
-    win.cbSound.pack(side=tk.LEFT,padx=(2,2))
-    win.cbSound.tooltip=CreateToolTip(win.cbSound,"Turn on/off\n whistle.")
+        # play metro (see:https://en.wikipedia.org/wiki/Media_control_symbols)
+        win.metroFrame=tk.Frame(win.buttonframe,background="white",border=0,highlightthickness=0,relief=tk.FLAT)
+        win.metroFrame.pack(side=tk.LEFT,padx=(0,6),pady=(0,0),ipadx=2,ipady=2,expand=False,fill=tk.Y)
+        win.varMetro=tk.BooleanVar(value=True)
+        win.lbMetroMult = tk.Label(win.metroFrame, text='1'+u'\u00D7',anchor="e",width=3,background='white',cursor="exchange")#"pirate")#"exchange")
+        win.lbMetroMult.pack(side=tk.LEFT)
+        footerbgcolor='white'
+        footerfgcolor='black'
+        imgPath=os.path.join(icondir,"Metronome18.png")
+        imgPathG=os.path.join(icondir,"Metronome18G.png")
+        win.imgMetro = tk.PhotoImage(file=imgPath)#.subsample(4,4)
+        win.imgMetroG = tk.PhotoImage(file=imgPathG)#.subsample(4,4)
+        win.imMetro = tk.Label(win.metroFrame, image=win.imgMetro,cursor="exchange")
+        win.imMetro.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
+        win.imMetro.pack(side=tk.LEFT)
+        win.imMetro.tooltip=CreateToolTip(win.imMetro,"Slow down \nmetro 50%.")
+        
+        win.lbMetroMult.bind("<Button-1>",advMetroMult)
+        win.imMetro.bind("<Button-1>",advMetroMult)
+        
 
-    # play decorations
-    win.varDeco=tk.BooleanVar(value=False)
-    win.cbDeco=tk.Checkbutton(win.buttonframe,text=u'\u2BA4\u21B4',variable=win.varDeco,command=experimental,takefocus=0)
-    footerbgcolor='white'
-    footerfgcolor='black'
-    win.cbDeco.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
-    #win.cbSound.config(font=("Courier", 12))
-    win.cbDeco.pack(side=tk.LEFT,padx=(2,2))
-    win.cbDeco.tooltip=CreateToolTip(win.cbDeco,"Play \ndecorations.")
+        # play sound (see:https://en.wikipedia.org/wiki/Media_control_symbols)
+        win.varSound=tk.BooleanVar(value=True)
+        win.cbSound=tk.Checkbutton(win.buttonframe,text=u'\u266B\u269F',variable=win.varSound,takefocus=0)
+        footerbgcolor='white'
+        footerfgcolor='black'
+        win.cbSound.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
+        #win.cbSound.config(font=("Courier", 12))
+        win.cbSound.pack(side=tk.LEFT,padx=(2,2))
+        win.cbSound.tooltip=CreateToolTip(win.cbSound,"Turn on/off\n whistle.")
 
-    # Low whistle 
-    win.varLow=tk.BooleanVar(value=False)
-    win.cbLow=tk.Checkbutton(win.buttonframe,text='Low',variable=win.varLow,command=setLowHigh,takefocus=0)
-    footerbgcolor='white'
-    footerfgcolor='black'
-    win.cbLow.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
-    #win.cbSound.config(font=("Courier", 12))
-    win.cbLow.pack(side=tk.LEFT,padx=(2,2))
-    win.cbLow.tooltip=CreateToolTip(win.cbLow,"High/Low \nwhistle.")
+        # play decorations
+        win.varDeco=tk.BooleanVar(value=False)
+        win.cbDeco=tk.Checkbutton(win.buttonframe,text=u'\u2BA4\u21B4',variable=win.varDeco,command=experimental,takefocus=0)
+        footerbgcolor='white'
+        footerfgcolor='black'
+        win.cbDeco.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
+        #win.cbSound.config(font=("Courier", 12))
+        win.cbDeco.pack(side=tk.LEFT,padx=(2,2))
+        win.cbDeco.tooltip=CreateToolTip(win.cbDeco,"Play \ndecorations.")
+
+        # Low whistle 
+        win.varLow=tk.BooleanVar(value=False)
+        win.cbLow=tk.Checkbutton(win.buttonframe,text='Low',variable=win.varLow,command=setLowHigh,takefocus=0)
+        footerbgcolor='white'
+        footerfgcolor='black'
+        win.cbLow.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
+        #win.cbSound.config(font=("Courier", 12))
+        win.cbLow.pack(side=tk.LEFT,padx=(2,2))
+        win.cbLow.tooltip=CreateToolTip(win.cbLow,"High/Low \nwhistle.")
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
@@ -2209,9 +2252,9 @@ initPlayer()
 #loadFile2("tutorial.tb")
 
 # public domain tunes
-#loadFile2("Down By The Sally Gardens.tb")
+loadFile2("Down By The Sally Gardens.tb")
 #loadFile2("Fig For A Kiss.tb")
-loadFile2("testDecos.tb")
+#loadFile2("testDecos.tb")
 autoBars() # make sure tabs are fully on screen
 
 drawBars(True)
