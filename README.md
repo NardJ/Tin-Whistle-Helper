@@ -31,9 +31,9 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
 
 2) Download the source code of Tin-Whistle-Helper in zip or tar.gz format. Unpack to a suitable folder.
 
-3) Install fluidsynth - not sure if this is needed:
+3) For metronome and sound of tin whistle playing, install fluidsynth:
    * Linux: ```apt-get install fluidsynth```
-   * Windows: https://github.com/FluidSynth/fluidsynth/releases/tag/v2.2.0 (Download, unpack, include in path)
+   * Windows: https://github.com/FluidSynth/fluidsynth/releases/tag/v2.2.0 (Download, unpack, run setup.py, include in path)
   
 4) Install pillow, pyscreenshot and pyFluidSynth (For linux replace ```python``` with ```python3```):
    * type ```python -m pip install -U pillow --user```
