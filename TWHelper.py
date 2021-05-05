@@ -44,9 +44,11 @@ screenshotdir=os.path.join(scriptdir,"screenshots")
 helpdir   = os.path.join(scriptdir,"resources")
 
 fluidsynthLoaded=False
+fs=None
 try:
     import fluidsynth #pip3 install pyFluidSynth
     fluidsynthLoaded=True
+    fs=fluidsynth.Synth()
 except Exception as e:
     print (f"Error on import fluidsynth:{e}")
     traceback.print_exc()
@@ -60,7 +62,6 @@ def experimental():
 
 #https://www.fluidsynth.org/api/LoadingSoundfonts.html
 #https://github.com/nwhitehead/pyfluidsynth
-fs=fluidsynth.Synth()
 sfFlute=None
 sfMetro=None
 chnFlute=None
