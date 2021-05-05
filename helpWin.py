@@ -15,7 +15,7 @@ def init(rootWin,helpDir):
     helpdir=helpDir
 
 def show():
-    with open(os.path.join(helpdir,"helpWin.txt"), "r") as reader: # open file
+    with open(os.path.join(helpdir,"helpWin.txt"), "r",encoding='utf-8') as reader: # open file
         msg=reader.readlines()    
 
     popupMdown = tk.Toplevel(win)
