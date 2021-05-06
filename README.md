@@ -28,7 +28,8 @@ and lets you make and edit the tabs.
 You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Linux. 
 
 1) Install Python **3**, pip and tkinter if needed
-   * Linux: ```sudo apt-get install python3-tk```
+   * Linux: ```sudo apt-get install python3```
+            ```sudo apt-get install python3-tk```
             ```sudo apt-get install python3-pip```
    * Windows: https://www.python.org/downloads/ 
 
