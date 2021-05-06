@@ -15,6 +15,9 @@
 # make sure you have fluidsynth installed on linux or in path on windows (main dir and all subdirs)
 # TEST: if fluidsynth not installed, disable play note etc.
 # box in tb2 files are not aligned correctly in windows
+#
+# BUG: Cannot enter f# in windows
+
 
 import traceback
 import os
@@ -2092,24 +2095,36 @@ def initWindow():
         
 
         # play sound (see:https://en.wikipedia.org/wiki/Media_control_symbols)
+        imgPath=os.path.join(icondir,"whistlesound.png")
+        win.imgSound= tk.PhotoImage(file=imgPath)
         win.varSound=tk.BooleanVar(value=True)
-        win.cbSound=tk.Checkbutton(win.buttonframe,text=u'\u266B\u269F',variable=win.varSound,takefocus=0)
+        win.cbSound=tk.Checkbutton(win.buttonframe,text='',variable=win.varSound,takefocus=0)
+        win.lbSound=tk.Label(win.buttonframe,image=win.imgSound,takefocus=0)
         footerbgcolor='white'
         footerfgcolor='black'
         win.cbSound.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
         #win.cbSound.config(font=("*font", 12))
-        win.cbSound.pack(side=tk.LEFT,padx=(2,2))
+        win.cbSound.pack(side=tk.LEFT,padx=(2,0))
         win.cbSound.tooltip=CreateToolTip(win.cbSound,"Turn on/off\n whistle.")
+        win.lbSound.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
+        win.lbSound.pack(side=tk.LEFT,padx=(0,2))
+        win.lbSound.tooltip=CreateToolTip(win.lbSound,"Turn on/off\n whistle.")
 
         # play decorations
+        imgPath=os.path.join(icondir,"decos.png")
+        win.imgDeco= tk.PhotoImage(file=imgPath)
         win.varDeco=tk.BooleanVar(value=False)
-        win.cbDeco=tk.Checkbutton(win.buttonframe,text=u'\u2BA4\u21B4',variable=win.varDeco,command=experimental,takefocus=0)
+        win.cbDeco=tk.Checkbutton(win.buttonframe,text='',variable=win.varDeco,command=experimental,takefocus=0)
+        win.lbDeco=tk.Label(win.buttonframe,image=win.imgDeco,takefocus=0)
         footerbgcolor='white'
         footerfgcolor='black'
         win.cbDeco.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
         #win.cbSound.config(font=("*font", 12))
-        win.cbDeco.pack(side=tk.LEFT,padx=(2,2))
+        win.cbDeco.pack(side=tk.LEFT,padx=(2,0))
         win.cbDeco.tooltip=CreateToolTip(win.cbDeco,"Play \ndecorations.")
+        win.lbDeco.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
+        win.lbDeco.pack(side=tk.LEFT,padx=(0,2))
+        win.lbDeco.tooltip=CreateToolTip(win.lbDeco,"Play \ndecorations.")
 
         # Low whistle 
         win.varLow=tk.BooleanVar(value=False)
@@ -2125,15 +2140,21 @@ def initWindow():
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
     
     # play symbols (see:https://en.wikipedia.org/wiki/Media_control_symbols)
-    win.btnPlay=tk.Button(win.buttonframe,text=u'\u25B6',relief=tk.FLAT,width=1,command=startTabScroll,takefocus=0)
+    imgPath=os.path.join(icondir,"play.png")
+    win.imgPlay= tk.PhotoImage(file=imgPath)
+    win.btnPlay=tk.Button(win.buttonframe,image=win.imgPlay,relief=tk.FLAT,width=24,command=startTabScroll,takefocus=0)
     win.btnPlay.pack(side=tk.LEFT,padx=(1,0))
     win.btnPlay.tooltip=CreateToolTip(win.btnPlay,"Start tabs\n scroll.")
 
-    win.btnStop=tk.Button(win.buttonframe,text=u'\u23F9',relief=tk.FLAT,width=1,command=stopTabScroll,takefocus=0)
+    imgPath=os.path.join(icondir,"stop.png")
+    win.imgStop= tk.PhotoImage(file=imgPath)
+    win.btnStop=tk.Button(win.buttonframe,image=win.imgStop,relief=tk.FLAT,width=24,command=stopTabScroll,takefocus=0)
     win.btnStop.pack(side=tk.LEFT,padx=(1,0))
     win.btnStop.tooltip=CreateToolTip(win.btnStop,"Stop tabs\n scroll.")
 
-    win.btnPause=tk.Button(win.buttonframe,text=u'\u23F8',relief=tk.FLAT,width=1,command=pauseTabScroll,takefocus=0)
+    imgPath=os.path.join(icondir,"pause.png")
+    win.imgPause= tk.PhotoImage(file=imgPath)
+    win.btnPause=tk.Button(win.buttonframe,image=win.imgPause,relief=tk.FLAT,width=24,command=pauseTabScroll,takefocus=0)
     win.btnPause.pack(side=tk.LEFT,padx=(1,0))
     win.btnPause.tooltip=CreateToolTip(win.btnPause,"Pause tabs\n scroll.")
 
