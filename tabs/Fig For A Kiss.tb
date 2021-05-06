@@ -12,9 +12,13 @@ back :#FFFFDE
 # Text
 text:"Fig For A Kiss",1,1.75,"MS Serif",1.2,"bold"
 text:"┌──────────────────────────────┐",49.5,1.20,"Terminal",0.35,"normal"
-text:"│  Public Domain               │",49.5,1.75,"Terminal",0.35,"normal"
-text:"│  Based on: TinWhistler.com   │",49.5,2.3,"Terminal",0.35,"normal"
-text:"└──────────────────────────────┘",49.5,2.85,"Terminal",0.35,"normal"
+text:"│  Music is : Public Domain    │",49.5,1.75,"Terminal",0.35,"normal"
+text:"│  Based on : TinWhistler.com  │",49.5,2.30,"Terminal",0.35,"normal"
+text:"├──────────────────────────────┤",49.5,2.85,"Terminal",0.35,"normal"
+text:"│  Made with: TWHelper         │",49.5,3.40,"Terminal",0.35,"normal"
+text:"│  https://github.com/NardJ/   │",49.5,3.95,"Terminal",0.35,"normal"
+text:"│           Tin-Whistle-Helper │",49.5,4.50,"Terminal",0.35,"normal"
+text:"└──────────────────────────────┘",49.5,5.05,"Terminal",0.35,"normal"
 
 # Tabs
 orange g. b e. b b a g  f#. a d. a a g f#  g. b e. b b a g  b D b a g f# e..^ 

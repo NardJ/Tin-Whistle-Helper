@@ -11,14 +11,11 @@
 #   2) copy resources/screenshots/tabs folder to dist folder
 #   see https://pyinstaller.readthedocs.io/en/stable/usage.html#using-pyinstaller
 
-# make splash to thank for usage of fluidsynt?
-# make sure you have fluidsynth installed on linux or in path on windows (main dir and all subdirs)
-# TEST: if fluidsynth not installed, disable play note etc.
-# box in tb2 files are not aligned correctly in windows
-#
+# BUG: box in tb2 files are not aligned correctly in windows
 # BUG: Cannot enter f# in windows
-# Draw decos using images instead of unicode
-
+# TODO: on linux and windows use pip3 freeze >requirements.txt
+# TODO: make splash to thank for usage of fluidsynt?
+# TODO: make packages for linux and windows
 
 import traceback
 import os
