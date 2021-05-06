@@ -27,11 +27,15 @@ and lets you make and edit the tabs.
 ## Installation
 You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Linux. 
 
-1) Install Python **3** from https://www.python.org/downloads/ if needed. 
+1) Install Python **3**, pip and tkinter if needed
+   * Linux: ```sudo apt-get install python3-tk```
+            ```sudo apt-get install python3-pip```
+   * Windows: https://www.python.org/downloads/ 
 
-2) Download the source code of Tin-Whistle-Helper in zip or tar.gz format. Unpack to a suitable folder.
+2) Download the source code of Tin-Whistle-Helper in archive format. Unpack to a suitable folder.
 
-3) **Optional**: To hear metronome and music, install fluidsynth:
+POSSIBLY NOT NEEDED
+3) To hear metronome and music, install fluidsynth:
    * Linux: ```apt-get install fluidsynth```
    * Windows: https://github.com/FluidSynth/fluidsynth/releases/tag/v2.2.0 <br>
               (Download, unpack, run setup.py, include in path
@@ -39,7 +43,7 @@ You can run Tin Whistle Helper using Python 3 in Windows, OSX(not tested) and Li
 4) Install pillow, pyscreenshot and pyFluidSynth (For linux replace ```python``` with ```python3```):
    * type ```python -m pip install -U pillow --user```
    * type ```python -m pip install -U pyscreenshot --user```
-   * type ```python -m pip install -U pyFluidSynth --user```
+   POSSIBLY NOT NEEDED: * type ```python -m pip install -U pyFluidSynth --user```
    
 5) You have two options to run Tin-Whistle-Helper:
    * from your file explorer, </br>navigate to the directory where you extracted the zip file and </br>run (double click) ```TWHelper.py```
