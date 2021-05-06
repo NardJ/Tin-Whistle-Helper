@@ -737,7 +737,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         # nr times to repeat
         x1=col2x(tabCol)+beat2w(1)/2# xOffset+tabCol*barInterval+beat2w(1)
         y1=y+holeInterval*0.5
-        fnt=("Arial", int(beatsize*0.5))
+        fnt=("*font", int(beatsize*0.5))
         cvs.create_text(x1,y1,text=noteId.replace('{',u'\u00D7'),font=fnt,fill=tabColor)
 
         return False
@@ -759,7 +759,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         # nr times to repeat
         x1=col2x(tabCol)+beat2w(1)/2# xOffset+tabCol*barInterval+beat2w(1)
         y1=y+holeInterval*0.5
-        fnt=("Arial", int(beatsize*0.5))
+        fnt=("*font", int(beatsize*0.5))
         cvs.create_text(x1,y1,text=noteId.replace('}',u'\u00D7'),font=fnt,fill=tabColor)
         return False
     if noteId == eot: return False
@@ -829,7 +829,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         cvs.create_line(x1+2,ym,x2-2,ym,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
         cvs.create_line(xm,y1+2,xm,y2-2,fill=tabColor,width=2)
 
-    fnt=("Arial", int(beatsize*0.7))
+    fnt=("*font", int(beatsize*0.7))
     if noteStyle=='<':#cut ⮤
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
@@ -876,7 +876,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
     noteId=noteId.replace('#',u'\u266F')
     x1=beat2x(beat)+beat2w(1)/2 # beat2x(beat)+beat2w(dur)/2
     y1=y0+holeInterval*8.5
-    fnt=("Arial", int(beatsize*0.5))
+    fnt=("*font", int(beatsize*0.5))
     cvs.create_text(x1,y1,text=noteId,font=fnt)
 
     return True
@@ -918,7 +918,7 @@ def drawBars(force=False):
         if len(texts)==0: #only display filename as title if no texts were given in the file
             x1=beat2x(0)
             y1=beat2y(0)
-            win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor=tk.W, font=("Arial", int(beatsize*1.2), "bold"),text=title,fill=textColor)
+            win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor=tk.W, font=("*font", int(beatsize*1.2), "bold"),text=title,fill=textColor)
         else:
             for idx,textCmd in enumerate(texts):
                 if len(textCmd)>=6:                    
@@ -1993,7 +1993,7 @@ def initWindow():
 
     # CREATE WINDOW
     win = tk.Tk()  
-    win.option_add('*Font', 'Verdana 9')
+    win.option_add('*font',  '*font 9')
 
     # Set Window properties
     win.title(f"Tin Whistle Helper")
@@ -2066,7 +2066,7 @@ def initWindow():
         footerbgcolor='white'
         footerfgcolor='black'
         win.cbCountOff.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
-        #win.cbSound.config(font=("Courier", 12))
+        #win.cbSound.config(font=("*font", 12))
         win.cbCountOff.pack(side=tk.LEFT,padx=(2,2))
         win.cbCountOff.tooltip=CreateToolTip(win.cbCountOff,"Count of 4 \nbeats before play.")
 
@@ -2097,7 +2097,7 @@ def initWindow():
         footerbgcolor='white'
         footerfgcolor='black'
         win.cbSound.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
-        #win.cbSound.config(font=("Courier", 12))
+        #win.cbSound.config(font=("*font", 12))
         win.cbSound.pack(side=tk.LEFT,padx=(2,2))
         win.cbSound.tooltip=CreateToolTip(win.cbSound,"Turn on/off\n whistle.")
 
@@ -2107,7 +2107,7 @@ def initWindow():
         footerbgcolor='white'
         footerfgcolor='black'
         win.cbDeco.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
-        #win.cbSound.config(font=("Courier", 12))
+        #win.cbSound.config(font=("*font", 12))
         win.cbDeco.pack(side=tk.LEFT,padx=(2,2))
         win.cbDeco.tooltip=CreateToolTip(win.cbDeco,"Play \ndecorations.")
 
@@ -2117,7 +2117,7 @@ def initWindow():
         footerbgcolor='white'
         footerfgcolor='black'
         win.cbLow.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor)
-        #win.cbSound.config(font=("Courier", 12))
+        #win.cbSound.config(font=("*font", 12))
         win.cbLow.pack(side=tk.LEFT,padx=(2,2))
         win.cbLow.tooltip=CreateToolTip(win.cbLow,"High/Low \nwhistle.")
 
@@ -2161,7 +2161,7 @@ def initWindow():
     footerbgcolor='white'
     footerfgcolor='black'
     win.cbLinear.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor,selectcolor=footerbgcolor,)
-    #win.cbSound.config(font=("Courier", 12))
+    #win.cbSound.config(font=("*font", 12))
     win.cbLinear.pack(side=tk.LEFT,padx=(0,2))
     win.cbLinear.tooltip=CreateToolTip(win.cbLinear,"Page / Linear view.")
 
