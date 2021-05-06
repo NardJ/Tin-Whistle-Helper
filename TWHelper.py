@@ -17,6 +17,7 @@
 # box in tb2 files are not aligned correctly in windows
 #
 # BUG: Cannot enter f# in windows
+# Draw decos using images instead of unicode
 
 
 import traceback
@@ -834,26 +835,77 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
 
     fnt=("*font", int(beatsize*0.7))
     if noteStyle=='<':#cut ⮤
-        x1=beat2x(beat)+beat2w(1)/2
-        y1=y0+holeInterval*0.5
-        cvs.create_text(x1,y1,text=u'\u2BA4',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
+        w=beat2w(1)
+        h=holeInterval/2
+        x1=beat2x(beat)#+beat2w(1)/2
+        y1=y0+holeInterval*0.25
+        x2=x1+w
+        y2=y1+h
+        xm=x1+w/2
+        ym=(y1+y2)/2
+        
+        cvs.create_line(x1+w*0.25,y2,x1+w*0.75,y2,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.25,y1,x1+w*0.25,y2,fill=tabColor,width=2)
+        cvs.create_line(x1,y1+h*0.5,x1+w*0.25,y1,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.5,y1+h*0.5,x1+w*0.25,y1,fill=tabColor,width=2)
+          
     if noteStyle=='>':#tap/strike ↴
-        x1=beat2x(beat)+beat2w(1)/2
-        y1=y0+holeInterval*0.5
-        cvs.create_text(x1,y1,text=u'\u21B4',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
+        w=beat2w(1)
+        h=holeInterval/2
+        x1=beat2x(beat)+beat2w(1)/8
+        y1=y0+holeInterval*0.25
+        x2=x1+w
+        y2=y1+h
+        xm=x1+w/2
+        ym=(y1+y2)/2
+        
+        cvs.create_line(x1,y1,x1+w*0.5,y1,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.5,y1,x1+w*0.5,y2,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.25,y1+h*0.5,x1+w*0.5,y2,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.75,y1+h*0.5,x1+w*0.5,y2,fill=tabColor,width=2)
+
     if noteStyle=='^':#roll (cut+tap/strike) ⮤↴
-        x1=beat2x(beat)+beat2w(1)/2
-        y1=y0+holeInterval*0.5
-        cvs.create_text(x1,y1,text=u'\u2BA4\u21B4',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
+        w=beat2w(1)
+        h=holeInterval/2
+        x1=beat2x(beat)+beat2w(1)/8
+        y1=y0+holeInterval*0.25
+        x2=x1+w
+        y2=y1+h
+        xm=x1+w/2
+        ym=(y1+y2)/2
+        
+        cvs.create_line(x1+w*0.25,y2,x1+w*0.75,y2,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.25,y1,x1+w*0.25,y2,fill=tabColor,width=2)
+        cvs.create_line(x1,y1+h*0.5,x1+w*0.25,y1,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.5,y1+h*0.5,x1+w*0.25,y1,fill=tabColor,width=2)
+
+        x1=x1+w/2
+        x2=x2+w/2
+        xm=xm+w/2
+        cvs.create_line(x1,y1,x1+w*0.5,y1,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.5,y1,x1+w*0.5,y2,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.25,y1+h*0.5,x1+w*0.5,y2,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.75,y1+h*0.5,x1+w*0.5,y2,fill=tabColor,width=2)
+
     if noteStyle=='=':#slide ⇒
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u21D2',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
         #cvs.create_text(x1,y1,text=u'\u27B2',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
     if noteStyle=='@':#tonguing ᳅
-        x1=beat2x(beat)+beat2w(1)/2
-        y1=y0+holeInterval*0.5
-        cvs.create_text(x1,y1,text=u'\u1CC5',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
+        w=beat2w(1)
+        h=holeInterval/2
+        x1=beat2x(beat)+beat2w(1)/8
+        y1=y0+holeInterval*0.25
+        x2=x1+w
+        y2=y1+h
+        xm=x1+w/2
+        ym=(y1+y2)/2        
+        cvs.create_line(x1,ym+h*0.25,x1+w*0.25,ym-h*0.25,fill=tabColor,width=2)
+        cvs.create_line(x1,ym-h*0.25,x1+w*0.3,ym-h*0.25,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.50,ym-h*0.25,x1+w*0.75,ym-h*0.25,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.375,ym,x1+w*0.75,ym,fill=tabColor,width=2)
+        cvs.create_line(x1+w*0.25,ym+h*0.25,x1+w*0.75,ym+h*0.25,fill=tabColor,width=2)
     if noteStyle=='~':#vibrato ∿
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
