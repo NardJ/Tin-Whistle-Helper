@@ -15,10 +15,11 @@ def show(rootWin,title,message,dims="700x200+100+100",timeout=-1):
     popupSplash.wm_title(title)
     popupSplash.geometry(dims)
     popupSplash.configure(background='white')
-    popupSplash.overrideredirect(True)
+    popupSplash.resizable(False,False)
+    #popupSplash.overrideredirect(True)
 
-    popupSplash.splashTitle=tk.Label(popupSplash,text=title, relief=tk.FLAT,bg='white',font= '*font 15')
-    popupSplash.splashTitle.pack(side=tk.TOP,expand=True,padx=(8,8),pady=(16,0),fill=tk.X)
+    #popupSplash.splashTitle=tk.Label(popupSplash,text=title, relief=tk.FLAT,bg='white',font= '*font 15')
+    #popupSplash.splashTitle.pack(side=tk.TOP,expand=True,padx=(8,8),pady=(16,0),fill=tk.X)
     
     popupSplash.splashText=tk.Label(popupSplash,text=message, relief=tk.FLAT,bg='white',font= 'Consolas 8',justify='left')
     popupSplash.splashText.pack(side=tk.TOP,expand=True,padx=(0,8),pady=(0,8),fill=tk.BOTH)
