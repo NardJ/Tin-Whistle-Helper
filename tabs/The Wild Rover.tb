@@ -11,10 +11,10 @@ back :#FFFFDE
 
 # Text
 text:"The Wild Rover",1,1.75,"MS Serif",1.2,"bold"
-text:"┌──────────────────────────────┐",56.5,1.20,"Terminal",0.35,"normal"
-text:"│  Public Domain               │",56.5,1.75,"Terminal",0.35,"normal"
-text:"│  Based on: TinWhistler.com   │",56.5,2.3,"Terminal",0.35,"normal"
-text:"└──────────────────────────────┘",56.5,2.85,"Terminal",0.35,"normal"
+text:"┌──────────────────────────────┐",56.5,1.20,"Consolas",0.35,"normal"
+text:"│  Public Domain               │",56.5,1.75,"Consolas",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",56.5,2.3,"Consolas",0.35,"normal"
+text:"└──────────────────────────────┘",56.5,2.85,"Consolas",0.35,"normal"
 
 # Tabs
 green a.  g.. a g.  e. d. b.  b.. a b.  c... b c#  D. b. D.  c a.. f#.  d. b. a. 

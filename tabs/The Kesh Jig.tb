@@ -11,10 +11,10 @@ back :#FFFFDE
 
 # Text
 text:"The Kesh Jig",1,1.75,"MS Serif",1.2,"bold"
-text:"┌──────────────────────────────┐",59,1.20,"Terminal",0.35,"normal"
-text:"│  Public Domain               │",59,1.75,"Terminal",0.35,"normal"
-text:"│  Based on: TinWhistler.com   │",59,2.3,"Terminal",0.35,"normal"
-text:"└──────────────────────────────┘",59,2.85,"Terminal",0.35,"normal"
+text:"┌──────────────────────────────┐",59,1.20,"Consolas",0.35,"normal"
+text:"│  Public Domain               │",59,1.75,"Consolas",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",59,2.3,"Consolas",0.35,"normal"
+text:"└──────────────────────────────┘",59,2.85,"Consolas",0.35,"normal"
 
 # Tabs
 green g.. g a b  a.. a b D  E D D G D D  E D b D b a  g.. g a b  a.. a b D  E D D G D b  a g f# g. d 

@@ -11,10 +11,10 @@ back :#FFFFDE
 
 # Text
 text:"The Foggie Dew",1,1.75,"MS Serif",1.2,"bold"
-text:"┌──────────────────────────────┐",41.0,1.20,"Terminal",0.35,"normal"
-text:"│  Public Domain               │",41.0,1.75,"Terminal",0.35,"normal"
-text:"│  Based on: TinWhistler.com   │",41.0,2.3,"Terminal",0.35,"normal"
-text:"└──────────────────────────────┘",41.0,2.85,"Terminal",0.35,"normal"
+text:"┌──────────────────────────────┐",41.0,1.20,"Consolas",0.35,"normal"
+text:"│  Public Domain               │",41.0,1.75,"Consolas",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",41.0,2.3,"Consolas",0.35,"normal"
+text:"└──────────────────────────────┘",41.0,2.85,"Consolas",0.35,"normal"
 
 # Tabs
 green {2 b D  E. D b  E. D b  a. b.  d. e f#  g b a g  e.. d  e..... }2 

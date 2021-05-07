@@ -11,10 +11,10 @@ back :#FFFFDE
 
 # Text
 text:"Dunmore Lasses",1,1.75,"MS Serif",1.2,"bold"
-text:"┌──────────────────────────────┐",79.5,1.20,"Terminal",0.35,"normal"
-text:"│  Public Domain               │",79.5,1.75,"Terminal",0.35,"normal"
-text:"│  Based on: TinWhistler.com   │",79.5,2.30,"Terminal",0.35,"normal"
-text:"└──────────────────────────────┘",79.5,2.85,"Terminal",0.35,"normal"
+text:"┌──────────────────────────────┐",79.5,1.20,"Consolas",0.35,"normal"
+text:"│  Public Domain               │",79.5,1.75,"Consolas",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",79.5,2.30,"Consolas",0.35,"normal"
+text:"└──────────────────────────────┘",79.5,2.85,"Consolas",0.35,"normal"
 
 # Tabs
 green e e e f# g g g a  b E E E E b E E E E  e e e f# g g g b  a b b a g a f# g  e d e f# g f# g a  b E E D E. E F#  G E F# E D E D b g  a c b a g a f# g 

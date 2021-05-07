@@ -11,10 +11,10 @@ back :#FFFFDE
 
 # Text
 text:"Drowsy Maggie",1,1.75,"MS Serif",1.2,"bold"
-text:"┌──────────────────────────────┐",71.0,1.20,"Terminal",0.35,"normal"
-text:"│  Public Domain               │",71.0,1.75,"Terminal",0.35,"normal"
-text:"│  Based on: TinWhistler.com   │",71.0,2.3,"Terminal",0.35,"normal"
-text:"└──────────────────────────────┘",71.0,2.85,"Terminal",0.35,"normal"
+text:"┌──────────────────────────────┐",71.0,1.20,"Consolas",0.35,"normal"
+text:"│  Public Domain               │",71.0,1.75,"Consolas",0.35,"normal"
+text:"│  Based on: TinWhistler.com   │",71.0,2.3,"Consolas",0.35,"normal"
+text:"└──────────────────────────────┘",71.0,2.85,"Consolas",0.35,"normal"
 
 # Tabs
 green e... b. e. D. e. b. e.  e... b. e. a. f#. d. f#.  e... b. e. D. e. b. e.  b..... c#. D. a. f#. d. 

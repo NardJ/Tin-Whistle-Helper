@@ -11,11 +11,11 @@ back :#FFFFDE
 
 # Text
 text:"Down By The Sally Gardens",1,1.75,"Times",1.2,"bold"
-text:"┌────────────────────────────────────────┐",35.0,1.20,"Terminal",0.35,"normal"
-text:"│  Public Domain                         │",35.0,1.75,"Terminal",0.35,"normal"
-text:"│  Based on: TinWhistler.com and         │",35.0,2.3,"Terminal",0.35,"normal"
-text:"│            FiddlingWithMyWhistle.co.uk │",35.0,2.85,"Terminal",0.35,"normal"
-text:"└────────────────────────────────────────┘",35.0,3.40,"Terminal",0.35,"normal"
+text:"┌────────────────────────────────────────┐",35.0,1.20,"Consolas",0.35,"normal"
+text:"│  Public Domain                         │",35.0,1.75,"Consolas",0.35,"normal"
+text:"│  Based on: TinWhistler.com and         │",35.0,2.3,"Consolas",0.35,"normal"
+text:"│            FiddlingWithMyWhistle.co.uk │",35.0,2.85,"Consolas",0.35,"normal"
+text:"└────────────────────────────────────────┘",35.0,3.40,"Consolas",0.35,"normal"
 
 # Tabs
 green {2 d e  f#.> e d e. f# a>  b...^ a.^ D a^  b. a f# e..> d  d...  _. }2 
