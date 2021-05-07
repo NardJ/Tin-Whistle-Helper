@@ -25,9 +25,11 @@ and lets you make and edit the tabs.
 ---
 
 ## Installation
-For Linux and Windows 64 bit, try the install packages under <a target="_blank" href="https://github.com/NardJ/Tin-Whistle-Helper/releases">releases</a>.
+**Install packages**<br>
+For Linux and Windows 64 bit, try the install packages under <a href="https://github.com/NardJ/Tin-Whistle-Helper/releases" target="_blank" >releases</a>.
 <br>These have been tested in Windows 10 64-bit and Linux Mint 20.1 64-bit. 
 <br><br>
+**Run from source**<br>
 For untested/OSX or if the install packages do not work, you can run Tin Whistle Helper using Python 3:
 
 1) Install Python **3**, pip and tkinter if needed
