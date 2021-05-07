@@ -19,8 +19,8 @@ and lets you make and edit the tabs.
 <br />  <br />
 ![Figure 1](https://github.com/NardJ/Tin-Whistle-Helper/blob/main/screenshots/MainWindow.png "Screenshot")
 
-## Demo on YouTube
-[![Demo Video](https://img.youtube.com/vi/YW5N0eGlMkk/0.jpg)](https://youtu.be/YW5N0eGlMkk)
+**Demo on YouTube**<br>
+[![Demo Video](https://img.youtube.com/vi/YW5N0eGlMkk/1.jpg)](https://youtu.be/YW5N0eGlMkk)
 
 </br>
 
