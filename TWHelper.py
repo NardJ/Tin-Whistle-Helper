@@ -1,21 +1,16 @@
-# TODO
-#   Distribute: Shortcuts and package for linux and windows
-#   Tabs: make all display TWHelper github page
-#   
 #   Elan - Nightwish uitwerken
-
 #   README.md > does double click in windows on py file really start
-# use pip3 freeze >requirements.txt
-# package using 
-#   1) 'pyinstaller TWHelper.py'
-#   2) copy resources/screenshots/tabs folder to dist folder
-#   see https://pyinstaller.readthedocs.io/en/stable/usage.html#using-pyinstaller
 
-# BUG: box in tb2 files are not aligned correctly in windows
 # BUG: Cannot enter f# in windows
-# TODO: on linux and windows use pip3 freeze >requirements.txt
 # TODO: make splash to thank for usage of fluidsynt?
-# TODO: make packages for linux and windows
+# DONE: show experimental only once
+#
+# FOR EACH RELEASE
+# TODO: pip3 freeze >requirements.txt
+# TODO: make packages  
+#        1) 'pyinstaller TWHelper.py'       see https://pyinstaller.readthedocs.io/en/stable/usage.html#using-pyinstaller
+#        2) copy resources/screenshots/tabs folder to dist folder
+#        3) copy libfluidsynth.so.* and libfluidsynth64.dll to dist folder
 
 import traceback
 import os
@@ -34,6 +29,7 @@ from pyscreenshot import grab
 from PIL import Image
 
 from tooltip import CreateToolTip
+import splash
 
 #GLOBALS
 scriptpath= os.path.realpath(__file__) 
@@ -56,10 +52,43 @@ except Exception as e:
 
 import helpWin
 import infoDialog
+expShown=False
 def experimental():
+    global expShown
+    if expShown: return
     infoDialog.show(win,title= "Experimental",
                         message="This feature is experimental and \nprobably will not work properly.",
                         timeout=2000)
+    expShown=True
+def showSplash():
+    mw=win.winfo_width()
+    mh=win.winfo_height()
+    sw=700
+    sh=380
+    sx=win.winfo_x()+int((mw-sw)/2)
+    sy=win.winfo_y()+int((mh-sh)/2)
+    dims=f"{sw}x{sh}+{sx}+{sy}"
+    splash.show(win,"Tin Whistle Helper",
+    "___________________________________________________________________________________\n"+
+    "\n"+
+    "Version:   alpha version\n"+
+    "Homepage:  https://github.com/NardJ/Tin-Whistle-Helper\n"+
+    "___________________________________________________________________________________\n"+
+    "\n"+
+    "Made using:\n"+
+    "           Python3      (https://www.python.org/downloads/)\n"+
+    "           PyScreenshot (https://github.com/ponty/pyscreenshot)\n"+
+    "           Pillow       (https://github.com/python-pillow/Pillow)\n"+
+    "           PyFluidSynth (https://github.com/nwhitehead/pyfluidsynth)\n"+
+    "           FluidSynth   (https://github.com/FluidSynth/fluitsynth)\n"+
+    "___________________________________________________________________________________\n"+
+    "\n"+
+    "Disclaimer: \n"+
+    "            This is an alpha version and for testing purposes only.\n"+
+    "            It is not ready for daily use. You will encounter bugs and may \n"+ 
+    "            loose work. The functionality of the next version may differ.\n"+ 
+    "            Tab files created with this version may not load in the next release.",
+                 dims,5000)
 
 #https://www.fluidsynth.org/api/LoadingSoundfonts.html
 #https://github.com/nwhitehead/pyfluidsynth
@@ -131,18 +160,6 @@ def endNote(noteId=None):
     fs.noteoff(0, noteNr)
     #print (f"Off: {noteId}")
 
-#debug
-'''
-initPlayer()
-keyIdx=0
-while keyIdx<len(noteNrsHigh):
-    startNote(list(noteNrsHigh.keys())[keyIdx])
-    time.sleep(0.5)
-    endNote(list(noteNrsHigh.keys())[keyIdx])
-    keyIdx+=1
-quit()
-'''
-
 def startTick():
     if not fluidsynthLoaded: return
     noteNr=12*9+2
@@ -160,76 +177,6 @@ title=""
 def capTitle():
     global title
     title=" ".join([word.capitalize() for word in title.split(" ")])
-
-'''
-def loadFile(filename=None,filepath=None):
-    global tabs,bpm,title,beatsize,backColor
-    if filepath==None:
-        filepath=os.path.join(scriptdir,filename)        
-    if not os.path.isfile(filepath): return
-    tabs.clear()
-    texts.clear()
-    initBars(20)
-    beat=0
-    cur=0
-    tabColor=colors[2]
-    backColor='#FFFFDE'
-    tabRow=0
-    tabCol=0
-    tabLin=0
-    #print (f"filename:{filename}|")
-    title=os.path.basename(filepath).split('.')[0].replace("_"," ")
-    capTitle()
-    try:
-        with open(filepath,'r') as reader:
-            lines=reader.readlines()
-        #remove comments and empty lines
-        for idx in range(len(lines)-1,-1,-1):            
-            line=lines[idx].strip()
-            if len(line)==0: lines=lines[:idx]+lines[idx+1:]
-            elif line[0]=='#':lines=lines[:idx]+lines[idx+1:]
-        #read bpm
-        bpm=int(lines[0])        
-        win.bpm.set(f"{bpm:3}")
-        maxMetroMult()
-        #read notes
-        lines=lines[1:]
-        for line in lines:
-            line=line.strip()
-            if line in colors:
-                tabColor=line
-            elif line =='=':
-                # first append newline
-                name=eot
-                dur=0
-                style=''
-                tabCol+=1
-                tabLin+=1
-                tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])   
-                # next proceed to new line               
-                tabRow+=1
-                tabCol=0
-            else:    
-                data=line.split(",")
-                if len(data)==3:
-                    name=data[0].strip()
-                    dur=data[1].strip()
-                    dur=int(dur)                    
-                    style=data[2].strip()
-                    if name in (noteIDs+sepIDs+restIDs):
-                        tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
-                        #print ([beat,name,dur,style])
-                    else:
-                        print (f"Rejected: {[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]}")
-                    beat+=dur                    
-                    tabCol=tabCol+dur if dur>1 else tabCol+1
-                    tabLin=tabLin+dur if dur>1 else tabLin+1
-        
-        win.title(f"Tin Whistle Helper - {os.path.basename(filepath).split('.')[0]}")
-        calcTabDims()
-    except Exception as e:
-        print (f"Error reading tab file:{e}")
-'''
 
 colors=['blue', 'purple3', '#00BBED','red','DeepPink3','magenta','orange','gold','brown','green','gray39','black',]
 backcolors=['#7BDAFF','#FFC6F4','#CeF1Fd','#ffC0C0','#F7A8Db','#f1Bbf1','#FeE59a','#FFFFDE','#D3B4B4','#A0FdA0','#D4D4D4','#FFFFFF']
@@ -2316,8 +2263,8 @@ def initWindow():
     win.bind("<Configure>", resizeWindow) #
     win.protocol("WM_DELETE_WINDOW", closeWindow) # custom function which sets winDestroyed so we can check state of win
 
-
 initWindow()
+
 initPlayer()
 #loadFile2("Fee Ra Huri.tb")
 #loadFile2("tutorial.tb")
@@ -2335,6 +2282,6 @@ win.update()
 toolbarWidth=win.btnHelp.winfo_x()+win.btnHelp.winfo_width()
 win.minsize(toolbarWidth, 120)
 
+win.after(50,showSplash)
 tk.mainloop()
-
 closePlayer()
