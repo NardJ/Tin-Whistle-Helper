@@ -64,15 +64,16 @@ def showSplash():
     mw=win.winfo_width()
     mh=win.winfo_height()
     sw=700
-    sh=380
+    sh=400
     sx=win.winfo_x()+int((mw-sw)/2)
     sy=win.winfo_y()+int((mh-sh)/2)
     dims=f"{sw}x{sh}+{sx}+{sy}"
     splash.show(win,"Tin Whistle Helper",
     "___________________________________________________________________________________\n"+
     "\n"+
-    "Version:   alpha version\n"+
-    "Homepage:  https://github.com/NardJ/Tin-Whistle-Helper\n"+
+    "Version   : alpha version\n"+
+    "Homepage  : https://github.com/NardJ/Tin-Whistle-Helper\n"+
+    "License   : Attribution-NonCommercial-ShareAlike 2.0 Generic (CC BY-NC-SA 4.0)\n"+
     "___________________________________________________________________________________\n"+
     "\n"+
     "Made using:\n"+
