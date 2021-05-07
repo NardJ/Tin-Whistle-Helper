@@ -32,7 +32,7 @@ For Linux and Windows 64 bit, try the install packages under <a href="https://gi
 <br>These have been tested in Windows 10 64-bit and Linux Mint 20.1 64-bit. 
 <br><br>
 **Run from source**<br>
-For OSX, 32-bit, untested systems or if the install packages do not work, you can run Tin Whistle Helper using Python 3:
+For OSX, 32-bit, untested systems or if the install packages do not work for you, you can run Tin Whistle Helper using Python 3:
 
 1) Install Python **3**, pip and tkinter if needed
    * Linux: ```sudo apt-get install python3```
