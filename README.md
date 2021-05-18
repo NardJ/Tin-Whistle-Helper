@@ -117,8 +117,8 @@ C               : Change note to 3td-octave c#
 [Alt]-D,F,G,A,C : Change note to 2nd/high-octave d#,f,g#,a#,c
 _               : Change note at cursor to rest
 1...9           : Change length of note
->,<,^,=         : Add decorator tap/strike ↴, cut ⮤, roll ⮤↴, slide ⇒ 
-@,~,.,:         : Add tongue ᳅, vibrato ∿, staccato . , legato/tenuto -
+> , < , ^ , =   : Add decorator tap/strike ↴, cut ⮤, roll ⮤↴, slide ⇒ 
+@ , ~ , * , :   : Add tongue ᳅, vibrato ∿, staccato * , legato/tenuto -
 [Escape]        : Remove decorator
 { , }           : Insert start ┃▏or end │▎for group of notes to repeat
                   Use [Ctrl]/[Alt] for 2x,3x.
