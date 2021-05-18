@@ -68,7 +68,7 @@ For OSX, 32-bit, untested systems or if the install packages do not work for you
 
 ### Toolbar
 ```
-[Load ]: Load a tabs file (.tbs or .tb)
+[Load ]: Load a tabs file (.tb) or abc notate files (.abc)
 [New  ]: Start with clean file and resets beats per minute to 120
 [Save ]: Save a tabs file under the name you provide
 [<]    : Half number of beats per minute (bpm)
@@ -117,8 +117,8 @@ C               : Change note to 3td-octave c#
 [Alt]-D,F,G,A,C : Change note to 2nd/high-octave d#,f,g#,a#,c
 _               : Change note at cursor to rest
 1...9           : Change length of note
-lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴, 
-                                slide ⇒, tongue ᳅, vibrato ∿
+>,<,^,=         : Add decorator tap/strike ↴, cut ⮤, roll ⮤↴, slide ⇒ 
+@,~,.,:         : Add tongue ᳅, vibrato ∿, staccato . , legato/tenuto -
 [Escape]        : Remove decorator
 { , }           : Insert start ┃▏or end │▎for group of notes to repeat
                   Use [Ctrl]/[Alt] for 2x,3x.
