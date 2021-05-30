@@ -1,0 +1,15 @@
+# Testtongue
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+bpm  :480
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+
+# Tabs
+green d....@  

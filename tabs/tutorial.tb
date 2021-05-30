@@ -3,7 +3,13 @@
 #   see https://github.com/NardJ/Tin-Whistle-Helper
 
 # tempo in bps
-120
+bpm:180
+# signature
+signature:4/4
+
+#Attribution
+#composer:
+transcriber:NardJ   
 
 # set color of title text and page color (optional)
 #   colors can be names or hex values 
@@ -17,8 +23,13 @@ back : #FFFFDE
 #   fontName  can be all installed like "Arial", "Times", "Helvetica", "Terminal" 
 #   fontStyle can be "bold", "italic", "normal" of combinations like "bold italic"
 text : "Tutorial", 1,1.75, "Times",1.2, "bold"
-text : "by NardJ", 1,3.3, "Times",0.4, "normal"
-text : "♫",31,0,"Arial",3,"normal",purple
+text:"┌───────────────────────────────┐",-12,1.20,"Consolas",0.35,"normal"
+text:"│  Text placed using neg coords │",-12,1.75,"Consolas",0.35,"normal"
+text:"└───────────────────────────────┘",-12,2.30,"Consolas",0.35,"normal"
+text : "♫",22,16,"Arial",9,"normal",purple
+text:"┌─────┐",-4,-3.6,"Consolas",0.55,"normal"
+text:"│ End │",-4,-2.6,"Consolas",0.55,"normal"
+text:"└─────┘",-4,-1.7,"Consolas",0.55,"normal"
 
 # music notes
 # ----------- 
@@ -37,6 +48,8 @@ text : "♫",31,0,"Arial",3,"normal",purple
 #               roll(cut+tap): ^ 
 #               tonguing     : @
 #               vibrato      : ~
+#               staccator    : *
+#               tenuto       : : 
 #               join notes in one breath
 #                              /: start
 #                              -: continue

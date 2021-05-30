@@ -3,7 +3,11 @@
 #   see https://github.com/NardJ/Tin-Whistle-Helper
 
 # Beats per Minute (bpm)
-240
+bpm:240
+
+#composer:
+transcriber:CutiePie & FiddlingWithMyWhistle
+signature:4/4
 
 # Colors
 color:black

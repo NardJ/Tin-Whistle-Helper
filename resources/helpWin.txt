@@ -7,7 +7,7 @@ and lets you make and edit the tabs. Below are the controls to use this tool.
 
 <H2><u>Toolbar</u></H2>
 <code>
-[Load ]: Load a tabs file (.tbs or .tb)
+[Load ]: Load a tabs file (.tb) or abc notated file (.abc)
 [New  ]: Start with clean file and resets beats per minute to 120
 [Save ]: Save a tabs file under the name you provide
 [<]    : Half number of beats per minute (bpm)
@@ -59,11 +59,13 @@ C               : Change note to 3td-octave c#
 [Alt]-D,F,G,A,C : Change note to 2nd/high-octave d#,f,g#,a#,c
 _               : Change note at cursor to rest
 1...9           : Change length of note
-lt,gt,^,=,@,~   : Add decorator cut ⮤, tap/strike ↴, roll ⮤↴, 
-                                slide ⇒, tongue ᳅, vibrato ∿
+[Alt]-3         : Change to length of third note (2/3 beat)
+> , < , ^ , =   : Add decorator tap/strike ↴, cut ⮤, roll ⮤↴, slide ⇒ 
+@ , ~ , * , :   : Add tongue ᳅, vibrato ∿, staccato * , legato/tenuto -
 [Escape]        : Remove decorator
 { , }           : Insert start ┃▏or end │▎for group of notes to repeat
                   Use [Ctrl]/[Alt] for 2x,3x.
+?               : Mark last notes to repeat one less time
 [Shift] { , }   : Insert start ┃▏or end │▎after cursor.                  
 [Del]           : Remove note or repeat start/end at cursor
 [Shift][Del]    : Remove note or repeat start/end after cursor

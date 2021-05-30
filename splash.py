@@ -3,8 +3,14 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import font as tkf
 popupSplash=None
-def destroy(ev):
+
+def visible():
+    return (False if popupSplash==None else True)
+
+def destroy(ev=None):
+    global popupSplash
     popupSplash.destroy()
+    popupSplash=None
 
 def show(rootWin,title,message,dims="700x200+100+100",timeout=-1):
     global popupSplash
@@ -25,6 +31,9 @@ def show(rootWin,title,message,dims="700x200+100+100",timeout=-1):
     popupSplash.splashText.pack(side=tk.TOP,expand=True,padx=(0,8),pady=(0,8),fill=tk.BOTH)
     
     popupSplash.bind("<ButtonRelease>",destroy)
+    popupSplash.bind("<Key>",destroy)
     
     if timeout>0:
-        popupSplash.after(timeout,popupSplash.destroy)
+        popupSplash.after(timeout,destroy)
+
+    return popupSplash

@@ -1,10 +1,52 @@
 #   Elan - Nightwish uitwerken
 #   README.md > does double click in windows on py file really start
 
+# TEST: Implement abcnotation, possbibly as tab format
+#       https://abcnotation.com/qtunes#early
+#       http://www.nigelgatherer.com/tunes/abc/abc1.html
+#       https://abcnotation.com/blog/2010/01/31/how-to-understand-abc-the-basics/
+# BUG : hwhisk.abc fails to load
+# TODO: Replace playing of vibrato etc deco's by CC-play messages
+#       https://professionalcomposers.com/midi-cc-list/
+# TODO: replace .tb extension with .tab extension
+# TODO: Make mobile e.g. using Kivy (https://kivy.org/)
+
+# TODO: Check if 'delay=delay2beatUpdate(beatUpdate)' serves a purpose in 'def setBeatUpdate()'
 # BUG: Cannot enter f# in windows
-# TODO: make splash to thank for usage of fluidsynt?
-# DONE: show experimental only once
-#
+
+# DONE: make last part of repeatable section skipable on last repeat
+# DONE: Make tongue decorator also play as such
+# DONE: Play triplets
+#       Implemented with decorator [alt-3] to shorten note 
+# DONE: Load abc files
+#       Implemented with warnings for unsupported features 
+# DONE: if abc repeats across multiple lines remove the line endings between 
+# DONE: implemented attribution fields (composer, transcriver) and signature to tab files 
+#       to be displayed in footer
+# DONE: replace bpm value as first line of tb file with 'bpm:'-field
+# DONE: Display tabs/tune with
+#       - key
+#       - bpm https://www.musictheoryacademy.com/how-to-read-sheet-music/tempo/
+#       - time signatures: not needed e.g. 3/4 which denotes that quarter notes gets beat and there are 3 beats per measure
+#       Implemented in footer
+# DONE: Closure of tune/page / mark last note to play
+#       Not needed, footer only below last tab line: 
+# DONE: Custom text fields on page right/bottom aligned 
+#       by using negative x and y values in tab file 
+# DONE: Accents: staccato (. short/detached), tenuto (-, long attached) 
+#       iImplemented as decorations
+# DONO: hide splash on user action (mouse/key)
+
+# NODO: Ornaments: Should we (be able to) switch between classical symbols for ornaments/decorations and my symbols?
+#       https://hellomusictheory.com/learn/ornaments/   (most important ones)
+#       https://en.wikipedia.org/wiki/List_of_ornaments (full list)
+#       https://www.tradschool.com/en/about-irish-music/ornamentation-in-irish-music/ (tin whistle)
+# NODO: Accents: staccato (. short/detached), accent (> hard), marcato (^ stac+acc), tenuto (-, long attached)
+#       Can be implemented like decorations    
+#       Should both, accent and decoration, be possible for each note?
+# NODO: Should we be able to download abc from internet?
+
+
 # FOR EACH RELEASE
 # TODO: pip3 freeze >requirements.txt
 # TODO: make packages  
@@ -12,9 +54,11 @@
 #        2) copy resources/screenshots/tabs folder to dist folder
 #        3) copy libfluidsynth.so.* and libfluidsynth64.dll to dist folder
 
+
 import traceback
 import os
 from sys import platform
+import re
 
 from datetime import datetime
 import time
@@ -35,11 +79,15 @@ import splash
 scriptpath= os.path.realpath(__file__) 
 scriptdir = os.path.dirname(scriptpath)
 tabdir    = os.path.join(scriptdir,"tabs")
+abcdir    = os.path.join(scriptdir,"abc")
 icondir   = os.path.join(scriptdir,"resources/icons")
 sf2dir    = os.path.join(scriptdir,"resources/sf2")
 screenshotdir=os.path.join(scriptdir,"screenshots")
 helpdir   = os.path.join(scriptdir,"resources")
+lastdir   = tabdir
+lasttype  = ".tb"
 
+# check for fluidsynth
 fluidsynthLoaded=False
 fs=None
 try:
@@ -52,7 +100,9 @@ except Exception as e:
 
 import helpWin
 import infoDialog
-expShown=False
+
+# Show experimental message
+expShown=False # works because we only have 1 experimental feature (play decos)
 def experimental():
     global expShown
     if expShown: return
@@ -60,7 +110,10 @@ def experimental():
                         message="This feature is experimental and \nprobably will not work properly.",
                         timeout=2000)
     expShown=True
+
+# Show splash screen on startup
 def showSplash():
+    # Calc some values to center splash on screen
     mw=win.winfo_width()
     mh=win.winfo_height()
     sw=700
@@ -68,6 +121,7 @@ def showSplash():
     sx=win.winfo_x()+int((mw-sw)/2)
     sy=win.winfo_y()+int((mh-sh)/2)
     dims=f"{sw}x{sh}+{sx}+{sy}"
+    # Show splash
     splash.show(win,"Tin Whistle Helper",
     #"___________________________________________________________________________________\n"+
     #"\n"+
@@ -91,13 +145,15 @@ def showSplash():
     "            Tab files created with this version may not load in the next release.",
                  dims,5000)
 
-#https://www.fluidsynth.org/api/LoadingSoundfonts.html
-#https://github.com/nwhitehead/pyfluidsynth
+# vars for fluidsynth
 sfFlute=None
 sfMetro=None
 chnFlute=None
 chnMetro=None
+# setup fluidsynth with whistle and metro sound
 def initPlayer():
+    #https://www.fluidsynth.org/api/LoadingSoundfonts.html
+    #https://github.com/nwhitehead/pyfluidsynth
     global sfFlute, sfMetro,chnFlute,chnMetro
     # check if fluidsynth could be loaded
     if not fluidsynthLoaded: return
@@ -122,6 +178,7 @@ def initPlayer():
     chnFlute= 0
     fs.program_select(chnFlute, sfFlute, 0, 0)
 
+# define notes, decos, seperators which can be used in tabs
 octL=5
 octM=6
 octH=7
@@ -136,9 +193,68 @@ noteIDs = ['d','d#','e','f','f#','g','g#','a','a#','b','c','c#','D','D#','E','E#
 eot     = 'eot'
 sepIDs  = ['|',',',eot]
 restIDs = ['_']
-decoIDs = ['<','^', '>', '=', '@', '~', '\\','/','-']
+decoIDs = ['<','^', '>', '=', '@', '~', '\\','/','-','*',':','t']
 repID   = 'rep'
 
+# define colors for foreground (tabs and text) and background
+colors=['blue', 'purple3', '#00BBED','red','DeepPink3','magenta','orange','gold','brown','green','gray39','black',]
+backcolors=['#7BDAFF','#FFC6F4','#CeF1Fd','#ffC0C0','#F7A8Db','#f1Bbf1','#FeE59a','#FFFFDE','#D3B4B4','#A0FdA0','#D4D4D4','#FFFFFF']
+
+# vars to store tabs page
+win=None
+tabs=[]
+title=""
+footer=""
+textColor='black'
+backColor='#FFFFDE'
+texts=[]
+
+# file vars for current tabs page 
+filename=None
+filepath=None
+
+# set some vars needed for drawing tabs
+notes={ 'd' :(1,1,1,1,1,1,''),
+        'e' :(1,1,1,1,1,0,''),
+        'f#':(1,1,1,1,0,0,''),
+        'g' :(1,1,1,0,0,0,''),
+        'a' :(1,1,0,0,0,0,''), 
+        'b' :(1,0,0,0,0,0,''),
+        'c#':(0,0,0,0,0,0,''),
+        'D' :(0,1,1,1,1,1,'+'),
+        'E' :(1,1,1,1,1,0,'+'),
+        'F#':(1,1,1,1,0,0,'+'),
+        'G' :(1,1,1,0,0,0,'+'),
+        'A' :(1,1,0,0,0,0,'+'), 
+        'B' :(1,0,0,0,0,0,'+'),
+        'C#':(0,1,1,0,0,0,'+'),
+        '_' :(0,0,0,0,0,0,''),#rest
+
+        'd#':(1,1,1,1,1,2,''),
+        'f' :(1,1,1,1,2,0,''),
+        'g#':(1,1,2,0,0,0,''),
+        'a#':(1,0,1,1,1,1,''),
+        'c' :(0,1,1,0,0,0,''),
+        'D#':(1,1,1,1,1,2,'+'),
+        'F' :(1,1,1,1,2,0,'+'),
+        'G#':(1,1,0,1,1,0,'+'),#not sure if we need harder blow '+'
+        'A#':(1,0,1,0,0,0,'+'),#not sure if we need harder blow '+'
+        'C' :(2,0,0,0,0,0,''),
+        }
+minBeatsize=10
+maxBeatsize=60
+beatsize=20
+barInterval=1.2*beatsize
+holeInterval=1.5*beatsize
+xOffset=beatsize
+yOffset=beatsize
+beatCursor=0
+titleHeight=40
+winDims=[1118,800]
+tabDims=[0,0]
+
+
+# switch between high and low D-whistle octaves
 def setLowHigh():
     global noteNrs
     if playing: 
@@ -146,41 +262,42 @@ def setLowHigh():
         return
     noteNrs=noteNrsLow if win.varLow.get() else noteNrsHigh
 
+# play a note
+normalVol=96
 def startNote(noteId):    
     if not fluidsynthLoaded: return
     global oldNoteNr
     if noteId in noteNrs:
         noteNr=noteNrs[noteId]
-        fs.noteon(0, noteNr,127)
+        fs.noteon(0, noteNr,normalVol)
         oldNoteNr=noteNr
     #print (f"On : {noteId}")
-startNote('')
+
+# stop a playing note
 def endNote(noteId=None):
     if not fluidsynthLoaded: return    
     noteNr=oldNoteNr if noteId==None else noteNrs[noteId]
     fs.noteoff(0, noteNr)
     #print (f"Off: {noteId}")
 
+# play the metronome tick sound
 def startTick():
     if not fluidsynthLoaded: return
     noteNr=12*9+2
     fs.noteoff(1, noteNr)
     fs.noteon(1, noteNr,127)
 
+# destroy fluidsynth instance on closing this program
 def closePlayer():
     if not fluidsynthLoaded: return
     fs.delete()
 
-win=None
-tabs=[]
-title=""
-
+# helper to capatilize each word in title
 def capTitle():
     global title
     title=" ".join([word.capitalize() for word in title.split(" ")])
 
-colors=['blue', 'purple3', '#00BBED','red','DeepPink3','magenta','orange','gold','brown','green','gray39','black',]
-backcolors=['#7BDAFF','#FFC6F4','#CeF1Fd','#ffC0C0','#F7A8Db','#f1Bbf1','#FeE59a','#FFFFDE','#D3B4B4','#A0FdA0','#D4D4D4','#FFFFFF']
+# discard all tabs and start with a new tabs file
 def newFile():
     global beatCursor,tabs,bpm,title,backColor,filename
     if len(oldTabs)>0:
@@ -210,9 +327,7 @@ def newFile():
     recalcBeats()
     drawBars(True)
 
-textColor='black'
-backColor='#FFFFDE'
-texts=[]
+# calc the beat to play the note and to display the note also the col (tabCol), row (tabRow) and linear pos (tabLin)  
 def recalcBeats():
     beat,tabRow,tabCol,tabLin=0,0,0,0
     for idx,tab in enumerate(tabs):
@@ -229,17 +344,21 @@ def recalcBeats():
             beat+=dur
             tabCol+=max(1,dur)
             tabLin+=max(1,dur)
-
+   
+# return nr rows in this tabs file
 def nrTabRows():
     if len(tabs)==0: return 0
     return tabs[-1][6]+1
+# return idx of first tab in tabs[] on specified row
 def rowStart(rowNr):
     for idx in range(len(tabs)):
         if tabs[idx][6]==rowNr: return idx
+# return idx of last tab in tabs[] on specified row
 def rowEnd(rowNr):
     for idx in range(len(tabs)-1,-1,-1):
         if tabs[idx][6]==rowNr: return idx
-
+# remove seperators (| or blank space) on row
+# which may get introduces on reformatting page (insert or delete row end) we may
 def stripSeps():
     #strips all seps at beginning of each row
     for rowNr in range(nrTabRows()):
@@ -254,17 +373,18 @@ def stripSeps():
             lastRowIdx-=1 # last is eot, we want to strip seps just before eot
             lastRowTab=tabs[lastRowIdx]
             if lastRowTab[1] in sepIDs and lastRowTab[1]!=eot: tabs.pop(lastRowIdx)
-
+# return if a repeat symbol if found between two positions in tabs[]
 def hasRepeats(fromIdx=0,toIdx=-1):
     if toIdx==-1: toIdx=len(tabs)
     for idx in range(fromIdx,toIdx):
         if tabs[idx][1][0]=='}': return True
     return False
-
+# return (first) repeat start ('{'-symbol) between two positions in tabs[]
 def firstRepeat(fromIdx=0,toIdx=-1):
     if toIdx==-1: toIdx=len(tabs)
     for idx in range(fromIdx,toIdx):
         if tabs[idx][1][0]=='{': return idx
+# return repeat closure('}'-symbol) between two positions in tabs[]
 def getRepeatMatchIdx(fromIdx,toIdx=-1):
     m=tabs[fromIdx][1][0]
     if m=='{':
@@ -283,6 +403,7 @@ def getRepeatMatchIdx(fromIdx,toIdx=-1):
             if tabs[idx][1][0]=='{':
                 level-=1
                 if level==0: return idx
+# unroll repeated section with
 def unrollRepeats(fromIdx=0,toIdx=-1):
     global tabs
     if toIdx==-1: toIdx=len(tabs)
@@ -310,7 +431,7 @@ def unrollRepeats(fromIdx=0,toIdx=-1):
     # redraw
     recalcBeats()
     drawBars(True)
-
+# return previous tab which has duration / can be played (so note or rest)
 def gotoPrevBeat(idx):
     global beatCursor
     if idx>len(tabs):idx=len(tabs)
@@ -323,125 +444,484 @@ def gotoPrevBeat(idx):
     beatCursor=beat
     return pidx
 
-'''
-def gotoPrevBeat2():
-    global beatCursor
-    for idx in range(len(tabs)-1,-1,-1):
-        print (f"{idx}> {beatCursor} vs {tabs[idx][0]}")
-        if ( tabs[idx][0] == beatCursor ) :
-            for idx2 in range(idx-1,-1,-1):
-                if tabs[idx2][2]>0: 
-                    beatCursor=tabs[idx2][0]
-                    return idx2
-    print ("not fnd")
-    return -1
-'''
-
-filename=None
-filepath=None
-def loadFile2(tfilename=None,tfilepath=None):
-    global tabs,bpm,title,filename,filepath
+# load file with extension .tb (internal file format)
+def loadFileTab(tfilename=None,tfilepath=None):
+    global tabs,bpm,title,footer,filename,filepath
     global textColor,backColor,texts   
 
+    # if we received only filename we build filepath
     if tfilepath==None:
         tfilepath=os.path.join(tabdir,tfilename)        
     if not os.path.isfile(tfilepath): return
 
+    # start fresh tabs page
     tabs.clear()
     initBars(20)
     tabColor=colors[2]
     backColor='#FFFFDE'
     beat,tabRow,tabCol,tabLin=0,0,0,0 #just placeholders, real values will be calculated after loading by recalcBeats
     #print (f"filename:{filename}|")
+
+    # read file
     filepath=tfilepath
     filename=os.path.basename(tfilepath)
+    with open(tfilepath,'r',encoding='utf-8') as reader:
+        lines=reader.readlines()
+
+    #remove comments and empty lines
+    for idx in range(len(lines)-1,-1,-1):            
+        line=lines[idx].strip()
+        if len(line)==0: lines=lines[:idx]+lines[idx+1:]
+        elif line[0]=='#':lines=lines[:idx]+lines[idx+1:]
+
+    #read bpm
+    bpm=120
+    try:
+        bpm=int(lines[0])
+        lines=lines[1:]
+        print (f"Old format...bpm {bpm} found on first line")
+    except Exception as e:
+        print ("Assume new format.")
+            
+    #process all lines
+    signature=""
+    transcriber=""
+    composer=""
+    texts.clear()
+    for line in lines:      # go line by line
+        line=line.strip()   # remove leading and trailing spaces and eol chars
+        if len(line)>0:     # ignore empty lines
+            # process metadata of tune
+            if ':' in line: # read colors and text to display
+                colIdx=line.index(':')
+                cmd=line[:colIdx]
+                val=line[colIdx+1:]
+                #cmd,val=line.split(':')
+                cmd=cmd.strip()
+                if cmd=='bpm': 
+                    bpm=int(val)
+                    print (f"New format... bpm {bpm} found.")
+                if cmd=="signature"  :signature=val
+                if cmd=="transcriber":transcriber=val
+                if cmd=="composer"   :composer=val
+                vals=val.split(",")
+                for idx in range(len(vals)): vals[idx]=vals[idx].strip()
+                if cmd=='color': textColor=vals[0]
+                if cmd=='back' : backColor=vals[0]
+                if cmd=='text' : texts.append(vals)
+            
+            # process note data of tune
+            else:                           
+                line=line.replace('   ',' , , ') # tripple space is visual space between tabs
+                line=line.replace('  ',' , ')    # double space is visual space between tabs
+                while '  ' in line:
+                    line=line.replace('  ','')   # more spaces are removed visual space between tabs
+                notes=line.split(" ")
+                notesfound=False
+                firstIdx=len(tabs)
+                tabCol=0
+                #print (f"line:'{line}\'")
+                for note in notes:  
+                    if note in colors:         
+                        tabColor=note
+                    else:   
+                        #print (f"note:'{note}'")
+                        name=note[0]
+                        if len(note)>1: 
+                            if note[1]=='#': name+='#'
+                        dur=1+note.count('.')
+                        style=''
+                        if len(note)>1:
+                            if note[-1] in decoIDs:#'^>=@~/\\-':
+                                style = note[-1] 
+                        if name in (noteIDs+restIDs+sepIDs) or name in ('{','}','?'):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
+                            if name in sepIDs: dur=0 #('|',','): dur=0
+                            if name in ('{','}','?'): name,dur=note,0
+                            tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])
+                            #print (tabs) 
+                            notesfound=True
+                        else:
+                            print (f"Rejected: [{note}] {[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]}")
+                if notesfound: # ignore lines with only color
+                    name=eot
+                    dur=0
+                    style=''
+                    tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
+    
+    # set title of window, footer
+    win.title(f"Tin Whistle Helper - {os.path.basename(tfilepath).split('.')[0]}")
     title=os.path.basename(tfilepath).split('.')[0].replace("_"," ")
     capTitle()
+    footer=f"Key: D   BPM: {bpm}"
+    if signature: footer+= f"   Signature: {signature}"
+    if composer: footer+=  f"   Composer: {composer}"
+    if transcriber:footer+=f"   Transcriber: {transcriber}"
+
+    # set bpm
+    win.bpm.set(f"{bpm:3}")
+    maxMetroMult()
+    # calculate play order of tabs and display positions on page
+    recalcBeats()
+    # calculate size of page
+    calcTabDims()
+
+# load file with extension .abc (common text file format for traditional music)
+def loadFileABC(tfilename=None,tfilepath=None):
+    # http://www.lesession.co.uk/abc/abc_notation.htm
+    # http://www.lesession.co.uk/abc/abc_notation_part2.htm
+    # https://editor.drawthedots.com/
+    # http://www.nigelgatherer.com/tunes/abc/abc4.html
+    global tabs,bpm,title,filename,filepath,footer
+    global textColor,backColor,texts  
+
+    # if we received only filename we build filepath
+    if tfilepath==None:
+        tfilepath=os.path.join(abcdir,tfilename)        
+    if not os.path.isfile(tfilepath): return
+
+    # start fresh tabs page
+    tabs.clear()
     texts.clear()
-    try:
-        with open(tfilepath,'r',encoding='utf-8') as reader:
-            lines=reader.readlines()
-        #remove comments and empty lines
-        for idx in range(len(lines)-1,-1,-1):            
-            line=lines[idx].strip()
-            if len(line)==0: lines=lines[:idx]+lines[idx+1:]
-            elif line[0]=='#':lines=lines[:idx]+lines[idx+1:]
-        #read bpm
-        bpm=int(lines[0])        
-        win.bpm.set(f"{bpm:3}")
-        maxMetroMult()
-        lines=lines[1:]
-        for line in lines:      # go line by line
-            line=line.strip()   # remove leading and trailing spaces and eol chars
-            if len(line)>0:     # ignore empty lines
-                if ':' in line: # read colors and text to display
-                    colIdx=line.index(':')
-                    cmd=line[:colIdx]
-                    val=line[colIdx+1:]
-                    #cmd,val=line.split(':')
-                    cmd=cmd.strip()
-                    vals=val.split(",")
-                    for idx in range(len(vals)): vals[idx]=vals[idx].strip()
-                    if cmd=='color': textColor=vals[0]
-                    if cmd=='back' : backColor=vals[0]
-                    if cmd=='text' : texts.append(vals)
-                else:           # read notes                
-                    line=line.replace('   ',' , , ') # tripple space is visual space between tabs
-                    line=line.replace('  ',' , ') # double space is visual space between tabs
-                    while '  ' in line:
-                        line=line.replace('  ','') # more spaces are removed visual space between tabs
-                    notes=line.split(" ")
-                    notesfound=False
-                    firstIdx=len(tabs)
-                    tabCol=0
-                    #print (f"line:'{line}\'")
-                    for note in notes:  
-                        if note in colors:         
-                            tabColor=note
-                        else:   
-                            #print (f"note:'{note}'")
-                            name=note[0]
-                            if len(note)>1: 
-                                if note[1]=='#': name+='#'
-                            dur=1+note.count('.')
-                            style=''
-                            if len(note)>1:
-                                if note[-1] in decoIDs:#'^>=@~/\\-':
-                                    style = note[-1] 
-                            if name in (noteIDs+restIDs+sepIDs) or name in ('{','}'):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
-                                if name in sepIDs: dur=0 #('|',','): dur=0
-                                if name in ('{','}'): name,dur=note,0
-                                tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]) 
-                                notesfound=True
-                            else:
-                                print (f"Rejected: [{note}] {[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]}")
-                    if notesfound: # ignore lines with only color
-                        name=eot
-                        dur=0
-                        style=''
-                        tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
+    initBars(20)
+    tabColor=colors[2]
+    backColor='#FFFFDE'
+    beat,tabRow,tabCol,tabLin=0,0,0,0 #just placeholders, real values will be calculated after loading by recalcBeats
+
+    # read file
+    filepath=tfilepath
+    filename=os.path.basename(tfilepath)
+    
+    # set default title
+    title=os.path.basename(tfilepath).split('.')[0].replace("_"," ")
+    capTitle()
+
+    #read file
+    with open(tfilepath,'r',encoding='utf-8') as reader:
+        lines=reader.readlines()
+
+    #remove comments and empty lines
+    for idx in range(len(lines)-1,-1,-1):            
+        line=lines[idx].strip()
+        if len(line)==0: lines=lines[:idx]+lines[idx+1:]
+        elif line[0]=='%':lines=lines[:idx]+lines[idx+1:]
+
+    #join lines ending in \
+    nlines=[]
+    currline='\\'
+    for line in lines:
+        if currline[-1:]=='\\':
+            currline=currline[:-1]+line.strip()
+        if currline[-1:]!='\\':
+            nlines.append(currline)
+            currline='\\'
+    lines=nlines        
+
+    #split in header and content
+    for idx,line in enumerate(lines):
+        if line[0:2]=='K:':
+            header=lines[:idx+1]
+            body=lines[idx+1:]
+            exit
+
+    #read header
+    headeritems=['X:','T:','C:','L:','M:','K:','R:']
+    baseNoteLength=''
+    notesForBeat=''
+    signature=''
+    composer=''
+    transcriber=''
+    bpm=240
+    for line in header:      # go line by line
+        line=line.strip()   # remove leading and trailing spaces and eol chars
+        colIdx=line.index(':')
+        cmd=line[:colIdx]
+        val=line[colIdx+1:]
+        #cmd,val=line.split(':')
+        cmd=cmd.strip()
+        val=val.strip()
+        # each tune should start with an X: field, followed by a T: field and the header then ends at the K: field.
+        if cmd=='X' : pass        # reference number (song part in file)
+        if cmd=='T' : title=val   # title of song
+        if cmd=='C' : composer=val# composer of song
+        if cmd=='Z' : transcriber=val# composer of song
+        if cmd=='Q' : bpm=val
+        if cmd=='L' :             # length of note without elongation or shortening e.g. 'c'  
+                      baseNoteLength=int(val[2])
+        if cmd=='M' :             # Meter of song e.g. 6/8 or C for common time
+                                  # 3/4 denotes that quarter notes gets beat and
+                                  # there are 3 beats per measure
+                                  # measures are seperated with | 'note' and not automatically
+                      signature=val
+                      noteForBeat=int(val[2])
+        if cmd=='R' : pass #val  # Rythm of song e.g. Jig,Reel,Waltz
+                        #print {"Jig":6/8,"Reel":4/4,"Waltz":3/4}[val]  
+        if cmd=='K' :             # Key of song
+                    if val!='D':   
+                        contImport=tk.messagebox.askokcancel("Wrong key",
+                                                    "Tune not of key D. Do you want to ignore and continue import?",
+                                                    default='ok',icon='warning')
+                        if not contImport:
+                            newFile()
+                            return
+        #ignore rest
         
-        win.title(f"Tin Whistle Helper - {os.path.basename(tfilepath).split('.')[0]}")
-        recalcBeats()
-        calcTabDims()
-    except Exception as e:
-        print (f"Error reading tab file:{e}")
-        #if line: print (f"line:'{line}'") # not working, at least not under windows
-        #print (f"Note:'{note}'")
-        traceback.print_exc()
+    #check max divisor to get minimal note length to display
+    maxdiv=1
+    for line in body:
+        for idx,char in enumerate(line):
+            if char=='/':
+                div=int(line[idx+1])
+                if div>maxdiv: maxdiv=div
 
+    # set bpm
+    if baseNoteLength!='' and notesForBeat!='':
+        bpm=bpm*(baseNoteLength/noteForBeat)
+    win.bpm.set(f"{bpm:3}")
+    maxMetroMult()
+    #win.metromult.set(f"")
 
+    # build footer
+    footer=f"Key: D   BPM: {bpm}"
+    if signature: footer+= f"   Signature: {signature}"
+    if composer: footer+=  f"   Composer: {composer}"
+    if transcriber:footer+=f"   Transcriber: {transcriber}"
 
-def saveFile2(tfilename=None,tfilepath=None):
+    #prelimenary refactoring of body
+    #0) remove strings between tunes
+    nbody=[]
+    for line in body:
+        l=""
+        intext=False
+        for c in line:
+            if c=='"': intext= not intext
+            elif not intext: l+=c
+        nbody.append(l)
+    body=nbody
+    #1) remove line endings between repeated sections 
+    #   (for automatic page scrolling repeats should be 1 row)
+    nbody=[]
+    inrep=False
+    l=""
+    for line in body:
+        o='' # hold previous char
+        for c in line:
+            if (o+c)=='|:': inrep= True
+            if (o+c)==':|': inrep= False
+            o=c # store previous char
+            l+=c #add prev char to l
+        if not inrep: 
+            nbody.append(l)
+            l=""
+    body=nbody
+    #2) replace '::' abreviation by ':||:'
+    body=[line.replace('::',':| |:') for line in body]
+    #3) check for unsupported section indicators e.g. '[1'
+    if any('[' in line for line in body):
+        contImport=tk.messagebox.askokcancel("Ignore unsupported feature?",
+                                  "Repeated sections found. Do you want to ignore and continue import?",
+                                  default='ok',icon='warning')
+        if contImport:
+            body=[re.sub('\[\d','',line) for line in body]
+            #print (body)
+        else:
+            return
+    #4) check for unsupported tune property changes and lyrics e.g. Q,L,M,R,K and w:
+    nbody=[]
+    fndU=False
+    for line in body:
+        if line[:2] in ['Q:','L:','M:','R:','K:']:
+            fndU=True
+        else:
+            nbody.append(line)
+    if fndU:
+        contImport=tk.messagebox.askokcancel("Ignore unsupported feature?",
+                                    "Mid-tune change of property (Q/L/M/R/K) found. Do you want to ignore and continue import?",
+                                    default='ok',icon='warning')
+        if contImport:
+            body=nbody
+        else:
+            newFile()
+            return
+    #5) check for unsupported triplets
+    if any('(3' in line for line in body) or any('(2' in line for line in body) or any('(4' in line for line in body):
+        contImport=tk.messagebox.askokcancel("Ignore unsupported feature?",
+                                  "Duplets/Triplets/Quads found. Do you want to ignore and continue import?",
+                                  default='ok',icon='warning')
+        if contImport:
+            body=[line.replace('(3','') for line in body]
+            body=[line.replace('(2','') for line in body]
+            body=[line.replace('(4','') for line in body]
+        else:
+            newFile()
+            return
+    #6) remove notes between {}
+    if any('{' in line for line in body) or any('}' in line for line in body):
+        contImport=tk.messagebox.askokcancel("Ignore sub note groups?",
+                                  "Ornaments / grace note groups found. Do you want to ignore and continue import?",
+                                  default='ok',icon='warning')
+        if contImport:
+            body=[re.sub('\{.*?\}','',line) for line in body]
+        else:
+            newFile()
+            return
+    #7) check for note elongation indicators e.g. '<' and '>'
+    if any('<' in line for line in body) or any('>' in line for line in body):
+        contImport=tk.messagebox.askokcancel("Ignore unsupported feature?",
+                                  "Note elongation/shortening found. Do you want to ignore and continue import?",
+                                  default='ok',icon='warning')
+        if contImport:
+            body=[line.replace('<','') for line in body]
+            body=[line.replace('>','') for line in body]
+        else:
+            newFile()
+            return
+    #8) remove lyrics
+    nbody=[]
+    fndU=False
+    for line in body:
+        if line[:2] != 'w:':
+            nbody.append(line)
+    body=nbody
+    #9) replace double spaces, ending ']'/'||' and strip leading/trailing spaces and /r/n
+    for idx,line in enumerate(body):
+        while '  ' in line:
+            line=line.replace('  ',' ')
+        line=line.replace(']','')
+        line=line.replace('||','')
+        body[idx]=line.strip()
+    #10) replace / without number by /2
+    body=[re.sub('/(\D)',r'/2\1',line) for line in body]
+    #print ("---")
+    #print ("Refactored:")
+    #for line in body:
+    #    print (body)
+    #print ("---")
+    #quit()
+
+    #read body/notes
+    noteitems=['c','d','e','f','g','a','b','C','D','E','F','G','A','B','z','Z']
+    groupitems=['|:',':|','|',':','{','}','?']
+    decos=['.'] # . staccato
+    preitems=['^', '=', '_','~']+decos
+    postitems=['/','1','2','3','4','5','6','7','8', ]
+    #no spaces between adjecent pre and note , note and post  
+    for line in body:      
+        line=line.strip()
+        # extract valid items from refactored body
+        nline=[]
+        idx=0
+        while idx<len(line):
+            fnd=False
+            for item in (preitems+noteitems+postitems+groupitems):
+                if line[idx:idx+len(item)]==item:
+                    nline.append(item)
+                    idx+=len(item)
+                    fnd=True
+                    exit
+            if not fnd: idx+=1
+        notes=[]
+        # groups items in note groups of note itself,pre and post indicators
+        for idx in range(len(nline)):
+            if nline[idx] not in (preitems+noteitems+postitems):
+                notes.append([nline[idx]])
+            #group notes with pre and post items
+            if nline[idx] in noteitems:
+                mgroup=[]
+                mgroup.append(nline[idx])
+                #find start of group
+                groupFrom=idx
+                for jdx in range(idx-1,-1,-1):
+                    if nline[jdx] not in preitems: break
+                    mgroup.append(nline[jdx])    
+                #find end of group
+                groupTo=idx+1
+                for jdx in range(idx+1,len(nline)):
+                    if nline[jdx] not in postitems: break
+                    mgroup.append(nline[jdx])
+                notes.append(mgroup)                    
+
+        # replace some info
+        for gdx,group in enumerate(notes):
+            for idx,note in enumerate(group):
+                # replace c and f by c# and f#
+                if note in "cCfF":
+                    group.append('^') 
+                # replace abc notation for sharp/flat by internal indicators
+                note=note.replace('^','#')
+                note=note.replace('=','')
+                if note == '_': return # not supported
+                if note.isupper(): 
+                    note=note[0].lower()
+                elif note.islower() and note!='c': 
+                    note=note.upper()
+                # replace |: by {2 and :| by }2
+                note=note.replace('|:','{2')
+                note=note.replace(':|','}2')
+                notes[gdx][idx]=note
+
+        # turn note info into tabs
+        notesfound=False
+        firstIdx=len(tabs)
+        tabCol=0
+        for notegroup in notes:
+            #print (f"note:'{note}'")
+            name=notegroup[0]
+            if name=='Z': name='_'
+            if '#' in notegroup: name=name+'#'
+            # make duration
+            multdur=1
+            for i in range(10):
+                if f"{i}" in notegroup:
+                    multdur=i
+                    break
+            if '/' in notegroup: dur=maxdiv/int(multdur)
+            else:                dur=maxdiv*int(multdur)    
+            if name in groupitems: dur=0
+            # decos
+            style=''
+            if name in decos:
+                # ornnaments are not encouraged in abc: http://trillian.mit.edu/~jc/music/abc/ABC-FAQ.html
+                # if present they are included as notes and not as ornament type indicators
+                pass
+            # store notes
+            if name=='_':
+                #print ('rest')
+                pass
+            if name in (noteIDs+restIDs+sepIDs) or name[0] in ('{','}','?'):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
+                tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]) 
+                notesfound=True
+            else:
+                print (f"Rejected: [{note}] {[beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]}")
+        if notesfound: # ignore lines with only color
+            name=eot
+            dur=0
+            style=''
+            tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
+    
+    # set title
+    win.title(f"Tin Whistle Helper - {os.path.basename(tfilepath).split('.')[0]}")
+
+    # calculate play order of tabs and display positions on page
+    recalcBeats()
+    # calculate size of page
+    calcTabDims()
+
+# save file to internal .tb format
+def saveFileTab(tfilename=None,tfilepath=None):
     global title,filename,filepath
     if tfilepath==None:
         tfilepath=os.path.join(tabdir,tfilename)        
     if not os.path.isfile(tfilepath): return
 
-    title=os.path.basename(tfilepath).split('.')[0].replace("_"," ")
+    # save tfilepath to global var filename
     filepath=tfilepath
     filename=os.path.basename(tfilepath)
+    
+    # retreive title from file name
+    title=os.path.basename(tfilepath).split('.')[0].replace("_"," ")
     capTitle()
+    
+    # save tabs page to file 
     drawBars(True)
     eol='\n'
     try:
@@ -451,7 +931,7 @@ def saveFile2(tfilename=None,tfilepath=None):
             writer.write(f"#   see https://github.com/NardJ/Tin-Whistle-Helper{eol}")
             writer.write(f"{eol}")
             writer.write(f"# Beats per Minute (bpm){eol}")
-            writer.write(f"{bpm}{eol}")
+            writer.write(f"bpm  :{bpm}{eol}")
             writer.write(f"{eol}")
             writer.write(f"# Colors{eol}")
             writer.write(f"color:{textColor}{eol}")
@@ -480,20 +960,24 @@ def saveFile2(tfilename=None,tfilepath=None):
                     if name==',': name=''
                     writer.write(f"{name} ")
                     #print(f"{name} ;")
-                elif name[0] in ['{','}']:
+                elif name[0] in ['{','}','?']:
                     writer.write(f"{name} ")
 
     except Exception as e:
         print (f"Error writing tab file:{e}")
         traceback.print_exc()
-    
+
+# ask user where to save file and call saveFileTab which really writes data to disc
 def saveFile():
-    global beatCursor,metroMultIdx
+    global beatCursor,metroMultIdx, lastdir, lasttype
     stopTabScroll() # needed otherwise timer prevents updates of filedialog
+    # only alloww save as tb type, so if of abc type we replace extension 
+    cfilename=filename.replace(".abc", ".tb")
+    # open filedialog
     rep = filedialog.asksaveasfile(                  # open dialog so user can select file
                                         parent=win,
                                         initialdir=tabdir,
-                                        initialfile=filename,
+                                        initialfile=cfilename,
                                         defaultextension=".tb",
                                         filetypes=[
                                             ("Tin Whistle Tab files", ".tb")
@@ -501,88 +985,71 @@ def saveFile():
     if (rep==None): return
     #print (f"rep:{rep.name}")
     scriptpath=rep.name                                
-    if (scriptpath==None): return    
+    if (scriptpath==None): return
+
+    # store lastdir
+    lastdir= os.path.dirname(scriptpath) 
+
+    # call save method
     ext=scriptpath[-3:]
     if ext=='.tb': 
-        saveFile2(tfilepath=scriptpath)
+        saveFileTab(tfilepath=scriptpath)
         oldTabs.clear()
     else: return        
     print (f"Saved:{scriptpath}")
 
-    
-
+# ask user which file to load file and if valid call loadFileTab/loadFileAbc to really read data from disc
 def loadFile():
-    global beatCursor,metroMultIdx
+    global beatCursor,metroMultIdx,lastdir,lasttype
 
     if len(oldTabs)>0:
         ret=messagebox.askyesno("Discard changes?","You have unsaved changes.\nDiscard and load other file?")
         if ret==False:return
 
-    stopTabScroll() # needed otherwise timer prevents updates of filedialog
-    rep = filedialog.askopenfilenames(                  # open dialog so user can select file
+    # needed otherwise timer prevents updates of filedialog
+    stopTabScroll() 
+    
+    # ask user for file to load
+    rep = filedialog.askopenfilename(                  # open dialog so user can select file
                                         parent=win,
-                                        initialdir=tabdir,
-                                        defaultextension="*.tb",
+                                        initialdir=lastdir,
                                         filetypes=[
-                                            #("Tin Whistle Tab files", "*.tbs"),
+                                            ("All files", "*.*"),
                                             ("Tin Whistle Tab files", "*.tb"),
-                                    ])
+                                            ("ABC Music files", "*.abc"),
+                                        ],
+                                        )
+    # check if user entered filename
     if (len(rep)==0): return
-    scriptpath=rep[0]                                   # use first file in list
+    scriptpath=rep                                   # use first file in list
     if (scriptpath==None): return    
+
+    # store lastdir
+    lastdir= os.path.dirname(scriptpath) 
+    lasttype=scriptpath[-3:]
+
+    # check if file is of valid type/extension
     ext=scriptpath[-3:]
-    #if ext=='tbs': 
-    #    loadFile(filepath=scriptpath)
-    #elif ext=='.tb': 
-    if ext=='.tb':
-        loadFile2(tfilepath=scriptpath)
-    else: return        
+    try:
+        if ext=='abc': 
+            loadFileABC(tfilepath=scriptpath)
+        elif ext=='.tb': 
+          loadFileTab(tfilepath=scriptpath)
+        else: return
+    except Exception as e:
+        print (f"Error reading tab file:{e}")
+        traceback.print_exc()
+
+    # after load we reset some vars and redraw  
     initBars()
     beatCursor=0
     metroMultIdx=0
     advMetroMult()
     drawBars(True)
+
     print (f"Loaded:{scriptpath}")
 
-notes={ 'd' :(1,1,1,1,1,1,''),
-        'e' :(1,1,1,1,1,0,''),
-        'f#':(1,1,1,1,0,0,''),
-        'g' :(1,1,1,0,0,0,''),
-        'a' :(1,1,0,0,0,0,''), 
-        'b' :(1,0,0,0,0,0,''),
-        'c#':(0,0,0,0,0,0,''),
-        'D' :(0,1,1,1,1,1,'+'),
-        'E' :(1,1,1,1,1,0,'+'),
-        'F#':(1,1,1,1,0,0,'+'),
-        'G' :(1,1,1,0,0,0,'+'),
-        'A' :(1,1,0,0,0,0,'+'), 
-        'B' :(1,0,0,0,0,0,'+'),
-        'C#':(0,1,1,0,0,0,'+'),
-        '_' :(0,0,0,0,0,0,''),#rest
-
-        'd#':(1,1,1,1,1,2,''),
-        'f' :(1,1,1,1,2,0,''),
-        'g#':(1,1,2,0,0,0,''),
-        'a#':(1,0,1,1,1,1,''),
-        'c' :(0,1,1,0,0,0,''),
-        'D#':(1,1,1,1,1,2,'+'),
-        'F' :(1,1,1,1,2,0,'+'),
-        'G#':(1,1,0,1,1,0,'+'),#not sure if we need harder blow '+'
-        'A#':(1,0,1,0,0,0,'+'),#not sure if we need harder blow '+'
-        'C' :(2,0,0,0,0,0,''),
-        }
-
-minBeatsize=10
-maxBeatsize=60
-beatsize=20
-barInterval=1.2*beatsize
-holeInterval=1.5*beatsize
-xOffset=beatsize
-yOffset=beatsize
-beatCursor=0
-winDims=[1118,800]
-
-tabDims=[0,0]
+# calc bounding box of all tabs on page
 def calcTabDims():
     global tabDims  
     tabDims=[0,0]
@@ -601,6 +1068,7 @@ def calcTabDims():
         if x>tabDims[0]: tabDims[0]=int(x+0.99999) # poor mans round up
         if y>tabDims[1]: tabDims[1]=int(y+0.99999)
 
+# recalc some drawing vars when resizing page by setting new beatsize 
 def initBars(newBeatsize=None):
     global beatsize,barInterval,holeInterval,xOffset,yOffset, beatCursor,titleHeight
     if newBeatsize is not None:
@@ -612,9 +1080,12 @@ def initBars(newBeatsize=None):
     titleHeight=beatsize*2
     #print (f"initBars:{beatsize} {holeInterval} {yOffset} {titleHeight}")
 
+# return x drawing coordinate of tab column
 def col2x(tabCol):
     x=xOffset+tabCol*barInterval
     return x
+
+# return x drawing coordinate of first tab at given beat number
 def beat2x(beat):
     fndTab=None
     lin=win.varLinear.get()   
@@ -622,17 +1093,19 @@ def beat2x(beat):
         [tabBeat,name,dur,style,tabColor,tabCol,tabRow,tabLin]=tab        
         if (beat>=tabBeat): fndTab=tab
     tabBeat,name,dur,style,tabColor,tabCol,tabRow,tabLin = fndTab
-    if lin:
+    if lin: # drawing in linear mode
         x=xOffset+tabLin*barInterval
-    else:
+    else:   # drawing in standard page mode with multiple rows
         x=xOffset+tabCol*barInterval
     x=x+(beat-tabBeat)*barInterval
     return x
 
-titleHeight=40
+# return y drawing coordinate of line row on page
 def row2y(tabRow):
     y=yOffset+tabRow*holeInterval*10
     return y+titleHeight
+
+# return y drawing coordinate of first tab at given beat number
 def beat2y(beat):
     y=0
     lin=win.varLinear.get()   
@@ -645,14 +1118,17 @@ def beat2y(beat):
                 y=yOffset+tabRow*holeInterval*10
     return y+titleHeight
 
+# return drawing width given a given duration in beats
 def beat2w(dur):
     w=(dur-1)*barInterval+beatsize
     return w
 
+# return drawing height of tabs including decorator above and note name below
 def beat2h():
     return holeInterval*9
 row2h=beat2h
 
+# draw a bar on page
 def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLin=0):
     cvs=win.cvs
 
@@ -666,8 +1142,29 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
     #if yt<0 or y0>winDims[1]: return False
     #print (f"drawBar:{beat,dur,noteId,noteStyle,tabColor,tabCol,tabRow,tabLin}")
 
+    # stop if nothing to draw
     if noteId == '' : return False
     if noteId == ',': return False
+    if noteId == eot: return False
+
+    # draw repeat symbols
+    if noteId[0] == '?':
+        # n | n-1 
+        # draw line
+        x=col2x(tabCol)+beat2w(1)# xOffset+tabCol*barInterval+beat2w(1)
+        y=row2y(tabRow)
+        xm=x-beat2w(1)/2
+        dashPatt =  (5,3)
+        y1=y+holeInterval*0.8
+        y2=y+holeInterval*9
+        cvs.create_line(xm-2,y1,xm-2,y2,fill=tabColor,width=1,dash=dashPatt) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+        # draw text
+        x1=col2x(tabCol)+beat2w(1)/2# xOffset+tabCol*barInterval+beat2w(1)
+        y=row2y(tabRow)
+        y1=y+holeInterval*0.5
+        fnt=("*font", int(beatsize*0.5))
+        cvs.create_text(x1,y1,text='n | n-1',font=fnt,fill=tabColor)
+        return False
     if noteId[0] == '{': 
         tabColor = 'black'
         # lines
@@ -688,7 +1185,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         y1=y+holeInterval*0.5
         fnt=("*font", int(beatsize*0.5))
         cvs.create_text(x1,y1,text=noteId.replace('{',u'\u00D7'),font=fnt,fill=tabColor)
-
+        # return, drawing done
         return False
     if noteId[0] == '}': 
         tabColor = 'black'
@@ -710,9 +1207,10 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         y1=y+holeInterval*0.5
         fnt=("*font", int(beatsize*0.5))
         cvs.create_text(x1,y1,text=noteId.replace('}',u'\u00D7'),font=fnt,fill=tabColor)
+        # return, drawing done
         return False
-    if noteId == eot: return False
 
+    # draw measure sepertor symbols
     if noteId == '|': 
         tabColor = 'black'
         #xm=beat2x( beat)-beat2w(1)/2
@@ -724,8 +1222,10 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         cvs.create_line(xm,y1,xm,y2,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
         return
 
+    # retreive holes in tab to draw filled (fingers on hole)
     holes=notes[noteId]
-
+ 
+    # set vars to draw rest different than note
     if noteId    == '_':
         dashPatt =  (1,3)
         linewidth=  3
@@ -735,6 +1235,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         dashPatt=None
         linewidth=  1
 
+    # draw tab and color their holes depending on note to play
     for holeNr in range(6):
         openNote=(holes[holeNr]==0)
         closedNote=(holes[holeNr]==1)
@@ -767,6 +1268,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
             cvs.create_rectangle(x1+beatsize/2,y1,x2-beatsize/2,ym,fill=tabColor,outline=tabColor,dash=dashPatt,width=linewidth) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
             cvs.create_line(x1+beatsize/2,y2,x2-beatsize/2+1,y2,fill=tabColor,dash=dashPatt,width=linewidth) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
 
+    # if high octave put a plus sign below tab
     highOct=(holes[6])
     if highOct:
         x1=beat2x(beat)
@@ -778,8 +1280,9 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         cvs.create_line(x1+2,ym,x2-2,ym,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
         cvs.create_line(xm,y1+2,xm,y2-2,fill=tabColor,width=2)
 
+    # draw decorators
     fnt=("*font", int(beatsize*0.7))
-    if noteStyle=='<':#cut ⮤
+    if noteStyle=='<':# decorator cut ⮤
         w=beat2w(1)
         h=holeInterval/2
         x1=beat2x(beat)#+beat2w(1)/2
@@ -794,7 +1297,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         cvs.create_line(x1,y1+h*0.5,x1+w*0.25,y1,fill=tabColor,width=2)
         cvs.create_line(x1+w*0.5,y1+h*0.5,x1+w*0.25,y1,fill=tabColor,width=2)
           
-    if noteStyle=='>':#tap/strike ↴
+    if noteStyle=='>':# decorator tap/strike ↴
         w=beat2w(1)
         h=holeInterval/2
         x1=beat2x(beat)+beat2w(1)/8
@@ -809,7 +1312,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         cvs.create_line(x1+w*0.25,y1+h*0.5,x1+w*0.5,y2,fill=tabColor,width=2)
         cvs.create_line(x1+w*0.75,y1+h*0.5,x1+w*0.5,y2,fill=tabColor,width=2)
 
-    if noteStyle=='^':#roll (cut+tap/strike) ⮤↴
+    if noteStyle=='^':# decorator roll (cut+tap/strike) ⮤↴
         w=beat2w(1)
         h=holeInterval/2
         x1=beat2x(beat)+beat2w(1)/8
@@ -832,12 +1335,12 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         cvs.create_line(x1+w*0.25,y1+h*0.5,x1+w*0.5,y2,fill=tabColor,width=2)
         cvs.create_line(x1+w*0.75,y1+h*0.5,x1+w*0.5,y2,fill=tabColor,width=2)
 
-    if noteStyle=='=':#slide ⇒
+    if noteStyle=='=':# decorator slide ⇒
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_text(x1,y1,text=u'\u21D2',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
         #cvs.create_text(x1,y1,text=u'\u27B2',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
-    if noteStyle=='@':#tonguing ᳅
+    if noteStyle=='@':# decorator tonguing ᳅
         w=beat2w(1)
         h=holeInterval/2
         x1=beat2x(beat)+beat2w(1)/8
@@ -851,28 +1354,57 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
         cvs.create_line(x1+w*0.50,ym-h*0.25,x1+w*0.75,ym-h*0.25,fill=tabColor,width=2)
         cvs.create_line(x1+w*0.375,ym,x1+w*0.75,ym,fill=tabColor,width=2)
         cvs.create_line(x1+w*0.25,ym+h*0.25,x1+w*0.75,ym+h*0.25,fill=tabColor,width=2)
-    if noteStyle=='~':#vibrato ∿
+    if noteStyle=='~':# decorator vibrato ∿
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
-        cvs.create_text(x1,y1,text=u'\u223F',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
-    if noteStyle=='/':#join
+        cvs.create_text(x1,y1,text=u'o',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
+    if noteStyle==':':# decorator tenuto - (play notes connected)
+        #x1=beat2x(beat)+beat2w(1)/2
+        #y1=y0+holeInterval*0.5
+        #cvs.create_text(x1,y1,text='-',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
+        x1=beat2x(beat)+beat2w(1)/4
+        x2=beat2x(beat)+beat2w(1)/4*3
+        y1=y0+holeInterval*0.5
+        cvs.create_line(x1,y1,x2,y1,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+
+    if noteStyle=='*':#  decorator staccato . (play detached)
+        x1=beat2x(beat)+beat2w(1)/2-beatsize/4/2
+        y1=y0+holeInterval*0.5-beatsize/4/2
+        cvs.create_oval(x1, y1, x1+beatsize/4, y1+beatsize/4,fill=tabColor,outline=tabColor,width=1)
+    if noteStyle=='/':# decorator join note group left
         x1=beat2x(beat)+beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_arc(x1, y1, x1+beatsize, y1+beatsize,fill=fillColor,outline=tabColor,start=90,extent=90,style=arcstyle,width=2)
         cvs.create_line(x1+beat2w(1)/2,y1,x1+beat2w(1)/2+beat2w(dur),y1,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
-    if noteStyle=='\\':
+    if noteStyle=='\\':# decorator join note group right
         x1=beat2x(beat)+beat2w(1)/2
         x2=beat2x(beat)+beat2w(dur)-beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_arc(x2-beatsize, y1, x2, y1+beatsize,fill=fillColor,outline=tabColor,start=0,extent=90,style=arcstyle,width=2)
         cvs.create_line(x2-beat2w(1)/2,y1,x2-beat2w(1)/2-beat2w(dur),y1,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
-    if noteStyle=='-':
+    if noteStyle=='-':# decorator join note group middle
         x1=beat2x(beat)+beat2w(1)/2
         x2=beat2x(beat)+beat2w(dur)-beat2w(1)/2
         y1=y0+holeInterval*0.5
         cvs.create_line(x1,y1,x2,y1,fill=tabColor,width=2) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
+    if noteStyle=='t':# decorator triplet 3
+        x1=beat2x(beat)+beatsize/4
+        y1=y0+holeInterval*0.375
+        fnt=("*font bold", int(beatsize*0.3))
+        cvs.create_text(x1,y1,text='2',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
+        cvs.create_line(x1+beatsize*0.4,y1-beatsize*0.05,x1-beatsize*0.05,y1+beatsize*0.4,fill=tabColor,width=1) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
+        cvs.create_text(x1+beatsize*0.3,y1+beatsize*0.4,text='3',font=fnt,fill=tabColor)# https://www.w3schools.com/graphics/canvas_text.asp
 
-    # Draw note Name
+        for gap in range(1,3):
+            gapwidth=int(beatsize/4)
+            x1=beat2x(beat)+beatsize-gapwidth
+            for holeNr in range(6):
+                y1=y0+holeInterval*(holeNr+1)
+                y2=y0+holeInterval*(holeNr+1)+beatsize 
+                cvs.create_rectangle(x1,y1-1,x1+gapwidth,y2+1,fill=backColor,outline=backColor,width=1) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
+                cvs.create_line(x1,y1,x1,y2,fill=tabColor,width=linewidth) #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_arc.html
+
+    # draw note name
     noteId=noteId.replace('#',u'\u266F')
     x1=beat2x(beat)+beat2w(1)/2 # beat2x(beat)+beat2w(dur)/2
     y1=y0+holeInterval*8.5
@@ -881,7 +1413,7 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
 
     return True
 
-
+# draw all bars and calling drawBar for each one
 cursorBar=None
 cursorBar2=None
 oldOffsets=[0,0]
@@ -909,7 +1441,6 @@ def drawBars(force=False):
         calcTabDims()
         win.cvs.config(scrollregion=(0,0,int(tabDims[0]+beat2x(1)+xOffset),
                                          int(tabDims[1]+beat2y(0)+yOffset)))        
-
         # redraw page outline
         bBox=pageBBox()
         win.cvs.create_rectangle(bBox[0],bBox[1],bBox[2],bBox[3], fill=backColor)
@@ -931,6 +1462,10 @@ def drawBars(force=False):
                     fStyle=fStyle[1:-1] # remove leading and trailing "
                     x1=int(beatsize*(float(x)))
                     y1=int(beatsize*(float(y)))
+                    if x1<0:
+                        print (f"{x1}+{bBox[2]}={bBox[2]+x1}") 
+                        x1=bBox[2]+x1
+                    if y1<0: y1=bBox[3]+y1
                     fSize=float(fSize)
                     win.cvs.create_text(x1,y1-titleHeight+beatsize*0.75,anchor="nw", font=(fName, int(beatsize*fSize), fStyle),text=text,fill=fillColor)
                     y2=int(y1-titleHeight+beatsize*0.75)
@@ -945,6 +1480,13 @@ def drawBars(force=False):
         #print (f"elaps:{time.time()-t1:2}")
 
         #print (f"nrDrawn:{nrDrawn}")
+
+        # draw footer (key and bpm)
+        x1=bBox[0]+beatsize*0.3#beat2x(0)
+        y1=bBox[3]#-beatsize*1
+        fontsize=int(beatsize*0.5)
+        win.cvs.create_text(x1,y1-fontsize,anchor=tk.W, font=("*font", fontsize, "italic bold"),text=footer,fill='#AAAAAA')#=textColor)
+        #win.cvs.create_line(bBox[0],y1-fontsize*2.4,bBox[2],y1-fontsize*2.4,fill='#AAAAAA',width=1) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
 
     # draw cursor
     w=0
@@ -996,17 +1538,21 @@ def drawBars(force=False):
     # set inDrawBars to False
     inDrawBars=False
 
-noteSilence=50 #msec
+# start note at current tab cursor
+noteSilence=100 #msec
 nrRepeats=0
 repeatStart=0
 repeatStartIdx=0
+prevCursorPlay=-1
 def doCursorPlay():
-    global nrRepeats,repeatStart,beatCursor,repeatStartIdx
-    if int(beatCursor)!=round(beatCursor,1): return
+    global nrRepeats,repeatStart,beatCursor,repeatStartIdx,prevCursorPlay
+
+    # check if we also need to play a tick
     if metroMultIdx>0:
         metroInterval=2**(metroMultIdx-1)
         if (beatCursor%metroInterval)==0: startTick()
 
+    #
     if not win.varSound.get(): 
         endNote()
         return
@@ -1016,7 +1562,7 @@ def doCursorPlay():
         #print (f"beat:{int(beatCursor)}")
         for idx,tab in enumerate(tabs):
             beat,name,dur,style,tabColor,tabCol,tabRow,tabLin=tab
-            if beat==round(beatCursor,2):
+            if beat>prevCursorPlay and beat<=round(beatCursor,2):
                 if name[0]=='{':
                     repeatStart=beatCursor
                     repeatStartIdx=idx
@@ -1026,24 +1572,50 @@ def doCursorPlay():
                     #print (f"}} {beat}")
                     if nrRepeats>1:
                         beatCursor=repeatStart
+                        prevCursorPlay=repeatStart-1
                         nrRepeats-=1
                     else:
                         nrRepeats=0
                         repeatStart=0
                         repeatStartIdx=0
+                if name[0]=='?':
+                    if nrRepeats==1:     # if last repeat ... 
+                        while name[0]!='}' and idx<len(tabs): # we skip following notes until }
+                            beat,name,dur,style,tabColor,tabCol,tabRow,tabLin=tabs[idx]
+                            beatCursor=beat
+                            prevCursorPlay=beatCursor-1
+                            idx+=1
 
     # play note
+    #print ("----")
+    #print (f"{prevCursorPlay}-{beatCursor}")
     for tab in tabs:
         beat,name,dur,style,tabColor,tabCol,tabRow,tabLin=tab
-        if (beat==round(beatCursor,2)):
+        #print (f"{beatCursor=} vs {beat=} in {tab=}")
+        if beat>prevCursorPlay and beat<=round(beatCursor,2):
             if name in noteIDs:#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G']:
+                #print (f"play {tab=}")
                 startNote(name)                
                 delay=dur*int(60/bpm*1000)
                 noteLength=delay-noteSilence if (noteSilence<delay) else delay
-                win.after(noteLength,endNote,name)
-
+                endTimer=win.after(int(noteLength),endNote,name)
+                # decorator 3 is played always, even if deco control is not checked
+                if style=="t":#play note as part of third note set (length = 2/3 beat)
+                    # make note stop sooner
+                    win.after_cancel(endTimer)
+                    delay=int(2/3*dur*(60/bpm*1000))
+                    noteLength=delay-noteSilence if (noteSilence<delay) else delay
+                    endTimer=win.after(int(noteLength),endNote,name)
+                    # play next note faster
+                    beatCursor+=.3333333 # more than one decimal causes consequetive notes to not play
+                # play other decos only if deco control is checked
                 if win.varDeco.get():
+                    if style=="@":#use tongue emulate with double note where first is very short and harder
+                        fs.cc(0,7,127)#11 expression
+                        win.after(100,fs.cc,0,7,normalVol)
+                        win.after(noteLength,endNote,name)
                     if style==">":#strike/tap one note higher
+                        # https://www.tradschool.com/en/about-irish-music/ornamentation-in-irish-music/
                         #https://www.youtube.com/watch?v=4JemxBMeZ3g
                         strikeNotes={'c#':'b','b':'a','a':'g','g':'f#','f#':'e','e':'d','d':'C#', 
                                      'C#':'B','B':'A','A':'G','G':'F#','F#':'E','E':'D','D':'C#'}
@@ -1061,7 +1633,9 @@ def doCursorPlay():
                             win.after(strikeStart,startNote,strikeName)
                             win.after(strikeStart+strikeLength,endNote,strikeName)
                             win.after(strikeStart+strikeLength,startNote,name)
+                            win.after(noteLength,endNote,name)
                     if style=="<":#cut:lift finger on g for d/e/f and b for g/a/b see: https://learntinwhistle.com/lessons/tin-whistle-cuts/                        
+                        # https://www.tradschool.com/en/about-irish-music/ornamentation-in-irish-music/
                         #https://www.youtube.com/watch?v=QXVSNLtD6AI
                         if name[0] in 'c':cutName='_'
                         if name[0] in 'def':cutName='a'
@@ -1080,6 +1654,8 @@ def doCursorPlay():
                                 win.after(cutStart,startNote,cutName)
                                 win.after(cutStart+cutLength,endNote,cutName)
                             win.after(cutStart+cutLength,startNote,name)
+
+                        win.after(noteLength,endNote,name)
                     '''
                     if style=="<":#cut:lift finger on g for d/e/f and b for g/a/b, effect is interuption of note without stopping breath
                         cutLength=noteSilence # msec
@@ -1092,6 +1668,7 @@ def doCursorPlay():
                             win.after(cutStart+cutLength,startNote,name)
                     '''
                     if style=="^":#roll (cut+tap):
+                        # https://www.tradschool.com/en/about-irish-music/ornamentation-in-irish-music/
                         # split note in two halves and apply cut and tap to both
                         noteLength1=int(noteLength/2)
                         if name[0] in 'c':cutName='_'
@@ -1131,6 +1708,8 @@ def doCursorPlay():
                             win.after(noteLength1+strikeStart+strikeLength,endNote,strikeName)
                             win.after(noteLength1+strikeStart+strikeLength,startNote,name)
 
+                        win.after(noteLength,endNote,name)
+
                     '''
                     if style=="^":#roll (cut+tap):
                         # split note in two halves and apply cut and tap to both
@@ -1166,14 +1745,27 @@ def doCursorPlay():
                         slideSemitones={'c#':0,'b':3,'a':2,'g':2,'f#':1,'e':3,'d':2, 
                                       'C#':0,'B':3,'A':2,'G':2,'F#':1,'E':3,'D':2}
                         slideAmount=slideSemitones[name]
+                        win.after(noteLength,endNote,name)
                         pitchBend(2048*slideAmount,noteLength,0.6,0.8)
                         
+
                     if style=="@":#tongue
                         pass
                     if style=="~":#vibrato
+                        win.after(noteLength,endNote,name)
                         vibrato(name,noteLength)
+                    if style=="*":#staccato (short note)
+                        delay=dur*int(60/bpm*1000)
+                        noteLength=int(delay/2) 
+                        win.after(noteLength,endNote,name)
+                    if style==":":#tenuto (long note)
+                        noteLength=delay
+                        win.after(noteLength,endNote,name)
 
+    # store from where we played, so we can play next time from here on
+    prevCursorPlay=round(beatCursor,2)
 
+# modify pitch of played note 
 pitchVal=0
 totBendDur=0
 def pitchBend(amount,duration,bendFromPerc=0,bendToPerc=1,restart=True):
@@ -1210,6 +1802,7 @@ def pitchBend(amount,duration,bendFromPerc=0,bendToPerc=1,restart=True):
     else:
         fs.pitch_bend(chnFlute,0)          # 2048 1 semitone / half noteId
 
+# simulate vibrato by stopping and restarting played note repeatedly 
 vibStart=0
 vibState=2
 def vibrato(noteName,duration,restart=True):
@@ -1231,97 +1824,23 @@ def vibrato(noteName,duration,restart=True):
         endNote(noteName)                
         vibState=2
 
-
 bpm=120
 beatUpdate=0.1
 playing=False
 startTime=0
 delayJob=None
 firstPlayBeat=0
-def stopTabScroll():
-    global playing,beatCursor,firstPlayBeat
-    if not playing:
-        firstPlayBeat=0
-    beatCursor=firstPlayBeat
-    endNote()
-    playing=False
-    widgets=[win.btnLoad, win.btnNew,win.btnSave,
-            win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,
-            win.cbCountOff,win.cbLow,win.cbDeco,win.lbMetroMult,win.imMetro,win.cbSound,
-            win.cbLinear,win.btnUnroll,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
-    for widget in widgets: widget.config(state=tk.NORMAL)
-    win.cvs.xview_moveto(0)    
-    win.cvs.yview_moveto(0)    
-    drawBars()
-def pauseTabScroll():
-    global beatUpdate,delayJob
-    if delayJob is None:
-        delayJob=win.after(0, advTabScroll)
-        doCursorPlay()
-    else:
-        win.after_cancel(delayJob)
-        delayJob=None
-        endNote()
 
-def advTabScroll():
-    global beatCursor,delayJob
-    if playing:
-        lastTab=tabs[-1]
-        lastBeat=lastTab[0]+lastTab[2]
-        if beatCursor>lastBeat:
-            # remove incremented beatCursor for which no note is present
-            beatCursor-=beatUpdate 
-            beatCursor=round(beatCursor,3)
-            win.beatCursor.set(f"{beatCursor:>5.1f}")
-            # stop play
-            stopTabScroll()
-        else:
-            delay=int((60/bpm*1000)*beatUpdate)
-            delayJob=win.after(delay, advTabScroll)
-            beatCursor+=beatUpdate
-            beatCursor=round(beatCursor,3)
-            win.beatCursor.set(f"{beatCursor:>5.1f}")
-            doCursorPlay()
-            drawBars()
-
-def delay2beatUpdate(delay):
-    return int((60/bpm*1000)*beatUpdate)
-def setBeatUpdate():
-    global beatUpdate
-    beatUpdate=0.1
-    delay=delay2beatUpdate(beatUpdate)
-    res=35
-    if delay<res: 
-        beatUpdate=0.25
-        delay=delay2beatUpdate(beatUpdate)
-    if delay<res: 
-        beatUpdate=0.5
-        delay=delay2beatUpdate(beatUpdate)
-    if delay<res: 
-        beatUpdate=1.0
-        delay=delay2beatUpdate(beatUpdate)
-countOffNr=0
-def countOff(init=True):
-    global countOffNr
-    if init:                      countOffNr=0
-    if not win.varCountOff.get(): countOffNr=4
-    if countOffNr<4:
-        startTick()
-        countOffNr+=1
-        print (f"{countOffNr}")
-        delay=int(60/bpm*1000)
-        delayJob=win.after(delay, lambda:countOff(False))
-    else:
-        doCursorPlay()
-        delay=int((60/bpm*1000)*beatUpdate)
-        delayJob=win.after(delay, advTabScroll)
-
+# set vars to start scrolling of cursor
 def initTabScroll(fromBeat=0):
+    global beatCursor,prevCursorPlay
     beatCursor=fromBeat
+    prevCursorPlay=-1
     win.beatCursor.set(f"{beatCursor:.1f}")
     setBeatUpdate()
     delay=int((60/bpm*1000)*beatUpdate)
 
+# start scrolling of cursor
 def startTabScroll():
     nrBarLines=barLinesFullyVisible()#(win.cvs.winfo_height())/beat2h()
     if win.varLinear.get():
@@ -1343,6 +1862,8 @@ def startTabScroll():
     initTabScroll(firstPlayBeat)
     initBars(beatsize) # don't reset zoom
     playing=True
+
+    # disable all controls/buttons in footer which cannot be used when playing
     widgets=[win.btnLoad, win.btnNew,win.btnSave,
             win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,
             win.cbCountOff,win.cbLow,win.cbDeco,win.lbMetroMult,win.imMetro,win.cbSound,
@@ -1355,18 +1876,111 @@ def startTabScroll():
     #doCursorPlay()
     #delayJob=win.after(delay, advTabScroll)
 
+# stop scrolling of cursor 
+def stopTabScroll():
+    global playing,beatCursor,firstPlayBeat
+    if not playing:
+        firstPlayBeat=0
+    beatCursor=firstPlayBeat
+    endNote()
+    playing=False
+
+    # enable all controls/buttons in footer which cannot be used when playing
+    widgets=[win.btnLoad, win.btnNew,win.btnSave,
+            win.btnSlower,win.btn2xSlower,win.btnFaster,win.btn2xFaster,
+            win.cbCountOff,win.cbLow,win.cbDeco,win.lbMetroMult,win.imMetro,win.cbSound,
+            win.cbLinear,win.btnUnroll,win.btnAuto4Bars,win.btnShrink4Bars,win.btnGrow4Bars,win.btnZoomOut,win.btnZoomIn,win.btnHelp]
+    for widget in widgets: widget.config(state=tk.NORMAL)
+    
+    # bring top left of page in view
+    win.cvs.xview_moveto(0)    
+    win.cvs.yview_moveto(0)    
+    drawBars()
+
+# pause scrolling of cursor
+def pauseTabScroll():
+    global beatUpdate,delayJob
+    if delayJob is None:
+        delayJob=win.after(0, advTabScroll)
+        doCursorPlay()
+    else:
+        win.after_cancel(delayJob)
+        delayJob=None
+        endNote()
+
+# advance cursor by fraction of beat and repeatedly call this function again after some time has passed
+def advTabScroll():
+    global beatCursor,delayJob
+    if playing:
+        lastTab=tabs[-1]
+        lastBeat=lastTab[0]+lastTab[2]
+        if beatCursor>lastBeat:
+            # remove incremented beatCursor for which no note is present
+            beatCursor-=beatUpdate 
+            beatCursor=round(beatCursor,2)
+            win.beatCursor.set(f"{beatCursor:>5.1f}")
+            # stop play
+            stopTabScroll()
+        else:
+            delay=int((60/bpm*1000)*beatUpdate)
+            delayJob=win.after(delay, advTabScroll)
+            beatCursor+=beatUpdate
+            beatCursor=round(beatCursor,2)
+            win.beatCursor.set(f"{beatCursor:>5.1f}")
+            doCursorPlay()
+            drawBars()
+
+# return 
+def delay2beatUpdate(delay):
+    return int((60/bpm*1000)*beatUpdate)
+# set delay between each update of cursor
+def setBeatUpdate():
+    global beatUpdate
+    beatUpdate=0.1
+    delay=delay2beatUpdate(beatUpdate)
+    res=35
+    if delay<res: 
+        beatUpdate=0.25
+        delay=delay2beatUpdate(beatUpdate)
+    if delay<res: 
+        beatUpdate=0.5
+        delay=delay2beatUpdate(beatUpdate)
+    if delay<res: 
+        beatUpdate=1.0
+        delay=delay2beatUpdate(beatUpdate)
+
+# use metro to do a 4-tick countoff before starting play of tune
+countOffNr=0
+def countOff(init=True):
+    global countOffNr
+    if init:                      countOffNr=0
+    if not win.varCountOff.get(): countOffNr=4
+    if countOffNr<4:
+        startTick()
+        countOffNr+=1
+        print (f"{countOffNr}")
+        delay=int(60/bpm*1000)
+        delayJob=win.after(delay, lambda:countOff(False))
+    else:
+        doCursorPlay()
+        delay=int((60/bpm*1000)*beatUpdate)
+        delayJob=win.after(delay, advTabScroll)
+
+# reduce beats per minute by 5 BPM
 def decreaseBPM():
     if playing: return
     global bpm
     bpm=bpm-5
     if bpm<5: bpm=5
     win.bpm.set(f"{bpm:3}")
+# reduce beats per minute by 50%
 def decrease2xBPM():
     if playing: return
     global bpm
     bpm=int(bpm/2)
     if bpm<5: bpm=5
     win.bpm.set(f"{bpm:3}")
+# increase beats per minute by 5 BPM
 def fasterBPM():
     if playing: return
     global bpm
@@ -1374,6 +1988,7 @@ def fasterBPM():
     if bpm>960: bpm=960
     win.bpm.set(f"{bpm:3}")
     maxMetroMult()
+# increase beats per minute by 200%
 def faster2xBPM():
     if playing: return
     global bpm
@@ -1385,6 +2000,7 @@ def faster2xBPM():
 drag_begin=0
 drag_start=None
 scroll_start=0
+# store start position (x,y and scroll) and time of drag
 def drag_enter(event):
     global drag_begin,drag_start,scroll_start
     drag_begin=[event.x,event.y]
@@ -1395,6 +2011,7 @@ def drag_enter(event):
         scroll_start=win.hbar.get()
     else:
         scroll_start=win.vbar.get()
+# move scrollbars and thus page when dragging
 def drag_handler(event):
     global drag_begin
     drawDistance=( (event.x-drag_begin[0]),(event.y-drag_begin[1]) )
@@ -1413,32 +2030,39 @@ def drag_handler(event):
         if vScrollOffset<0: vScrollOffset=0
         if vScrollOffset>(1-vScrollSize): vScrollOffset=(1-vScrollSize)
         win.cvs.yview_moveto(vScrollOffset)
+# if drag ends very fast we register this as mouse click
 def drag_end(event):
     if (time.time()-drag_start)<0.2: 
         click(event)
         return
 
-zooms=[25,40,50,67,75,85,100,150,200,250,400]
-def setZoom():
-    win.varZoom.set(int(100*(beatsize/20)+0.5))
+# change beatsize and redraw page
 def setBeatSize():
     global beatsize
     beatsize=int(win.varZoom.get()/100*20)
     initBars(beatsize)
     calcTabDims()
     drawBars(True)  
+
+zooms=[25,40,50,67,75,85,100,150,200,250,400]
+# set zoom control
+def setZoom():
+    win.varZoom.set(int(100*(beatsize/20)+0.5))
+# move to next zoom percentge and recalc setBeatSize and thus redraw page 
 def zoomIn():
     zIdx=zooms.index(win.varZoom.get())
     zIdx+=1
     if zIdx>=len(zooms): zIdx=len(zooms)-1
     win.varZoom.set(zooms[zIdx])        
     setBeatSize()
+# move to previous zoom percentge and recalc setBeatSize and thus redraw page 
 def zoomOut():
     zIdx=zooms.index(win.varZoom.get())
     zIdx-=1
     if zIdx<0: zIdx=0
     win.varZoom.set(zooms[zIdx])
     setBeatSize()
+# zoom with scrollwheel calling upon zoomIn and zoomOut depending on scroll direction
 def scrollwheel(event):
     if event.state==0:
         s=win.vbar.get()[0]
@@ -1448,11 +2072,14 @@ def scrollwheel(event):
     if event.state==4: # with control
         if event.num==4: zoomOut()
         if event.num==5: zoomIn()
+
+# scroll page to specific row 
 def scroll2Row(row):
     rowHeight=beat2h()/tabDims[1]
     relY=row*rowHeight
     win.cvs.yview_moveto(relY)
 
+# make sure cursor is visible and scroll if necessary 
 #selector=None
 def keepBeatVisible(beatN=-1):
     if beatN==-1: beatN=beatCursor
@@ -1467,7 +2094,8 @@ def keepBeatVisible(beatN=-1):
             #print (f"  drawY:{y,y+h}")
             #print (f"  visible:{minY,maxY}")
             if y<minY or (y+h)>maxY: scroll2Row(tabRow)                    
-    
+
+# put cursor at clicked tab and play selected note    
 def click(event):
     global beatCursor,firstPlayBeat#,selector
     eventX,eventY=event.x,event.y+win.vbar.get()[0]*tabDims[1]
@@ -1493,7 +2121,8 @@ def click(event):
            return
 
 metroMults=['0','1',u'\u00BD',u'\u00BC']
-metroMultIdx=1
+metroMultIdx=3
+# go to next metro multiplier
 def advMetroMult(event=None):
     global metroMultIdx
     if playing: return
@@ -1505,39 +2134,52 @@ def advMetroMult(event=None):
     if metroMultIdx==1:# just changed to 1
         win.imMetro.config(image=win.imgMetro)
         win.lbMetroMult.configure(fg='black')
+
+# decrease metro multiplier if metronome rate fires faster than 300 bpm
 def maxMetroMult():
     global metroMultIdx
     if bpm>300:
         if metroMultIdx==1: advMetroMult()
+
+# reset zoom to 100%
 def resetView(event):
     initBars(20)
     drawBars(True)
 
+# return min and max X,Y-coordinates of page
 def pageBBox():
     return (0,0,beat2x(0)+tabDims[0]+beatsize, beat2y(0)+tabDims[1]+beatsize)
+
+# return how many tab rows are visible
 def barLinesFullyVisible(customWinHeight=None):
     if customWinHeight==None:
         return (win.cvs.winfo_height()-yOffset-beat2y(0))/beat2h()
     else:
         return (customWinHeight-yOffset-beat2y(0))/beat2h()
 
+# modify beatsize until at least one (linear) or two (page) tab rows are visible 
 def shrinkBars():
     global beatsize
     oldBeatsize=beatsize
     minBarLines=1 if win.varLinear.get() else 2
+    # reduce beatsize until enough tab rows are visible and exit if beatsize too small
     while (barLinesFullyVisible()<minBarLines and beatsize>minBeatsize): #+56 for height of toolbar
         beatsize-=0.25
         initBars(beatsize)
         calcTabDims()
+    # if not enough tab rows visible, we undo shrinkage
     if barLinesFullyVisible()<minBarLines:
         beatsize=oldBeatsize
         initBars(beatsize)
         calcTabDims()
         messagebox.showinfo("No fit found.","Try enlarging window.")
         return
+    # redraw with new beatsize
     drawBars(True)   
 
+
 titleBarHeight=0
+# grow window until at least one (linear) or two (page) tabs are visible 
 def growWindow():
     global winDims,titleBarHeight
     oldWinDims=winDims
@@ -1546,53 +2188,65 @@ def growWindow():
     if tabDims[0]>(winDims[0]-beatsize*2-win.vbar.winfo_width()):
         winDims[0]=tabDims[0]+beatsize*2+win.vbar.winfo_width()
     minBarLines=1 if win.varLinear.get() else 2
+    # increase window height VAR until enough tab rows are visible
     while (barLinesFullyVisible(winDims[1])<minBarLines): #+56 for height of toolbar
         winDims[1]+=10
+    # if not enough tab rows visible, we undo growth of window
     if barLinesFullyVisible(winDims[1])<minBarLines:
         winDims=oldWinDims
         win.geometry(f'{winDims[0]:.0f}x{winDims[1]:.0f}+{startX}+{startY}')    
         messagebox.showinfo("No fit found.","Try zoom.")
         return
+    # set window size to window height VAR
     geomStr=f'{winDims[0]:.0f}x{winDims[1]:.0f}+{startX}+{startY-titleBarHeight}'
     win.geometry(geomStr)    
     win.update()
+    # compensate window drift to bottom because win.geometry will not accounted for title height
     if titleBarHeight==0:
         titleBarHeight=win.winfo_y()-startY
         geomStr=f'{winDims[0]:.0f}x{winDims[1]:.0f}+{startX}+{startY-titleBarHeight}'
         win.geometry(geomStr)    
         win.update()
-    print (f"{geomStr}")
+    #print (f"{geomStr}")
+
+    # store resulting window and redraw 
     winDims=[win.winfo_width(),win.winfo_height()]
     initBars()#just to be sure all is updated
     drawBars(True)   
 
+# grow if possible and shrink beatsize (zoom) to accomodate
 def autoBars():
     growWindow()
     shrinkBars()
     growWindow()# to shrink window if width or height is too large
 
+# if linear mode we need to remove unroll (duplicate) repeats
 def reformatBars():
+    # check if user clicked/chose linear mode
     linMode=win.varLinear.get()   
     if linMode==True:
+        # if repeats check with user
         if hasRepeats():
             ret=messagebox.askyesno("Unroll tabs?","Tabs need to be unrolled to play in linear mode. \n\nDo you want to proceed?")        
             if ret==False: 
                 win.varLinear.set(False)
                 return
-            else:
+            else: # if user confirmed we unroll
                 unrollRepeats()
         win.hbar.config(width=win.vbar.cget('width'))
         win.vbar.config(width=0)
     else:    
         win.vbar.config(width=win.hbar.cget('width'))
         win.hbar.config(width=0)
+    # recalc and redraw
     calcTabDims()
     drawBars(True)
 
+# return index in tabs-list of the tab currently under cursor 
 def tabIdx():
     for idx,tab in enumerate(tabs):
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
-        if beatCursor==beat and name not in sepIDs and name[0] not in ['{','}']:
+        if beatCursor==beat and name not in sepIDs and name[0] not in ['{','}','?']:
             return idx
         if beatCursor>beat and beatCursor<(beat+dur):
             if idx<len(tabs)-1:
@@ -1600,18 +2254,24 @@ def tabIdx():
             else:
                 return idx    
     return -1
+
+# return index of first tab on the same line as the given index (idx)
 def tabLineStart(idx):
     for i in range(idx-1,-1,-1):
         if tabs[i][1]==eot: return i+1
     return 0
+
+# return index of last tab on the same line as the given index (idx)
 def tabLineEnd(idx):
     for i in range(idx+1,len(tabs)):
         if tabs[i][1]==eot: return i  
     return len(tabs)      
-    
+
+# handle all key presses of user    
 oldTabs=[]
 def keypress(event):
     global beatCursor, tabs,backColor,firstPlayBeat
+
     #print (event)
     key=event.keysym
     char=event.char
@@ -1624,23 +2284,23 @@ def keypress(event):
     if idx>-1: _,_, dur,_,_, curCol,curRow,_=tabs[idx]
 
     # handle play keys 
-    if  key=="w":
+    if  key=="w":     # pause play
         if playing:
             pauseTabScroll()
         return
-    elif  key=="Tab":
+    elif  key=="Tab": # start play
         if playing: return
         startTabScroll()
         return
-    elif  key=="r":
-        autoBars()
-        return
-    elif key=="q":
+    elif key=="q":   # stop play
         stopTabScroll()
+        return
+    elif  key=="r":   # auto size tabs/window to display full tab row
+        autoBars()
         return
 
     # handle navigation
-    elif key in ('Left','KP_Left'): 
+    elif key in ('Left','KP_Left'): # move cursor
         pidx=idx-1
         pdur=0
         while pdur==0 and idx>0:
@@ -1651,7 +2311,8 @@ def keypress(event):
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
-    elif key in ('Right','KP_Right'): 
+        #print (f"left  @ {beatCursor=} {pidx=}")
+    elif key in ('Right','KP_Right'): # move cursor
         nidx=idx
         ndur=0
         lastTab=len(tabs)-2 if tabs[-1][1]==eot else len(tabs)-1
@@ -1664,7 +2325,8 @@ def keypress(event):
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
-    elif key in ('Up','KP_Up'): 
+        #print (f"right {beatCursor=} {nidx=}")
+    elif key in ('Up','KP_Up'): # move cursor
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow-1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
@@ -1672,7 +2334,7 @@ def keypress(event):
         drawBars()
         doCursorPlay()
         firstPlayBeat=beatCursor
-    elif key in ('Down','KP_Down'): 
+    elif key in ('Down','KP_Down'): # move cursor
         for tab in tabs:
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if tabRow==curRow+1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
@@ -1683,7 +2345,7 @@ def keypress(event):
 
     # modify note
     elif char in (noteIDs+restIDs):#['d','e','f','g','a','b','c','D','E','F','G','A','B','_','C']:
-        if state==0:
+        if state==0: # NO MODIFIER KEYS (ALT, SHIFT, ALT) PRESSED
             if char=='f': char='f#'
             if char=='c': char='c#'
         if state==1: # SHIFT
@@ -1731,7 +2393,11 @@ def keypress(event):
             beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tab
             if beatCursor>=beat and beatCursor<(beat+dur):
                 oldTabs.append(copy.deepcopy(tabs))
-                newDur=int(char)                  
+                newDur=int(char)
+                # implement triplets under alt-3            
+                if char=='3' and state==8: # ALT
+                    newDur=1
+                    tabs[idx][3]='t'      
                 delta=newDur-dur                        # store change in beats
                 tabs[idx][2]=newDur                     # write new length
                 #moveTabs(idx,delta)
@@ -1784,9 +2450,11 @@ def keypress(event):
             idx-=1
             tab=tabs[idx]
             #print (f"Backspace:{idx}|{tab}")
-            if tab[1] in sepIDs or tab[1][0] in ['{','}']:
+
+            if tab[1] in sepIDs or tab[1][0] in ['{','}','?']:
                 oldTabs.append(copy.deepcopy(tabs))
                 tab=tabs.pop(idx)
+                #print (f"remove: {tab=}")
                 recalcBeats()
                 drawBars(True)
 
@@ -1817,6 +2485,14 @@ def keypress(event):
         beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
         tabs.insert(idx,[beat,sep,0,'',tabColor, tabCol,tabRow,tabLin])
         stripSeps() # make sure we do not place a sep at start of end of row
+        recalcBeats()        
+        calcTabDims()
+        drawBars(True)
+
+    elif keysym in ['question']:
+        char="?"
+        beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[idx]
+        tabs.insert(idx,[beat,char,0,'',tabColor, tabCol,tabRow,tabLin])
         recalcBeats()        
         calcTabDims()
         drawBars(True)
@@ -1891,7 +2567,7 @@ def keypress(event):
             print ("STACK EMPTY")    
 
     elif key in ('l') and state==4:#debug
-        loadFile2(tfilepath=filepath)
+        loadFileTab(tfilepath=filepath)
         initBars()
         beatCursor=0
         metroMultIdx=0
@@ -1899,7 +2575,7 @@ def keypress(event):
         drawBars(True)
 
     elif key in ('s') and state==4:#debug
-        saveFile2(tfilepath=filepath)
+        saveFileTab(tfilepath=filepath)
 
 
     elif key in ('p','P'):
@@ -1967,8 +2643,9 @@ def keypress(event):
     # debug 
     #print (event)
     elif key in ('Home'):
-        for idx,tab in enumerate(tabs):
-            print (f"{idx:2d}> {tab}")
+        print (f"{idx=} {beatCursor=}")
+        for idx2,tab in enumerate(tabs):
+            print (f"{idx2:2d}> {tab}")
 
     elif key in ('Control_L','Alt_L','Shift_L'):
         pass # modifiers used in conjunction with other keys should not trigger "Key unknown" message.
@@ -1976,17 +2653,22 @@ def keypress(event):
     else:
         print (f"Key {key} unknown.")
 
-    
+# show help window    
 def showHelp():
     helpWin.init(win,helpdir)
     helpWin.show()
 
+# on resize window store new size of window
 def resizeWindow(event):
     global winDims
     winDims=[win.winfo_width(),win.winfo_height()]
     #drawBars(True)
+
+# handle user closing window
 def closeWindow():
     win.destroy()
+
+# init window with all controls/widgets to display
 def initWindow():
     global win
     sepSpacing=(8,8)
@@ -2074,7 +2756,7 @@ def initWindow():
         win.metroFrame=tk.Frame(win.buttonframe,background="white",border=0,highlightthickness=0,relief=tk.FLAT)
         win.metroFrame.pack(side=tk.LEFT,padx=(0,6),pady=(0,0),ipadx=2,ipady=2,expand=False,fill=tk.Y)
         win.varMetro=tk.BooleanVar(value=True)
-        win.lbMetroMult = tk.Label(win.metroFrame, text='1'+u'\u00D7',anchor="e",width=3,background='white',cursor="exchange")#"pirate")#"exchange")
+        win.lbMetroMult = tk.Label(win.metroFrame, text=u'\u00BC'+u'\u00D7',anchor="e",width=3,background='white',cursor="exchange")#"pirate")#"exchange")
         win.lbMetroMult.pack(side=tk.LEFT)
         footerbgcolor='white'
         footerfgcolor='black'
@@ -2264,25 +2946,52 @@ def initWindow():
     win.bind("<Configure>", resizeWindow) #
     win.protocol("WM_DELETE_WINDOW", closeWindow) # custom function which sets winDestroyed so we can check state of win
 
+def loadDefaultTune():
+    # wait for splash to disappear
+    if splash.visible(): 
+        win.after(50,loadDefaultTune)
+        return
+    
+    print ("load default tune")
+    #loadFileTab("Fee Ra Huri.tb")
+    #loadFileTab("tutorial.tb")
+    # public domain tunes
+    #loadFileABC("Down By The Sally Garden.abc")    
+    #loadFileTab("Fig For A Kiss.tb")
+    #loadFileTab("testDecos.tb")
+    
+    #loadFileTab("testTriplet.tb")                  # not playing al notes above 240 bpm
+    loadFileTab("Down By The Sally Gardens.tb")
+    #loadFileTab("Drowsy Maggie.tb")                 
+    #loadFileTab("testTongue.tb")                  # not playing al notes above 240 bpm
+    #loadFileTab("testRepeat.tb")                  # not playing al notes above 240 bpm
+    
+    autoBars() # make sure tabs are fully on screen
+    drawBars(True)
+    #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html
+
+
 initWindow()
 
 initPlayer()
-#loadFile2("Fee Ra Huri.tb")
-#loadFile2("tutorial.tb")
 
-# public domain tunes
-loadFile2("Down By The Sally Gardens.tb")
-#loadFile2("Fig For A Kiss.tb")
-#loadFile2("testDecos.tb")
-autoBars() # make sure tabs are fully on screen
+#fs.noteon(0, 64,127)
+#time.sleep(0.1)
+#fs.noteon(0, 64,92)
+#fs.
+#time.sleep(0.1)
+#fs.noteoff(0,64)
+#time.sleep(1)
+#fs.noteoff(1,64)
+#quit()
 
-drawBars(True)
-#https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html
+newFile()
 
 win.update()
 toolbarWidth=win.btnHelp.winfo_x()+win.btnHelp.winfo_width()
 win.minsize(toolbarWidth, 120)
-
 win.after(50,showSplash)
+win.after(50,loadDefaultTune)
+
 tk.mainloop()
 closePlayer()
