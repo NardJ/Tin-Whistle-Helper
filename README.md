@@ -65,8 +65,8 @@ For OSX, 32-bit, untested systems or if the install packages do not work for you
 ## Changes alpha 1 -> alpha 2
 * load abc files (displays warning for unsupported features)
 * implemented triplets (use [alt-3] as decorator)
-* added accents staccato (. short/detached), tenuto (-, long attached) as decorations
-* tongue decorator can now be played 
+* added accents staccato (. short/detached), tenuto (-, long attached) as decorators
+* tongue decorator will now be played 
 * last part of repeatable section is skipable on last repeat (mark section start with ?)
 * implemented attribution fields (composer, transcriber) to tab files (displayed in footer) 
 * display key, bpm, time signature (in footer) 
