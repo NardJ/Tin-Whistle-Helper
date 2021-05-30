@@ -123,7 +123,7 @@ _               : Change note at cursor to rest
 [Escape]        : Remove decorator
 { , }           : Insert start ┃▏or end │▎for group of notes to repeat
                   Use [Ctrl]/[Alt] for 2x,3x.
-?               : Mark last notes repeat one less time
+?               : Mark last notes to repeat one less time
 [Shift] { , }   : Insert start ┃▏or end │▎after cursor.                  
 [Del]           : Remove note or repeat start/end at cursor
 [Shift][Del]    : Remove note or repeat start/end after cursor
