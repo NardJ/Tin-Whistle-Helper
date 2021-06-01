@@ -5,6 +5,7 @@
 #       https://abcnotation.com/qtunes#early
 #       http://www.nigelgatherer.com/tunes/abc/abc1.html
 #       https://abcnotation.com/blog/2010/01/31/how-to-understand-abc-the-basics/
+# BUG : Repeats in abc (e.g. 55.abc) not processed correctly
 # TODO: replace .tb extension with .tab extension
 # TODO: Make mobile e.g. using Kivy (https://kivy.org/)
 
@@ -564,6 +565,7 @@ def loadFileTab(tfilename=None,tfilepath=None):
 
 # load file with extension .abc (common text file format for traditional music)
 def loadFileABC(tfilename=None,tfilepath=None):
+    # Reference Guide to ABC: https://abcnotation.com/wiki/abc:standard:v2.1
     # http://www.lesession.co.uk/abc/abc_notation.htm
     # http://www.lesession.co.uk/abc/abc_notation_part2.htm
     # https://editor.drawthedots.com/
@@ -648,6 +650,8 @@ def loadFileABC(tfilename=None,tfilepath=None):
                                   # 3/4 denotes that quarter notes gets beat and
                                   # there are 3 beats per measure
                                   # measures are seperated with | 'note' and not automatically
+                      if val=='C': val='4/4'
+                      if val=='C|': val='2/2'
                       signature=val
                       noteForBeat=int(val[2])
         if cmd=='R' : pass #val  # Rythm of song e.g. Jig,Reel,Waltz
@@ -2994,12 +2998,12 @@ def loadDefaultTune():
     #loadFileTab("testDecos.tb")
     
     #loadFileTab("testTriplet.tb")                  # not playing al notes above 240 bpm
-    #loadFileTab("Down By The Sally Gardens.tb")
+    loadFileTab("Down By The Sally Gardens.tb")
     #loadFileTab("Drowsy Maggie.tb")                 
     #loadFileTab("testTongue.tb")                  # not playing al notes above 240 bpm
     #loadFileTab("testRepeat.tb")                  # not playing al notes above 240 bpm
     
-    loadFileABC("hwhisk.abc")
+    #loadFileABC("55.abc")
 
     autoBars() # make sure tabs are fully on screen
     drawBars(True)
