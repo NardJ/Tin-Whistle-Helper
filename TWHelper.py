@@ -5,9 +5,6 @@
 #       https://abcnotation.com/qtunes#early
 #       http://www.nigelgatherer.com/tunes/abc/abc1.html
 #       https://abcnotation.com/blog/2010/01/31/how-to-understand-abc-the-basics/
-# BUG : hwhisk.abc fails to load
-# TODO: Replace playing of vibrato etc deco's by CC-play messages
-#       https://professionalcomposers.com/midi-cc-list/
 # TODO: replace .tb extension with .tab extension
 # TODO: Make mobile e.g. using Kivy (https://kivy.org/)
 
@@ -665,6 +662,21 @@ def loadFileABC(tfilename=None,tfilepath=None):
                             return
         #ignore rest
         
+    #replace / without number by /2
+    for idx1,line in enumerate(body):
+        ln=len(line)
+        idx2=0
+        while idx2<ln:
+        #for idx2,char in enumerate(line):
+            char=line[idx2]
+            if char=='/' and line[idx2+1] not in ['0','1','2','3','4','5','6','7','8','9']:
+                print (f"oldline:{line}")
+                line=line[:idx2+1]+"2"+line[idx2+1:]
+                ln+=1
+                print (f"newline:{line}")
+                body[idx1]=line
+            idx2+=1
+
     #check max divisor to get minimal note length to display
     maxdiv=1
     for line in body:
@@ -770,8 +782,9 @@ def loadFileABC(tfilename=None,tfilepath=None):
                                   "Note elongation/shortening found. Do you want to ignore and continue import?",
                                   default='ok',icon='warning')
         if contImport:
-            body=[line.replace('<','') for line in body]
-            body=[line.replace('>','') for line in body]
+            #body=[line.replace('<','') for line in body]
+            #body=[line.replace('>','') for line in body]
+            pass # we can now handle this after processing tabs
         else:
             newFile()
             return
@@ -807,25 +820,29 @@ def loadFileABC(tfilename=None,tfilepath=None):
     #no spaces between adjecent pre and note , note and post  
     for line in body:      
         line=line.strip()
+        #print (f"{line=}")
+        
         # extract valid items from refactored body
         nline=[]
         idx=0
         while idx<len(line):
             fnd=False
-            for item in (preitems+noteitems+postitems+groupitems):
+            for item in (preitems+noteitems+postitems+groupitems+['>','<']):
                 if line[idx:idx+len(item)]==item:
                     nline.append(item)
                     idx+=len(item)
                     fnd=True
                     exit
             if not fnd: idx+=1
+
+        #print (f"{nline=}")
         notes=[]
         # groups items in note groups of note itself,pre and post indicators
         for idx in range(len(nline)):
-            if nline[idx] not in (preitems+noteitems+postitems):
+            if nline[idx] not in (preitems+noteitems+postitems+['>','<']):
                 notes.append([nline[idx]])
             #group notes with pre and post items
-            if nline[idx] in noteitems:
+            if nline[idx] in (noteitems+['>','<']):
                 mgroup=[]
                 mgroup.append(nline[idx])
                 #find start of group
@@ -839,7 +856,8 @@ def loadFileABC(tfilename=None,tfilepath=None):
                     if nline[jdx] not in postitems: break
                     mgroup.append(nline[jdx])
                 notes.append(mgroup)                    
-
+        
+        #print (f"{notes=}")
         # replace some info
         for gdx,group in enumerate(notes):
             for idx,note in enumerate(group):
@@ -887,7 +905,7 @@ def loadFileABC(tfilename=None,tfilepath=None):
             if name=='_':
                 #print ('rest')
                 pass
-            if name in (noteIDs+restIDs+sepIDs) or name[0] in ('{','}','?'):#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
+            if name in (noteIDs+restIDs+sepIDs) or name[0] in ('{','}','?') or name in ['>','<']:#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G','_','|',',']:
                 tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin]) 
                 notesfound=True
             else:
@@ -898,6 +916,21 @@ def loadFileABC(tfilename=None,tfilepath=None):
             style=''
             tabs.append([beat,name,dur,style,tabColor,tabCol,tabRow,tabLin])                        
     
+        # process note elongation and shortening '>','<'
+        #print (f"{tabs=}")
+        for idx,tab in enumerate(tabs):
+            beat,name,dur,style,tabColor,tabCol,tabRow,tabLin=tab
+            if name == '<':
+                tabs[idx-1][2]=tabs[idx-1][2]/2
+                tabs[idx+1][2]=tabs[idx+1][2]*1.5
+                tabs.pop(idx)
+            if name == '>':
+                tabs[idx-1][2]=tabs[idx-1][2]*1.5
+                tabs[idx+1][2]=tabs[idx+1][2]/2
+                tabs.pop(idx)
+
+        #print (f"{tabs=}")
+        #quit()
     # set title
     win.title(f"Tin Whistle Helper - {os.path.basename(tfilepath).split('.')[0]}")
 
@@ -2961,11 +2994,13 @@ def loadDefaultTune():
     #loadFileTab("testDecos.tb")
     
     #loadFileTab("testTriplet.tb")                  # not playing al notes above 240 bpm
-    loadFileTab("Down By The Sally Gardens.tb")
+    #loadFileTab("Down By The Sally Gardens.tb")
     #loadFileTab("Drowsy Maggie.tb")                 
     #loadFileTab("testTongue.tb")                  # not playing al notes above 240 bpm
     #loadFileTab("testRepeat.tb")                  # not playing al notes above 240 bpm
     
+    loadFileABC("hwhisk.abc")
+
     autoBars() # make sure tabs are fully on screen
     drawBars(True)
     #https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/canvas-methods.html
