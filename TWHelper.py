@@ -7,19 +7,11 @@
 #       https://abcnotation.com/qtunes#early
 #       http://www.nigelgatherer.com/tunes/abc/abc1.html
 #       https://abcnotation.com/blog/2010/01/31/how-to-understand-abc-the-basics/
-# TODO: load from full visible list of all available tb and abc files
-#       seperator between abc and tab files
-#       some files on play/resize enlarge window too much
-# 
-# DONE: load at % of toolbar (so users can set zoom once at startup to accomodate for their screen width) 
-# DONE: make vertical ruler at 4*3*5=60 beats? (48/60/72 are dividable by 3 and 4)
-# TODO: reorder tabs for max 60 or 72 beats
-# DONE: help/shortcut dock at right like songlist
 
+# 
+# TODO: reauthor tabs for max 60 or 72 beats
 # TODO: use keyboard to skip one row, wil play all notes from 0 to new note instead of only new note under cursor
 # TODO: songlistWin is always on top, instead it follows window order of TWHelper itself
-
-# TODO: key down does not navigate songlistWin - to getting this to working
 
 # TODO: if play is disbaled in songlistWin but song is playing, the new song will also play for remaining duration
 # BUG:  InitBars does not set % in toolbar (which is now set in loadFile/loadFromSonglist)
@@ -33,6 +25,12 @@
 # TODO: replace .tb extension with .tab extension
 # TODO: Make mobile e.g. using Kivy (https://kivy.org/)
 
+# DONE: load from full visible list of all available tb and abc files
+#       seperator between abc and tab files
+# DONE: load at % of toolbar (so users can set zoom once at startup to accomodate for their screen width) 
+# DONE: make vertical ruler at 4*3*5=60 beats? (48/60/72 are dividable by 3 and 4)
+# DONE: help/shortcut dock at right like songlist
+# DONE: key down does not navigate songlistWin - to getting this to working
 # DONE: Click note not only plays flute but also another instrument
 #       fixed in def initTabScroll(fromBeat=0) by changing prevCursorPlay=-1 to prevCursorPlay=fromBeat-1
 # DONE: printscreen icon
@@ -1946,20 +1944,29 @@ def initTabScroll(fromBeat=0):
     delay=int((60/bpm*1000)*beatUpdate)
     #print (f"initTabScroll {prevCursorPlay=}")
 
+def forceFocus():
+    # Does not always work
+    if winSonglist:
+        winSonglist.after(1,lambda:winSonglist.treeview.focus_force())  
+    else:
+        win.after(1,lambda:win.cvs.focus_force())    
 # start scrolling of cursor
 def startTabScroll():
     nrBarLines=barLinesFullyVisible()#(win.cvs.winfo_height())/beat2h()
     if win.varLinear.get():
         if nrBarLines<1:
             messagebox.showinfo("Cannot play","In linear mode the full bar height should be fully visible.\nEnlarge window or use [Ctrl]-scroll wheel to zoom.")
+            forceFocus()
             return
         #check if one row on screen
     else:        
         if nrBarLines<2 :
             messagebox.showinfo("Cannot play","In page mode, at least to bar lines should be fully visible.\nEnlarge window or use [Ctrl]-scroll wheel to zoom.")
+            forceFocus()
             return
         if win.cvs.winfo_width()<tabDims[0]:
             messagebox.showinfo("Cannot play","In page mode, the window-width should accomodate all bars\nEnlarge window or use [Ctrl]-scroll wheel to zoom.")
+            forceFocus()
             return
     global playing, beatCursor,delayJob, beatUpdate,xOffset,yOffset
     if playing: # restart from original

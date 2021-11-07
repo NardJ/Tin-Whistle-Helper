@@ -110,6 +110,7 @@ def show():
     f.pack(side=tk.TOP,fill='both',expand=True,padx=(0,0),pady=(0,0))
     popupMdown.treeview=tv
     popupMdown.treeview.bind('<ButtonRelease-1>', clickFile)
+    popupMdown.treeview.bind('<Return>', clickFile)
     
     '''
     # flat file list
