@@ -3,17 +3,32 @@ from tkinter import font as tkf
 import re 
 
 class RTFText(tk.Text):
-    def __init__(self, master=None, **kw):
+    def __init__(self, master=None,vscroll=True,hscroll=False, **kw):
         self.frame = tk.Frame(master)
 
-        self.vbar = tk.Scrollbar(self.frame)
-        kw.update({'yscrollcommand': self.vbar.set})
-        self.vbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.vbar['command'] = self.yview
+        if vscroll:
+            self.vbar = tk.Scrollbar(self.frame)
+            kw.update({'yscrollcommand': self.vbar.set})
+            self.vbar.pack(side=tk.RIGHT, fill=tk.Y)
+            self.vbar['command'] = self.yview
 
-        tk.Text.__init__(self, self.frame, **kw)
-        self.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
+        if hscroll:
+            self.frameT = tk.Frame(self.frame)
+        else:
+            self.frameT = self.frame    
+
+        tk.Text.__init__(self, self.frameT, **kw)
+        #self.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        if hscroll:
+            self.hbar = tk.Scrollbar(self.frameT,orient='horizontal')
+            kw.update({'xscrollcommand': self.hbar.set})
+            self.hbar.pack(side=tk.BOTTOM, fill=tk.X)#, expand=True)
+            self.hbar['command'] = self.xview
+            self.config(xscrollcommand=self.hbar.set)
+            self.frameT.pack(side=tk.LEFT,fill=tk.BOTH,expand=True)
+
         text_meths = vars(tk.Text).keys()
         methods = vars(tk.Pack).keys() | vars(tk.Grid).keys() | vars(tk.Place).keys()
         methods = methods.difference(text_meths)

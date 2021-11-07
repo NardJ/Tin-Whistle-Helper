@@ -1,17 +1,42 @@
-#   Elan - Nightwish uitwerken
-#   README.md > does double click in windows on py file really start
+#!/usr/bin/env python3 
 
-# TEST: Implement abcnotation, possbibly as tab format
+# TODO  Elan - Nightwish uitwerken
+# TODO  README.md > does double click in windows on py file really start
+
+# TEST: Implement abcnotation, possibly as tab format
 #       https://abcnotation.com/qtunes#early
 #       http://www.nigelgatherer.com/tunes/abc/abc1.html
 #       https://abcnotation.com/blog/2010/01/31/how-to-understand-abc-the-basics/
+# TODO: load from full visible list of all available tb and abc files
+#       seperator between abc and tab files
+#       some files on play/resize enlarge window too much
+# 
+# DONE: load at % of toolbar (so users can set zoom once at startup to accomodate for their screen width) 
+# DONE: make vertical ruler at 4*3*5=60 beats? (48/60/72 are dividable by 3 and 4)
+# TODO: reorder tabs for max 60 or 72 beats
+# DONE: help/shortcut dock at right like songlist
+
+# TODO: use keyboard to skip one row, wil play all notes from 0 to new note instead of only new note under cursor
+# TODO: songlistWin is always on top, instead it follows window order of TWHelper itself
+
+# TODO: key down does not navigate songlistWin - to getting this to working
+
+# TODO: if play is disbaled in songlistWin but song is playing, the new song will also play for remaining duration
+# BUG:  InitBars does not set % in toolbar (which is now set in loadFile/loadFromSonglist)
+# TODO: remove lineair tabs?
+# TODO: make windows exe installer?
+# TODO: Check ornaments as played on YT by TeamRecorder
+# TODO: Check if 'delay=delay2beatUpdate(beatUpdate)' serves a purpose in 'def setBeatUpdate()'
+# BUG: Cannot enter f# in windows
 # BUG : Repeats in abc (e.g. 55.abc) not processed correctly
+# BUG : Sometimes playing lets TWHelper believe we edited.... should we make a play only mode (disabling all editing)? 
 # TODO: replace .tb extension with .tab extension
 # TODO: Make mobile e.g. using Kivy (https://kivy.org/)
 
-# TODO: Check if 'delay=delay2beatUpdate(beatUpdate)' serves a purpose in 'def setBeatUpdate()'
-# BUG: Cannot enter f# in windows
-
+# DONE: Click note not only plays flute but also another instrument
+#       fixed in def initTabScroll(fromBeat=0) by changing prevCursorPlay=-1 to prevCursorPlay=fromBeat-1
+# DONE: printscreen icon
+# DONE: tab should also stop/pause play
 # DONE: make last part of repeatable section skipable on last repeat
 # DONE: Make tongue decorator also play as such
 # DONE: Play triplets
@@ -98,6 +123,7 @@ except Exception as e:
 
 import helpWin
 import infoDialog
+import songlistWin
 
 # Show experimental message
 expShown=False # works because we only have 1 experimental feature (play decos)
@@ -241,14 +267,15 @@ notes={ 'd' :(1,1,1,1,1,1,''),
         }
 minBeatsize=10
 maxBeatsize=60
-beatsize=20
+DEFBEATSIZE=16
+beatsize=DEFBEATSIZE
 barInterval=1.2*beatsize
 holeInterval=1.5*beatsize
 xOffset=beatsize
 yOffset=beatsize
 beatCursor=0
 titleHeight=40
-winDims=[1118,800]
+winDims=[1118+26+15+16,800]
 tabDims=[0,0]
 
 
@@ -454,7 +481,7 @@ def loadFileTab(tfilename=None,tfilepath=None):
 
     # start fresh tabs page
     tabs.clear()
-    initBars(20)
+    initBars()#20)
     tabColor=colors[2]
     backColor='#FFFFDE'
     beat,tabRow,tabCol,tabLin=0,0,0,0 #just placeholders, real values will be calculated after loading by recalcBeats
@@ -581,7 +608,7 @@ def loadFileABC(tfilename=None,tfilepath=None):
     # start fresh tabs page
     tabs.clear()
     texts.clear()
-    initBars(20)
+    initBars()#20)
     tabColor=colors[2]
     backColor='#FFFFDE'
     beat,tabRow,tabCol,tabLin=0,0,0,0 #just placeholders, real values will be calculated after loading by recalcBeats
@@ -643,7 +670,10 @@ def loadFileABC(tfilename=None,tfilepath=None):
         if cmd=='T' : title=val   # title of song
         if cmd=='C' : composer=val# composer of song
         if cmd=='Z' : transcriber=val# composer of song
-        if cmd=='Q' : bpm=val
+        if cmd=='Q' : 
+                      if '/' in val: bpm=240
+                      elif '=' in val: bpm=240
+                      elif int(val)>60: bpm=int(val)
         if cmd=='L' :             # length of note without elongation or shortening e.g. 'c'  
                       baseNoteLength=int(val[2])
         if cmd=='M' :             # Meter of song e.g. 6/8 or C for common time
@@ -1080,9 +1110,43 @@ def loadFile():
     # after load we reset some vars and redraw  
     initBars()
     beatCursor=0
-    metroMultIdx=0
-    advMetroMult()
+    #win.varZoom.set(100)
+    #metroMultIdx=0
+    #advMetroMult()
     drawBars(True)
+
+    print (f"Loaded:{scriptpath}")
+
+def loadFromSonglist(scriptpath,autosize,autoload):
+    ext=scriptpath[-3:]
+    try:
+        if ext=='abc': 
+            loadFileABC(tfilepath=scriptpath)
+        elif ext=='.tb': 
+          loadFileTab(tfilepath=scriptpath)
+        else: return
+    except Exception as e:
+        print (f"Error reading tab file:{e}")
+        traceback.print_exc()
+
+    # stop play
+    if autoload:
+        stopTabScroll() 
+
+    # reset some vars and redraw  
+    initBars()
+    beatCursor=0
+    #win.varZoom.set(100)
+    #metroMultIdx=0
+    #advMetroMult()
+    drawBars(True)
+
+    if autosize:
+        autoBars()
+
+    # start play
+    if autoload:
+        startTabScroll()
 
     print (f"Loaded:{scriptpath}")
 
@@ -1462,7 +1526,6 @@ def drawBars(force=False):
     if inDrawBars and not force: return
     inDrawBars=True
 
-    curTabIdx=-1
     # check if bars changed
     if force:
         #print ("full redraw")
@@ -1481,7 +1544,11 @@ def drawBars(force=False):
         # redraw page outline
         bBox=pageBBox()
         win.cvs.create_rectangle(bBox[0],bBox[1],bBox[2],bBox[3], fill=backColor)
-        
+        # draw vertical 72 beat ruler (72ill fit measures of 3 and measures of 4 beats)
+        x72=(col2x(72-1)+beatsize+col2x(72))/2
+        if bBox[2]>col2x(72): #only draw if within page
+            win.cvs.create_line(x72,bBox[1],x72,bBox[3], fill='#AAAAAA')
+
         # draw title and other text
         if len(texts)==0: #only display filename as title if no texts were given in the file
             x1=beat2x(0)
@@ -1582,6 +1649,7 @@ repeatStart=0
 repeatStartIdx=0
 prevCursorPlay=-1
 def doCursorPlay():
+    #print ("doCursorplay")
     global nrRepeats,repeatStart,beatCursor,repeatStartIdx,prevCursorPlay
 
     # check if we also need to play a tick
@@ -1631,7 +1699,7 @@ def doCursorPlay():
         #print (f"{beatCursor=} vs {beat=} in {tab=}")
         if beat>prevCursorPlay and beat<=round(beatCursor,2):
             if name in noteIDs:#['a','b','c','c#','d','e','f#','g','A','B','C#','D','E','F#','G']:
-                #print (f"play {tab=}")
+                #print (f"play {tab=} {prevCursorPlay=} {beatCursor=}")
                 startNote(name)                
                 delay=dur*int(60/bpm*1000)
                 noteLength=delay-noteSilence if (noteSilence<delay) else delay
@@ -1872,10 +1940,11 @@ firstPlayBeat=0
 def initTabScroll(fromBeat=0):
     global beatCursor,prevCursorPlay
     beatCursor=fromBeat
-    prevCursorPlay=-1
+    prevCursorPlay=fromBeat-1
     win.beatCursor.set(f"{beatCursor:.1f}")
     setBeatUpdate()
     delay=int((60/bpm*1000)*beatUpdate)
+    #print (f"initTabScroll {prevCursorPlay=}")
 
 # start scrolling of cursor
 def startTabScroll():
@@ -1915,9 +1984,11 @@ def startTabScroll():
 
 # stop scrolling of cursor 
 def stopTabScroll():
-    global playing,beatCursor,firstPlayBeat
+    global playing,beatCursor,firstPlayBeat,prevCursorPlay
     if not playing:
         firstPlayBeat=0
+    #print ("stopTabScroll")
+    prevCursorPlay=firstPlayBeat               
     beatCursor=firstPlayBeat
     endNote()
     playing=False
@@ -2069,6 +2140,7 @@ def drag_handler(event):
         win.cvs.yview_moveto(vScrollOffset)
 # if drag ends very fast we register this as mouse click
 def drag_end(event):
+    if not drag_start: return
     if (time.time()-drag_start)<0.2: 
         click(event)
         return
@@ -2076,7 +2148,7 @@ def drag_end(event):
 # change beatsize and redraw page
 def setBeatSize():
     global beatsize
-    beatsize=int(win.varZoom.get()/100*20)
+    beatsize=int(win.varZoom.get()/100*DEFBEATSIZE)
     initBars(beatsize)
     calcTabDims()
     drawBars(True)  
@@ -2084,7 +2156,7 @@ def setBeatSize():
 zooms=[25,40,50,67,75,85,100,150,200,250,400]
 # set zoom control
 def setZoom():
-    win.varZoom.set(int(100*(beatsize/20)+0.5))
+    win.varZoom.set(int(100*(beatsize/DEFBEATSIZE)+0.5))
 # move to next zoom percentge and recalc setBeatSize and thus redraw page 
 def zoomIn():
     zIdx=zooms.index(win.varZoom.get())
@@ -2176,11 +2248,14 @@ def advMetroMult(event=None):
 def maxMetroMult():
     global metroMultIdx
     if bpm>300:
-        if metroMultIdx==1: advMetroMult()
+        if metroMultIdx==1: 
+            #print (f"maxMetroMult {bpm} {metroMultIdx}")
+            advMetroMult()
 
 # reset zoom to 100%
 def resetView(event):
     initBars(20)
+    win.varZoom.set(100)
     drawBars(True)
 
 # return min and max X,Y-coordinates of page
@@ -2303,6 +2378,68 @@ def tabLineEnd(idx):
     for i in range(idx+1,len(tabs)):
         if tabs[i][1]==eot: return i  
     return len(tabs)      
+def saveScreenshot(saveAllTabs=True):
+    global beatCursor
+    try:
+        # autosize
+        if saveAllTabs: autoBars()
+        # hide cursor
+        cpbeatCursor=beatCursor
+        beatCursor=99999
+        drawBars()
+        win.cvs.update()
+        bBox=pageBBox()
+        x=win.winfo_rootx()+win.cvs.winfo_x()+bBox[0]
+        y=win.winfo_rooty()+win.cvs.winfo_y()+bBox[1]
+        #x1=x+min(bBox[2],win.cvs.winfo_width())
+        x1=x+win.cvs.winfo_width()
+        
+        if not saveAllTabs:
+            # get screenshot bounding box
+            y1=y+min(bBox[3],win.cvs.winfo_height())
+            im=grab(bbox=(x,y,x1,y1))
+            # save image
+            filename=os.path.join(screenshotdir,title+".png")
+            im.save(filename,format='png')
+            print (f"Saved screenshot as '{filename}'")
+            messagebox.showinfo("Saved screenshot",f"Saved screenshot as '{filename}'")
+        if saveAllTabs:
+            bBox=pageBBox()
+            region=(int(bBox[2]),int(bBox[3]))
+            ims = Image.new('RGB', region,backColor)
+            offset=0
+            toffset=0
+            win.cvs.yview_moveto(0)
+            win.cvs.update()
+            for row in range(tabs[-1][6]+1):
+                scroll2Row(row)# - scrolls, but row2y does not account for scroll
+                win.cvs.update()
+                yOrg=win.winfo_rooty()+win.cvs.winfo_y()
+                offsetY=win.cvs.canvasy(0)
+                rY=row2y(row)-offsetY
+                nY=row2y(row+1)-offsetY
+                if row==0: 
+                    y1=yOrg
+                    y2=yOrg+nY
+                else: 
+                    y1=yOrg+rY
+                    y2=yOrg+nY
+                im=grab(bbox=(x,y1,x1,y2))
+                #filename=os.path.join(scriptdir,f"{title}-{row}.png")
+                #im.save(filename,format='png')
+                ims.paste(im, (0,int(toffset)))
+                toffset+=(y2-y1)
+            # save image
+            filename=os.path.join(screenshotdir,title+".png")
+            ims.save(filename,format='png')
+            print (f"Saved screenshot as '{filename}'")
+            messagebox.showinfo("Saved screenshot",f"Saved screenshot as '{filename}'")
+        # show cursor
+        beatCursor=cpbeatCursor
+        drawBars()
+    except Exception as e:
+        print (f"Error saving screenshot file:{e}")
+        traceback.print_exc()
 
 # handle all key presses of user    
 oldTabs=[]
@@ -2325,8 +2462,10 @@ def keypress(event):
         if playing:
             pauseTabScroll()
         return
-    elif  key=="Tab": # start play
-        if playing: return
+    elif  key=="Tab": # start play or pause
+        if playing:
+            pauseTabScroll() 
+            return
         startTabScroll()
         return
     elif key=="q":   # stop play
@@ -2616,6 +2755,8 @@ def keypress(event):
 
 
     elif key in ('p','P'):
+        saveScreenshot(saveAllTabs=(key=='P'))
+        '''
         try:
             # autosize
             if state==1: autoBars()
@@ -2676,6 +2817,7 @@ def keypress(event):
         except Exception as e:
             print (f"Error saving screenshot file:{e}")
             traceback.print_exc()
+        '''
         
     # debug 
     #print (event)
@@ -2692,14 +2834,48 @@ def keypress(event):
 
 # show help window    
 def showHelp():
-    helpWin.init(win,helpdir)
+    helpWin.init(win,os.path.join(helpdir,"manual.txt"))
     helpWin.show()
+
+# show help window   
+winHelpdock=None 
+def showHelpDocked():
+    global winHelpdock
+    if winHelpdock: 
+        win.childResizeCallbacks.remove(helpWin.relocate)
+        winHelpdock.destroy()
+        winHelpdock=None
+        win.btnHelpDock.config(image=win.imgSlideRight)
+    else:     # already visible
+        helpWin.init(win,os.path.join(helpdir,"shortcuts.txt"))
+        winHelpdock=helpWin.show(docked=True)
+        win.childResizeCallbacks.append(helpWin.relocate)
+        win.btnHelpDock.config(image=win.imgSlideLeft)
+
+# show help window   
+winSonglist=None 
+def showSonglist():
+    global winSonglist
+    if winSonglist: 
+        win.childResizeCallbacks.remove(songlistWin.relocate)
+        winSonglist.destroy()
+        winSonglist=None
+        win.btnSonglist.config(image=win.imgSlideLeft)
+    else:     # already visible
+        songlistWin.init(win,
+                        ["/home/nard/Tin Whistle/TWHelper/tabs","/home/nard/Tin Whistle/TWHelper/abc"],
+                        loadFromSonglist)
+        winSonglist=songlistWin.show()
+        win.childResizeCallbacks.append(songlistWin.relocate)
+        win.btnSonglist.config(image=win.imgSlideRight)
 
 # on resize window store new size of window
 def resizeWindow(event):
     global winDims
     winDims=[win.winfo_width(),win.winfo_height()]
-    #drawBars(True)
+    for cCB in win.childResizeCallbacks:
+        win.after(5,cCB())
+        #cCB()
 
 # handle user closing window
 def closeWindow():
@@ -2708,11 +2884,14 @@ def closeWindow():
 # init window with all controls/widgets to display
 def initWindow():
     global win
+    
     sepSpacing=(8,8)
 
     # CREATE WINDOW
     win = tk.Tk()  
     win.option_add('*font',  '*font 9')
+    # CREATE ROOM FOR CALLBACKS OF CHILDS IF win RESIZES OR MOVE
+    win.childResizeCallbacks=[]
 
     # Set Window properties
     win.title(f"Tin Whistle Helper")
@@ -2726,6 +2905,15 @@ def initWindow():
 
     win.buttonframe=tk.Frame(win,background="white",border=0,highlightthickness=0,relief=tk.FLAT,takefocus=0)
     win.buttonframe.pack(side=tk.BOTTOM,padx=(0,0),pady=(0,0),ipadx=2,ipady=2,expand=False,fill=tk.X)
+
+    pathSlideLeft=os.path.join(icondir,"slideLeft.png")
+    pathSlideRight=os.path.join(icondir,"slideRight.png")
+    win.imgSlideLeft= tk.PhotoImage(file=pathSlideLeft)#.subsample(4,4)
+    win.imgSlideRight= tk.PhotoImage(file=pathSlideRight)#.subsample(4,4)
+    win.btnSonglist=tk.Button(win.buttonframe,image=win.imgSlideLeft,relief=tk.FLAT,width=8,height=26,command=showSonglist,takefocus=0)
+    win.btnSonglist.pack(side=tk.LEFT,padx=(3,0))
+    win.btnSonglist.tooltip=CreateToolTip(win.btnSonglist,"Show file list.\n(Discard changes.)")
+
     win.btnLoad=tk.Button(win.buttonframe,text="Load",relief=tk.FLAT,width=4,command=loadFile)
     win.btnLoad.pack(side=tk.LEFT,padx=(1,0))
     win.btnLoad.tooltip=CreateToolTip(win.btnLoad,"Load file.\n(Discard changes.)")
@@ -2743,6 +2931,13 @@ def initWindow():
     #win.btnSave=tk.Button(win.buttonframe,text="Save",relief=tk.FLAT,width=4,command=saveFile)
     win.btnSave.pack(side=tk.LEFT,padx=(1,0))
     win.btnSave.tooltip=CreateToolTip(win.btnSave,"Save file.\n(Clear undo stack.)")
+
+    imgPath=os.path.join(icondir,"screenshot.png")
+    win.imgScreenshot= tk.PhotoImage(file=imgPath)#.subsample(4,4)
+    win.btnScreenshot=tk.Button(win.buttonframe,image=win.imgScreenshot,relief=tk.FLAT,width=24,command=saveScreenshot,takefocus=0)
+    #win.btnSave=tk.Button(win.buttonframe,text="Save",relief=tk.FLAT,width=4,command=saveFile)
+    win.btnScreenshot.pack(side=tk.LEFT,padx=(1,0))
+    win.btnScreenshot.tooltip=CreateToolTip(win.btnScreenshot,"Save screenshot.\nShortcut: [p]/[P]")
 
     # draw sep
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
@@ -2860,19 +3055,19 @@ def initWindow():
     win.imgPlay= tk.PhotoImage(file=imgPath)
     win.btnPlay=tk.Button(win.buttonframe,image=win.imgPlay,relief=tk.FLAT,width=24,command=startTabScroll,takefocus=0)
     win.btnPlay.pack(side=tk.LEFT,padx=(1,0))
-    win.btnPlay.tooltip=CreateToolTip(win.btnPlay,"Start tabs\n scroll.")
+    win.btnPlay.tooltip=CreateToolTip(win.btnPlay,"Start tabs scroll. \nShortcut [Tab]")
 
     imgPath=os.path.join(icondir,"stop.png")
     win.imgStop= tk.PhotoImage(file=imgPath)
     win.btnStop=tk.Button(win.buttonframe,image=win.imgStop,relief=tk.FLAT,width=24,command=stopTabScroll,takefocus=0)
     win.btnStop.pack(side=tk.LEFT,padx=(1,0))
-    win.btnStop.tooltip=CreateToolTip(win.btnStop,"Stop tabs\n scroll.")
+    win.btnStop.tooltip=CreateToolTip(win.btnStop,"Stop tabs scroll.\nShortcut [q]")
 
     imgPath=os.path.join(icondir,"pause.png")
     win.imgPause= tk.PhotoImage(file=imgPath)
     win.btnPause=tk.Button(win.buttonframe,image=win.imgPause,relief=tk.FLAT,width=24,command=pauseTabScroll,takefocus=0)
     win.btnPause.pack(side=tk.LEFT,padx=(1,0))
-    win.btnPause.tooltip=CreateToolTip(win.btnPause,"Pause tabs\n scroll.")
+    win.btnPause.tooltip=CreateToolTip(win.btnPause,"Pause tabs scroll.\nShortcut [w]/[Tab]")
 
     win.beatCursor = tk.StringVar()
     win.beatCursor.set(f"{beatCursor:>5.1f}")
@@ -2909,7 +3104,7 @@ def initWindow():
     win.imgAuto = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnAuto4Bars=tk.Button(win.buttonframe,image=win.imgAuto,relief=tk.FLAT,command=autoBars,takefocus=0)
     win.btnAuto4Bars.pack(side=tk.LEFT,padx=(1,0))
-    win.btnAuto4Bars.tooltip=CreateToolTip(win.btnAuto4Bars,"Enlarge window and zoom out to fit tab \nwidth(page view) or height (linear view).")
+    win.btnAuto4Bars.tooltip=CreateToolTip(win.btnAuto4Bars,"Enlarge window and zoom out to fit tab \nwidth(page view) or height (linear view).\nShortcut [r]")
 
     imgPath=os.path.join(icondir,"shrink.png")
     win.imgShrink = tk.PhotoImage(file=imgPath)#.subsample(4,4)
@@ -2952,10 +3147,15 @@ def initWindow():
     win.separator = ttk.Separator(win.buttonframe,orient='vertical').pack(side=tk.LEFT,fill='y',padx=(8,8))
 
     # help
+    win.btnHelpDock=tk.Button(win.buttonframe,image=win.imgSlideRight,bg='white',relief=tk.FLAT,width=8,height=26,command=showHelpDocked,takefocus=0)
+    win.btnHelpDock.pack(side=tk.RIGHT,padx=(0,3))
+    win.btnHelpDock.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
+    win.btnHelpDock.tooltip=CreateToolTip(win.btnHelpDock,"Show help docked.")
+
     imgPath=os.path.join(icondir,"help.png")
     win.imgHelp = tk.PhotoImage(file=imgPath)#.subsample(4,4)
     win.btnHelp=tk.Button(win.buttonframe,image=win.imgHelp,bg='white',relief=tk.FLAT,command=showHelp,takefocus=0)
-    win.btnHelp.pack(side=tk.RIGHT,padx=(0,3))
+    win.btnHelp.pack(side=tk.RIGHT,padx=(0,0))
     win.btnHelp.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
 
     # make canvas
@@ -2970,7 +3170,8 @@ def initWindow():
     win.cvs.config(yscrollcommand=win.vbar.set)
     win.cvs.config(xscrollcommand=win.hbar.set)
     win.hbar.config(width=0)
-    
+
+    # bind mouse
     win.cvs.bind("<ButtonPress-1>", drag_enter)
     win.cvs.bind("<B1-Motion>", drag_handler)
     win.cvs.bind("<ButtonRelease-1>", drag_end)    
@@ -2998,12 +3199,12 @@ def loadDefaultTune():
     #loadFileTab("testDecos.tb")
     
     #loadFileTab("testTriplet.tb")                  # not playing al notes above 240 bpm
-    loadFileTab("Down By The Sally Gardens.tb")
-    #loadFileTab("Drowsy Maggie.tb")                 
+    #loadFileTab("Down By The Sally Gardens.tb")
+    loadFileTab("Drowsy Maggie.tb")                 
     #loadFileTab("testTongue.tb")                  # not playing al notes above 240 bpm
     #loadFileTab("testRepeat.tb")                  # not playing al notes above 240 bpm
     
-    #loadFileABC("55.abc")
+    #loadFileABC("Raggle Taggle Gipsy.abc")
 
     autoBars() # make sure tabs are fully on screen
     drawBars(True)
@@ -3031,6 +3232,8 @@ toolbarWidth=win.btnHelp.winfo_x()+win.btnHelp.winfo_width()
 win.minsize(toolbarWidth, 120)
 win.after(50,showSplash)
 win.after(50,loadDefaultTune)
+
+#showSonglist()
 
 tk.mainloop()
 closePlayer()
