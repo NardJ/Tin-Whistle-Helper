@@ -1,0 +1,15 @@
+# Testrepeat
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+bpm  :240
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+
+# Tabs
+green e {4 d d ? f# }4 a _ 

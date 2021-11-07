@@ -1,0 +1,20 @@
+# Testdecos
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+120
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+
+# Tabs
+green _ d.< _ a.< 
+_ e.> _ a.> 
+_ e.^ 
+_ d.= _ e.= _ f#.= _ g.= _ a.= _ b.= _ c#.= 
+_ d...~ 
+_ 
