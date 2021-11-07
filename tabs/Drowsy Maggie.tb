@@ -3,7 +3,7 @@
 #   see https://github.com/NardJ/Tin-Whistle-Helper
 
 # Beats per Minute (bpm)
-480
+bpm  :480
 
 # Colors
 color:black
@@ -17,7 +17,7 @@ text:"│  Based on: TinWhistler.com   │",71.0,2.3,"Consolas",0.35,"normal"
 text:"└──────────────────────────────┘",71.0,2.85,"Consolas",0.35,"normal"
 
 # Tabs
-green e... b. e. D. e. b. e.  e... b. e. a. f#. d. f#.  e... b. e. D. e. b. e.  b..... c#. D. a. f#. d. 
-e... b. e. D. e. b. e.  e... b. e. a. f#. d. f#.  e... b. e. D. e. e. e.  b..... c#. D. a. f#. a. 
-D... F#. D. c#. D. E. c#.  D. E. F#. G. A. F#. G. E.  D... F#. D. c#. D. E. c#.  b..... c#. D. a. f#. a. 
-D... F#. D. c#. D. E. c#.  D. E. F#. G. A. F#. G. E.  A. F#. G. E. F#. D. E.. c#  b..... c#. D. a. f#. d. 
+green e... b. e. D. e. b. e.  e... b. e. a. f#. d. f#.  DeepPink3 e... b. e. D. e. b. e. green  blue b..... c#. D. a. f#. d. green 
+e... b. e. D. e. b. e.  e... b. e. a. f#. d. f#.  magenta e... b. e. D. e. e. e. green  blue b..... c#. D. a. f#. a. green 
+orange D... F#. D. c#. D. E. c#. green  orange D. E. F#. G. A. F#. G. E. green  orange D... F#. D. c#. D. E. c#. green  blue b.....  c#.  D. a. f#. a. green 
+orange D... F#. D. c#. D. E. c#. green  orange D. E. F#. G. A. F#. G. E. green  #00BBED A. F#. G. E. F#. D. E.. c# green  blue b..... c#. D. a. f#. d. green 

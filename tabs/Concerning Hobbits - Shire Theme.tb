@@ -3,7 +3,7 @@
 #   see https://github.com/NardJ/Tin-Whistle-Helper
 
 # Beats per Minute (bpm)
-180
+bpm  :180
 
 # Colors
 color:black
@@ -12,6 +12,7 @@ back :#FFFFDE
 # Text
 
 # Tabs
-green d e f#.. a f#... e... d....... f# a b..... D c#... a... f#..... e..... d e f#..... a f#... e... d....... f# a b..... a... f#... e....... d....... 
+green d e f#.. a f#... e... d....... f# a b..... D c#... a... f#..... e..... 
+d e f#..... a f#... e... d....... f# a b..... a... f#... e....... d....... 
 D E F# F# F# A E D E a b c# c# D a f# a e D E F# F# A F# E E F# E D D D F# D E F# E D E 
 d e f# f# b c# D c# a f# e d e f# f# b c# D c# b a e d 

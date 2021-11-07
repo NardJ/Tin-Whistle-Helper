@@ -1,0 +1,21 @@
+# The Bear Dance
+#   made with TWHelper
+#   see https://github.com/NardJ/Tin-Whistle-Helper
+
+# Beats per Minute (bpm)
+bpm  :420
+
+# Colors
+color:black
+back :#FFFFDE
+
+# Text
+
+# Tabs
+green F#. b. b...  F#. b. b.. c#  D. D. c#. D.  E... E... 
+F#. F#. E. E.  D. D. c#...  b c# D. c#. a.  b... b... 
+F#. b. b...  F#. b. b.. c#  D. D. c#. D.  E... E... 
+F#. F#. E. E.  D. D. c#...  b c# D. c#. a.  b... b... 
+b c# D. b c# D.  c#. a. a...  b c# D. b c# D.  E... E...  F#. b. F#. b. 
+F#. b. F#.. E  D. b. c#. a.  b... b...  b c# D. b c# D. 
+c#. a. a...  b c# D. b c# D.  E... E...  F#. b. F#. b. _ 

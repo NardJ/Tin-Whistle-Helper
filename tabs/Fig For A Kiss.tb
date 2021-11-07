@@ -3,7 +3,7 @@
 #   see https://github.com/NardJ/Tin-Whistle-Helper
 
 # Beats per Minute (bpm)
-480
+bpm  :320
 
 # Colors
 color:black
@@ -21,6 +21,6 @@ text:"│           Tin-Whistle-Helper │",49.5,4.50,"Consolas",0.35,"normal"
 text:"└──────────────────────────────┘",49.5,5.05,"Consolas",0.35,"normal"
 
 # Tabs
-orange g. b e. b b a g  f#. a d. a a g f#  g. b e. b b a g  b D b a g f# e..^ 
-brown G. E G. E E D b  F#. D D. b D. E  F#. _ G. E G. E  E D b D. b g. g  b. D E. _ F# G. 
-green E G. E E D b F#.  D D. b D. E F#.  _ G F# E F# E D E D  b b c# D b a g f#.  d= e... 
+orange {2 g. b e. b b a g  red f#. a d. a a g f# orange  g. b e. b b a g  DeepPink3 b D b a g f# e..^ orange }2 
+blue G. E G. E E D b brown  purple3 F#. D D. b D. E F#. brown  blue G. E G. E E D b DeepPink3  D. brown b g. g  b. D E. F# 
+blue G. E G. E E D b green  purple3 F#. D D. b D. E F#. green  G F# E F# E D E D  b b c# D b a g f#.  d= e... 
