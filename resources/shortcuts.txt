@@ -1,0 +1,65 @@
+<family:Verdana><center><h1>Controls</h1></center>
+<hr>
+</hr>
+<b>Mouse - Change View </b>
+<code>
+Left Button     : Set beat cursor
+Drag / Wheel    : Scroll page
+[Ctrl]-Wheel    : Zoom page
+Right Button    : Reset page view
+</code>
+
+<b>Keyboard - Edit Song</b>
+<code>
+<u><i>Navigate/play</i></u>
+ Arrow keys      : Move beat cursor 
+ [Tab]           : Play/Resume
+ q               : Stop song 
+ w               : Pause/Resume 
+ r               : Autosize/-zoom 
+
+<u><i>Notes</i></u>
+ d,e,f,g,a,b     : 1st oct d..f#..b
+ c,D,E,F,G,A,B   : 2nd oct c#..f#..b
+ C               : 3td-oct c#
+ [Alt]-d,f,g,a,c : 1st-oct d#,f,g#,a#,c
+ [Alt]-D,F,G,A,C : 2nd-oct d#,f,g#,a#,c
+ 1...9           : length of note
+ _               : change note to rest
+ [Ins]           : Insert rest before
+ [Shift][Ins]    : Insert rest after
+ [Alt]-3         : set length 2/3 beat
+
+<u><i>Decorators</i></u>
+ > , < , ^ , =   : tap/strike ↴, cut ⮤,
+                   roll ⮤↴, slide ⇒ 
+ @ , ~ , * , :   : tongue ᳅, vibrato ∿, 
+                   staccato *, legato -
+ [Escape]        : Remove decorator
+
+<u><i>Repeats</i></u>
+ { , }           : start/end repeat
+                   [Ctrl]/[Alt] 2x,3x.
+                   [Shft] after cursor  
+ ?               : Note repeat 1 less 
+
+<u><i>Delete</i></u>
+ [Del]           : Remove note/repeat 
+ [Shift][Del]    : Remove after cursor
+ [Ctrl]-z        : Undo last delete 
+
+<u><i>Visuals</i></u>
+ [F1]..[F10]     : Tab color
+ [Shift][Fx]     : Page color
+ [Space],|       : Visual space/v.line
+ [Backspace]     : Remove space/v.line
+ [Return]        : Break line before 
+ [Shift][Return] : Break line after 
+ [Backspace]     : Join if at 1st tab
+
+<u><i>Export</i></u>
+ p               : Screenshot vis. tabs  
+ [shift]-p       : Screenshot ALL tabs 
+</code>
+</family>
+
