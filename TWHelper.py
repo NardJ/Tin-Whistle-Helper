@@ -9,21 +9,24 @@
 #       https://abcnotation.com/blog/2010/01/31/how-to-understand-abc-the-basics/
 
 # 
+# TODO: songlistWin is always on top, instead it follows window order of TWHelper itself
 # TODO: reauthor tabs for max 60 or 72 beats
 # TODO: use keyboard to skip one row, wil play all notes from 0 to new note instead of only new note under cursor
-# TODO: songlistWin is always on top, instead it follows window order of TWHelper itself
 
-# TODO: if play is disbaled in songlistWin but song is playing, the new song will also play for remaining duration
+# BUG:  not sure is still present: if play is disabled in songlistWin but song is playing, the new song will also play for remaining duration
 # BUG:  InitBars does not set % in toolbar (which is now set in loadFile/loadFromSonglist)
+
 # TODO: remove lineair tabs?
-# TODO: make windows exe installer?
 # TODO: Check ornaments as played on YT by TeamRecorder
 # TODO: Check if 'delay=delay2beatUpdate(beatUpdate)' serves a purpose in 'def setBeatUpdate()'
-# BUG: Cannot enter f# in windows
+# BUG:  Cannot enter f# in windows
 # BUG : Repeats in abc (e.g. 55.abc) not processed correctly
 # BUG : Sometimes playing lets TWHelper believe we edited.... should we make a play only mode (disabling all editing)? 
 # TODO: replace .tb extension with .tab extension
+
 # TODO: Make mobile e.g. using Kivy (https://kivy.org/)
+# TODO: Make new linux distributable
+# TODO: Make windows installer
 
 # DONE: load from full visible list of all available tb and abc files
 #       seperator between abc and tab files
@@ -2919,7 +2922,7 @@ def initWindow():
     win.imgSlideRight= tk.PhotoImage(file=pathSlideRight)#.subsample(4,4)
     win.btnSonglist=tk.Button(win.buttonframe,image=win.imgSlideLeft,relief=tk.FLAT,width=8,height=26,command=showSonglist,takefocus=0)
     win.btnSonglist.pack(side=tk.LEFT,padx=(3,0))
-    win.btnSonglist.tooltip=CreateToolTip(win.btnSonglist,"Show file list.\n(Discard changes.)")
+    win.btnSonglist.tooltip=CreateToolTip(win.btnSonglist,"Show file list.\n(Discard changes\nDocked)")
 
     win.btnLoad=tk.Button(win.buttonframe,text="Load",relief=tk.FLAT,width=4,command=loadFile)
     win.btnLoad.pack(side=tk.LEFT,padx=(1,0))
@@ -3157,7 +3160,7 @@ def initWindow():
     win.btnHelpDock=tk.Button(win.buttonframe,image=win.imgSlideRight,bg='white',relief=tk.FLAT,width=8,height=26,command=showHelpDocked,takefocus=0)
     win.btnHelpDock.pack(side=tk.RIGHT,padx=(0,3))
     win.btnHelpDock.configure(background=footerbgcolor,activebackground=footerbgcolor,fg=footerfgcolor,activeforeground=footerfgcolor,highlightbackground=footerbgcolor)
-    win.btnHelpDock.tooltip=CreateToolTip(win.btnHelpDock,"Show help docked.")
+    win.btnHelpDock.tooltip=CreateToolTip(win.btnHelpDock,"Show control help.\n(Docked)")
 
     imgPath=os.path.join(icondir,"help.png")
     win.imgHelp = tk.PhotoImage(file=imgPath)#.subsample(4,4)
