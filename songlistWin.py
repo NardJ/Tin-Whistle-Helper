@@ -2,7 +2,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import font as tkf
-from tkRTFText import RTFText 
+#from tkRTFText import RTFText 
 
 from tooltip import CreateToolTip
 
@@ -29,6 +29,7 @@ def relocate():
         winDims=[300,win.winfo_height()]
         winPos=[win.winfo_rootx(),win.winfo_rooty()]
         popupMdown.geometry(f'{winDims[0]:.0f}x{winDims[1]:.0f}+{winPos[0]-winDims[0]}+{winPos[1]}')  
+        popupMdown.after(500,relocate)
     except Exception as e:
         print (f"Error relocating songlistWin! (Perhaps closed?):{e}")
 
@@ -63,8 +64,9 @@ def show():
     popupMdown.wm_title("Select tune")
     #backcolor=rootWin["bg"]#"#DDDDDD"
     popupMdown.configure(background='white')
-    popupMdown.attributes('-type', 'dock')
- 
+    #popupMdown.attributes('-type', 'dock')
+    popupMdown.attributes('-type', 'splash')
+    
     footerbgcolor='white'
     footerfgcolor='black'
     # footer
@@ -101,9 +103,14 @@ def show():
             for d in sorted(os.listdir(path)):
                 full_path=os.path.join(path,d)
                 isdir = os.path.isdir(full_path)
-                id=tv.insert(parent,'end',text=d,values=(isdir,full_path),open=False)
                 if isdir:
+                    id=tv.insert(parent,'end',text=d,values=(isdir,full_path),open=False)
                     traverse_dir(id,full_path)
+            for d in sorted(os.listdir(path)):
+                full_path=os.path.join(path,d)
+                isdir = os.path.isdir(full_path)
+                if not isdir:
+                    id=tv.insert(parent,'end',text=d,values=(isdir,full_path),open=False)
         traverse_dir(node,path)
     #ybar.pack(side=tk.RIGHT,fill=tk.Y)
     tv.pack(side=tk.LEFT,expand=True,padx=(2,0),pady=(2,0),fill=tk.BOTH)

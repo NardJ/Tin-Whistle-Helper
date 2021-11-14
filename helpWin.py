@@ -10,15 +10,6 @@ win=None
 helppath=None
 popupMdown=None
 
-def keypress(ev):
-    print (f"{ev=}")
-    if ev.char=='\x12':
-        print ("refresh")
-        popupMdown.destroy()
-        init(win,helppath)
-        show(dockstate)
-        win.focus_set()
-
 def init(rootWin,helpPath):
     global win,helppath
     win=rootWin
@@ -32,6 +23,7 @@ def relocate():
         winDims=[410,win.winfo_height()]
         winPos=[win.winfo_rootx()+win.winfo_width(),win.winfo_rooty()]
         popupMdown.geometry(f'{winDims[0]:.0f}x{winDims[1]:.0f}+{winPos[0]}+{winPos[1]}')  
+        popupMdown.after(500,relocate)
     except Exception as e:
         print (f"Error relocating songlistWin! (Perhaps closed?):{e}")
 
@@ -49,7 +41,7 @@ def show(docked=False):
 
     popupMdown.docked=docked
     if popupMdown.docked:
-        popupMdown.attributes('-type', 'dock')
+        popupMdown.attributes('-type', 'splash')
         relocate()
     else:
         popupMdown.transient(win) 
@@ -93,6 +85,4 @@ def show(docked=False):
     if not popupMdown.docked:
         popupMdown.grab_set()
     
-    win.bind("<Key>",keypress)
-
     return popupMdown

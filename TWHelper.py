@@ -1,33 +1,35 @@
 #!/usr/bin/env python3 
 
-# TODO  Elan - Nightwish uitwerken
-# TODO  README.md > does double click in windows on py file really start
-
 # TEST: Implement abcnotation, possibly as tab format
 #       https://abcnotation.com/qtunes#early
 #       http://www.nigelgatherer.com/tunes/abc/abc1.html
 #       https://abcnotation.com/blog/2010/01/31/how-to-understand-abc-the-basics/
 
-# 
-# TODO: songlistWin is always on top, instead it follows window order of TWHelper itself
+# TODO: should we use repeats if possible (will lengthen rows)
 # TODO: reauthor tabs for max 60 or 72 beats
-# TODO: use keyboard to skip one row, wil play all notes from 0 to new note instead of only new note under cursor
+# TODO: finish WIP tunes 
 
 # BUG:  not sure is still present: if play is disabled in songlistWin but song is playing, the new song will also play for remaining duration
-# BUG:  InitBars does not set % in toolbar (which is now set in loadFile/loadFromSonglist)
 
 # TODO: remove lineair tabs?
-# TODO: Check ornaments as played on YT by TeamRecorder
+# TODO: Check ornaments as played on YT by TeamRecorder https://www.youtube.com/watch?v=vydCZ-HosQc
 # TODO: Check if 'delay=delay2beatUpdate(beatUpdate)' serves a purpose in 'def setBeatUpdate()'
-# BUG:  Cannot enter f# in windows
 # BUG : Repeats in abc (e.g. 55.abc) not processed correctly
 # BUG : Sometimes playing lets TWHelper believe we edited.... should we make a play only mode (disabling all editing)? 
 # TODO: replace .tb extension with .tab extension
 
+# BUG:  Cannot enter f# in MS Windows
+
+# TODO  README.md > does double click in windows on py file really start
 # TODO: Make mobile e.g. using Kivy (https://kivy.org/)
 # TODO: Make new linux distributable
 # TODO: Make windows installer
 
+# DONE: Toggle key to make cursor advance after new note is entered of stay (added indicator to cursor)
+# DONE: play note on entering new / editing existing note
+# DONE: using keyboard moving one row below, wil play all notes from 0 to new note instead of only new note under cursor
+# DONE: cursor does not reset to beat 0 on load
+# DONE: songlistWin is always on top, instead it follows window order of TWHelper itself
 # DONE: load from full visible list of all available tb and abc files
 #       seperator between abc and tab files
 # DONE: load at % of toolbar (so users can set zoom once at startup to accomodate for their screen width) 
@@ -1044,7 +1046,7 @@ def saveFile():
     # open filedialog
     rep = filedialog.asksaveasfile(                  # open dialog so user can select file
                                         parent=win,
-                                        initialdir=tabdir,
+                                        initialdir=lastdir,
                                         initialfile=cfilename,
                                         defaultextension=".tb",
                                         filetypes=[
@@ -1094,6 +1096,7 @@ def loadFile():
 
     # store lastdir
     lastdir= os.path.dirname(scriptpath) 
+    print (f"{lastdir=}")
     lasttype=scriptpath[-3:]
 
     # check if file is of valid type/extension
@@ -1119,6 +1122,7 @@ def loadFile():
     print (f"Loaded:{scriptpath}")
 
 def loadFromSonglist(scriptpath,autosize,autoload):
+    global beatCursor
     ext=scriptpath[-3:]
     try:
         if ext=='abc': 
@@ -1518,11 +1522,12 @@ def drawBar(beat,dur,noteId,noteStyle='',tabColor='blue',tabCol=0,tabRow=0,tabLi
 # draw all bars and calling drawBar for each one
 cursorBar=None
 cursorBar2=None
+cursorAutoAdv=None
 oldOffsets=[0,0]
 oldBeatsize=0
 inDrawBars=False
 def drawBars(force=False):
-    global xOffset,yOffset,cursorBar,cursorBar2,oldOffsets,oldBeatsize,inDrawBars
+    global xOffset,yOffset,cursorBar,cursorBar2,oldOffsets,oldBeatsize,inDrawBars,cursorAutoAdv
     # prevent double draws, which mainly occur on window resize
     if inDrawBars and not force: return
     inDrawBars=True
@@ -1604,11 +1609,18 @@ def drawBars(force=False):
     #print (f"{x}:{cursorBar}")
     if (cursorBar) : win.cvs.delete(cursorBar)
     if (cursorBar2): win.cvs.delete(cursorBar2)
+    if (cursorAutoAdv): win.cvs.delete(cursorAutoAdv)
     if not playing:
         dashPatt=(1,2)
         cursorBar2=win.cvs.create_rectangle(x+1,y,x+w,y+h,width=1,outline='red',dash=dashPatt) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
     cursorBar=win.cvs.create_line(x,y,x,y+h,fill='red',width=3) # https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/create_line.html
-
+    if autoAdvance and not playing:
+        cursorAutoAdv=[]
+        stepsize=beatsize/3
+        dx=w % (int(stepsize)) # offset to make sure last line ends precisely at right of cursor 
+        dy=int(beatsize/3)
+        cursorAutoAdv=win.cvs.create_line(x+w,y-stepsize-dy,x+w+stepsize,y-dy,x+w,y+stepsize-dy, width=2,fill='red')
+ 
     # check if we need to scroll (window should have room for minimal 2 rows)
     if playing and nrRepeats<=1: # only scroll on last repeat
         linMode=win.varLinear.get()   
@@ -2453,10 +2465,10 @@ def saveScreenshot(saveAllTabs=True):
 
 # handle all key presses of user    
 oldTabs=[]
+autoAdvance=True
 def keypress(event):
-    global beatCursor, tabs,backColor,firstPlayBeat
+    global beatCursor, tabs,backColor,firstPlayBeat, prevCursorPlay,autoAdvance
 
-    #print (event)
     key=event.keysym
     char=event.char
     state=event.state
@@ -2495,6 +2507,7 @@ def keypress(event):
             beatCursor=beat
         keepBeatVisible()
         drawBars()
+        prevCursorPlay=beatCursor-1
         doCursorPlay()
         firstPlayBeat=beatCursor
         #print (f"left  @ {beatCursor=} {pidx=}")
@@ -2509,6 +2522,7 @@ def keypress(event):
         else: beatCursor=beat        
         keepBeatVisible()
         drawBars()
+        prevCursorPlay=beatCursor-1
         doCursorPlay()
         firstPlayBeat=beatCursor
         #print (f"right {beatCursor=} {nidx=}")
@@ -2518,6 +2532,7 @@ def keypress(event):
             if tabRow==curRow-1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
         keepBeatVisible()
         drawBars()
+        prevCursorPlay=beatCursor-1
         doCursorPlay()
         firstPlayBeat=beatCursor
     elif key in ('Down','KP_Down'): # move cursor
@@ -2526,6 +2541,7 @@ def keypress(event):
             if tabRow==curRow+1 and curCol>=tabCol and curCol<(tabCol+dur): beatCursor=beat
         keepBeatVisible()
         drawBars()
+        prevCursorPlay=beatCursor-1
         doCursorPlay()
         firstPlayBeat=beatCursor
 
@@ -2554,7 +2570,8 @@ def keypress(event):
             if beatCursor>=beat and beatCursor<(beat+dur):
                 oldTabs.append(copy.deepcopy(tabs))
                 tabs[idx][1]=char
-                beatCursor+=dur  
+                if autoAdvance:
+                    beatCursor+=dur  
                 # make sure we have a rest so we can keep entering notes
                 if tabs[-1][1]!='_':
                     beat,name,dur,style,tabColor, tabCol,tabRow,tabLin=tabs[-1]
@@ -2562,7 +2579,13 @@ def keypress(event):
                     tabs.append(newTab)    
                 calcTabDims()          
                 drawBars(True)
+                prevCursorPlay=beatCursor-2
+                doCursorPlay()
                 return
+    # autoadvance note toggle
+    elif key=='Scroll_Lock':
+        autoAdvance= not autoAdvance
+        drawBars(True)
 
     # modify style/decorator
     elif char in decoIDs or key=='Escape':
@@ -2881,11 +2904,25 @@ def showSonglist():
 
 # on resize window store new size of window
 def resizeWindow(event):
-    global winDims
+    global winDims,winSonglist
     winDims=[win.winfo_width(),win.winfo_height()]
     for cCB in win.childResizeCallbacks:
         win.after(5,cCB())
-        #cCB()
+
+def on_mousedown(event):
+    mouse_begin_begin=[event.x,event.y]
+    #print (f"{mouse_begin_begin=}")
+
+def on_mouseup(event):
+    mouse_end_begin=[event.x,event.y]
+    #print (f"{mouse_end_begin=}")
+
+def on_focus(event):
+    win.lift()
+    if winSonglist:
+        winSonglist.lift()
+    if winHelpdock:
+        winHelpdock.lift()
 
 # handle user closing window
 def closeWindow():
@@ -3192,7 +3229,11 @@ def initWindow():
     win.bind("<MouseWheel>",scrollwheel)# for windows/macos
     win.bind("<Button-3>", resetView)
     win.bind("<Configure>", resizeWindow) #
+    win.bind("<FocusIn>", on_focus)
+    win.bind("<ButtonPress-1>", on_mousedown)
+    win.bind("<ButtonRelease-1>", on_mouseup)
     win.protocol("WM_DELETE_WINDOW", closeWindow) # custom function which sets winDestroyed so we can check state of win
+
 
 def loadDefaultTune():
     # wait for splash to disappear
