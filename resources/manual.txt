@@ -48,46 +48,56 @@ Right Button    : Reset page view
 
 <b>Keyboard - Edit Song</b>
 <code>
-Arrow keys      : Move beat cursor and plays note
-[Tab]           : Play from position of beat cursor (or pause)
-q               : Stop song 
-w               : Pause song
-r               : Autosize window and zoom level
+<u><i>Navigate/play</i></u>
+ Arrow keys      : Move beat cursor 
+ [Tab]           : Play/Resume
+ q               : Stop song 
+ w               : Pause/Resume 
+ r               : Autosize/-zoom 
 
-d,e,f,g,a,b     : Change note to 1st/low-octave d..f#..b
-c,D,E,F,G,A,B   : Change note to 2nd/high-octave c#..f#..b
-C               : Change note to 3td-octave c#
-[Alt]-d,f,g,a,c : Change note to 1st/low-octave d#,f,g#,a#,c
-[Alt]-D,F,G,A,C : Change note to 2nd/high-octave d#,f,g#,a#,c
-_               : Change note at cursor to rest
-1...9           : Change length of note
-[Alt]-3         : Change to length of third note (2/3 beat)
-> , < , ^ , =   : Add decorator tap/strike ↴, cut ⮤, roll ⮤↴, slide ⇒ 
-@ , ~ , * , :   : Add tongue ᳅, vibrato ∿, staccato * , legato/tenuto -
-[Escape]        : Remove decorator
-{ , }           : Insert start ┃▏or end │▎for group of notes to repeat
-                  Use [Ctrl]/[Alt] for 2x,3x.
-?               : Mark last notes to repeat one less time
-[Shift] { , }   : Insert start ┃▏or end │▎after cursor.                  
-[Del]           : Remove note or repeat start/end at cursor
-[Shift][Del]    : Remove note or repeat start/end after cursor
-[Ctrl]-z        : Undo last delete
-[Ins]           : Insert note space (rest) before cursor
-[Shift][Ins]    : Insert note space (rest) after cursor
+<u><i>Notes</i></u>
+ d,e,f,g,a,b     : 1st oct d..f#..b
+ c,D,E,F,G,A,B   : 2nd oct c#..f#..b
+ C               : 3td-oct c#
+ [Alt]-d,f,g,a,c : 1st-oct d#,f,g#,a#,c
+ [Alt]-D,F,G,A,C : 2nd-oct d#,f,g#,a#,c
+ 1...9           : length of note
+ _               : change note to rest
+ [Ins]           : Insert rest before
+ [Shift][Ins]    : Insert rest after
+ [Alt]-3         : set length 2/3 beat
+ [Scroll Lock]   : autoadvance note
 
-[F1]..[F10]     : Change color of tab at beat cursor
-[Shift][Fx]     : Change background color of page
-[Space],|       : Add space or vertical line
-[Backspace]     : Remove space or vertical line if one is found just 
-                  before cursor
-[Return]        : Break tabs into two lines before cursor
-[Shift][Return] : Break tabs into two lines after cursor
-[Backspace]     : Join two lines if beat cursor is at first tab of line
+<u><i>Decorators</i></u>
+ > , < , ^ , =   : tap/strike ↴, cut ⮤,
+                   roll ⮤↴, slide ⇒ 
+ @ , ~ , * , :   : tongue ᳅, vibrato ∿, 
+                   staccato *, legato -
+ [Escape]        : Remove decorator
 
-p               : Save screenshot of tabs as visible on screen to file  
-                  with name of tab file and extension .png
-[shift]-p       : Save screenshot of ALL tabs with name of tab file and 
-                  extension .png
+<u><i>Repeats</i></u>
+ { , }           : start/end repeat
+                   [Ctrl]/[Alt] 2x,3x.
+                   [Shft] after cursor  
+ ?               : Note repeat 1 less 
+
+<u><i>Delete</i></u>
+ [Del]           : Remove note/repeat 
+ [Shift][Del]    : Remove after cursor
+ [Ctrl]-z        : Undo last delete 
+
+<u><i>Visuals</i></u>
+ [F1]..[F10]     : Tab color
+ [Shift][Fx]     : Page color
+ [Space],|       : Visual space/v.line
+ [Backspace]     : Remove space/v.line
+ [Return]        : Break line before 
+ [Shift][Return] : Break line after 
+ [Backspace]     : Join if at 1st tab
+
+<u><i>Export</i></u>
+ p               : Screenshot vis. tabs  
+ [shift]-p       : Screenshot ALL tabs 
 </code>
 
 <u>Remarks</u>:
@@ -95,6 +105,7 @@ p               : Save screenshot of tabs as visible on screen to file
   will be appended to ensure you keep enough empty note space 
   to enter new notes.
 - Title will be changed when saving the file (to filename)
+- Repeat start and end should be on same row of tabs
 </code>
 
 <hr>

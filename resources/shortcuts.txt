@@ -29,6 +29,7 @@ Right Button    : Reset page view
  [Ins]           : Insert rest before
  [Shift][Ins]    : Insert rest after
  [Alt]-3         : set length 2/3 beat
+ [Scroll Lock]   : autoadvance note
 
 <u><i>Decorators</i></u>
  > , < , ^ , =   : tap/strike ↴, cut ⮤,
